@@ -1,11 +1,11 @@
 package com.fivestarhotel.users;
 
 public abstract class User {
-    protected int id;
-    protected String fname;
-    protected String lname;
-    protected String email;
-    protected String password;
+    private int id;
+    private String fname;
+    private String lname;
+    private String email;
+    private String password;
 
     public User(int id, String fname, String lname, String email, String password) {
         this.id = id;
