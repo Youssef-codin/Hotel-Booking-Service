@@ -1,4 +1,4 @@
-package com.5starHotel;
+package com.fivestarHotel;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
