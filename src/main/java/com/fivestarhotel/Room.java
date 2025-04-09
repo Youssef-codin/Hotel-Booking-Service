@@ -1,3 +1,8 @@
+/*
+ * check availability logic needs
+ * to be done through a db query
+ */
+
 package com.fivestarhotel;
 
 public class Room {
