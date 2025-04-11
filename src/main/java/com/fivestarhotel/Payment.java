@@ -23,4 +23,5 @@ public class Payment{
             System.out.println("Processing payment...");
             isProcessed = true;
         }
+    }
 }
