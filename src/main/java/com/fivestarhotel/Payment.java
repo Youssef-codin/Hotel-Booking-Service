@@ -8,8 +8,8 @@ public class Payment{
         DEBIT_CARD,
         ONLINE_PAYMENT
     }
-    private final double amount;
-    private final PaymentMethod method;
+    private double amount;
+    private PaymentMethod method;
     private boolean isProcessed;
 
     public Payment(double amount, PaymentMethod method){
