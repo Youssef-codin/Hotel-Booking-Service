@@ -1,4 +1,5 @@
-package com.fivestarhotel;
+package com.fivestarhotel.BookingSystem;
+import com.fivestarhotel.Room;
 import com.fivestarhotel.users.Customer;
 
 

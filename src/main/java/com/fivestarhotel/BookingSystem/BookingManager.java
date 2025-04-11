@@ -1,7 +1,8 @@
-package com.fivestarhotel;
+package com.fivestarhotel.BookingSystem;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fivestarhotel.Room;
 import com.fivestarhotel.users.Customer;
 
 public class BookingManager {
