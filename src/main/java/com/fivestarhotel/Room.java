@@ -4,8 +4,6 @@
  */
 
 package com.fivestarhotel;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Room {
 
@@ -19,7 +17,7 @@ public class Room {
     private int floor;
     public RoomType roomType;
     private int rate;
-    public List<Room> rooms;
+    // public List<Room> rooms;
     private boolean isOccupied;
     
 
@@ -31,7 +29,7 @@ public class Room {
         this.roomType = type;
         this.rate = rate;
         this.isOccupied = false;
-        this.rooms = new ArrayList<>();
+        // this.rooms = new ArrayList<>();
 
         
     }
@@ -52,11 +50,11 @@ public class Room {
 
     public void addRoom(Room room) {
 
-        if (this.rooms == null) {
-            this.rooms = new ArrayList<>();
-        }
-        this.rooms.add(room);
-        System.out.println("Room added: " + room.getNum());
+        // if (this.rooms == null) {
+        //     this.rooms = new ArrayList<>();
+        // }
+        // this.rooms.add(room);
+        // System.out.println("Room added: " + room.getNum());
 
     }
     
