@@ -15,9 +15,11 @@ public class Room {
 
     private int number;
     private int floor;
-    private RoomType roomType;
+    public RoomType roomType;
     private int rate;
-    private boolean status;
+    private boolean isOccupied;
+    
+
 
     public Room(int number, int floor, RoomType type, int rate, boolean status) {
 
@@ -25,9 +27,30 @@ public class Room {
         this.floor = floor;
         this.roomType = type;
         this.rate = rate;
-        this.status = status;
+        this.isOccupied = false;
+
+        
     }
 
+    public void occupy(){
+         isOccupied = true; 
+        }
+
+
+    public void notoccupied(){
+         isOccupied = false; 
+        }
+
+    public boolean isOccupied(){
+         return isOccupied;
+         }
+
+
+    public void addRoom(Room room) {
+
+
+    }
+    
     public int getNum() {
         return number;
     }
@@ -58,13 +81,5 @@ public class Room {
 
     public void setRate(int newRate) {
         rate = newRate;
-    }
-
-    public boolean getStatus() {
-        return status;
-    }
-
-    public void setStatus(boolean newStatus) {
-        status = newStatus;
     }
 }
