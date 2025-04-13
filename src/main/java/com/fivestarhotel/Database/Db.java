@@ -14,14 +14,16 @@ public class Db {
     private static int numConn = 0;
 
     Connection connection = null;
-    public static void connect(String newUser, String newPassword) {
+    public static Connection connect(String newUser, String newPassword) {
         user = newUser;
         password = newPassword;
         try {
             Connection connection = DriverManager.getConnection(URL, user, password);
             System.out.println("Connection Successful!");
+            return connection;
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
     }
     public static Connection connect() {
