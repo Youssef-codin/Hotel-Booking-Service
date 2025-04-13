@@ -5,13 +5,6 @@
 
 package com.fivestarhotel;
 
-import com.fivestarhotel.Database.Db;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 public class Room {
 
     public enum RoomType {
@@ -32,16 +25,16 @@ public class Room {
         this.number = number;
         this.floor = floor;
         roomType = type;
-        switch (type){
+        switch (type) {
             case SINGLE -> this.rate = srate;
             case DOUBLE -> this.rate = drate;
-            case SUITE -> this.rate = srate;
+            case SUITE -> this.rate = Srate;
         }
         this.isBooked = false;
     }
 
-    public static Room.RoomType convertStr(String roomType){
-        switch (roomType.toLowerCase()){
+    public static Room.RoomType convertStr(String roomType) {
+        switch (roomType.toLowerCase()) {
             case "single" -> {
                 return Room.RoomType.SINGLE;
             }
@@ -56,8 +49,9 @@ public class Room {
             }
         }
     }
-    public static String convertRm(RoomType roomType){
-        switch (roomType){
+
+    public static String convertRm(RoomType roomType) {
+        switch (roomType) {
             case SINGLE -> {
                 return "single";
             }
@@ -65,7 +59,7 @@ public class Room {
                 return "double";
             }
             case SUITE -> {
-                return "suite" ;
+                return "suite";
             }
             default -> {
                 return null;
@@ -98,7 +92,7 @@ public class Room {
     }
 
     public static int getRate(RoomType roomType) {
-        switch (roomType){
+        switch (roomType) {
             case SINGLE -> {
                 return srate;
             }
@@ -114,9 +108,9 @@ public class Room {
         }
     }
 
-    public static int getRate() {
+    public int getRate() {
         try {
-            switch (roomType){
+            switch (roomType) {
                 case SINGLE -> {
                     return srate;
                 }
@@ -130,14 +124,14 @@ public class Room {
                     return 0;
                 }
             }
-        } catch (NullPointerException e){
+        } catch (NullPointerException e) {
             System.err.println("Room Error: room doesn't exist.");
             return 0;
         }
     }
 
-    public static void setRate(RoomType roomType, int newRate){
-        switch (roomType){
+    public static void setRate(RoomType roomType, int newRate) {
+        switch (roomType) {
             case SINGLE -> srate = newRate;
             case DOUBLE -> drate = newRate;
             case SUITE -> Srate = newRate;

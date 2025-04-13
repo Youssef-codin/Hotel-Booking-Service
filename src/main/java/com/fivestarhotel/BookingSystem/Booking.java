@@ -1,7 +1,7 @@
 package com.fivestarhotel.BookingSystem;
+
 import com.fivestarhotel.Room;
 import com.fivestarhotel.users.Customer;
-
 
 public class Booking {
     public enum BookingStatus {
@@ -9,7 +9,7 @@ public class Booking {
         CONFIRMED,
         CANCELLED
     }
-    
+
     private Room room;
     private Customer customer;
     private BookingStatus status;
@@ -18,22 +18,26 @@ public class Booking {
         this.room = room;
         this.customer = customer;
         this.status = status;
-        
+
     }
 
     public Customer getCustomer() {
         return customer;
     }
+
     public void setStatus(BookingStatus status) {
-         this.status = status; 
-        }
+        this.status = status;
+    }
+
     public BookingStatus getStatus() {
-         return status; 
-        }
-    public Room getRoom() { 
-        return room; 
-        }
-    public void setRoom(Room room) { 
+        return status;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
         this.room = room;
     }
 

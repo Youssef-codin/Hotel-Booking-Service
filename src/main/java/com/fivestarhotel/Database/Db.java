@@ -1,4 +1,5 @@
 package com.fivestarhotel.Database;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -13,34 +14,32 @@ public class Db {
     public static Delete delete = new Delete();
     private static int numConn = 0;
 
-    Connection connection = null;
-    public static Connection connect(String newUser, String newPassword) {
+    protected static Connection connection = null;
+
+    public static void connect(String newUser, String newPassword) {
         user = newUser;
         password = newPassword;
         try {
-            Connection connection = DriverManager.getConnection(URL, user, password);
+            connection = DriverManager.getConnection(URL, user, password);
             System.out.println("Connection Successful!");
-            return connection;
         } catch (SQLException e) {
             e.printStackTrace();
-            return null;
         }
     }
-    public static Connection connect() {
-        if(!(numConn > 0)){
+
+    public static void connect() {
+        if (!(numConn > 0)) {
             System.out.println("Previously set username and password have been used, change them if necessary.");
         }
         try {
-            Connection connection = DriverManager.getConnection(URL, user, password);
+            connection = DriverManager.getConnection(URL, user, password);
             numConn++;
-            return connection;
         } catch (SQLException e) {
             e.printStackTrace();
-            if(e.getErrorCode() == 1045){
-                System.err.println("Invalid username or password, error code: " + e.getErrorCode() + "\nfix: add username and password parameters when connecting for the first time");
+            if (e.getErrorCode() == 1045) {
+                System.err.println("Invalid username or password, error code: " + e.getErrorCode()
+                        + "\nfix: add username and password parameters when connecting for the first time");
             }
-            return null;
         }
-
     }
 }
