@@ -22,7 +22,7 @@ public class Room {
 
     private int number;
     private int floor;
-    private static RoomType roomType;
+    private RoomType roomType;
     private int rate;
     private static int srate = 750, drate = 1200, Srate = 2200;
     private boolean isBooked;
@@ -35,7 +35,7 @@ public class Room {
         switch (type){
             case SINGLE -> this.rate = srate;
             case DOUBLE -> this.rate = drate;
-            case SUITE -> this.rate = Srate;
+            case SUITE -> this.rate = srate;
         }
         this.isBooked = false;
     }
@@ -72,6 +72,7 @@ public class Room {
             }
         }
     }
+
     public int getNum() {
         return number;
     }
