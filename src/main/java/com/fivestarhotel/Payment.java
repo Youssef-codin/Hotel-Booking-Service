@@ -1,18 +1,18 @@
 package com.fivestarhotel;
 
-
-public class Payment{
+public class Payment {
     public enum PaymentMethod {
         CASH,
         CREDIT_CARD,
         DEBIT_CARD,
         ONLINE_PAYMENT
     }
+
     private double amount;
     private PaymentMethod method;
     private boolean isProcessed;
 
-    public Payment(double amount, PaymentMethod method){
+    public Payment(double amount, PaymentMethod method) {
         this.amount = amount;
         this.method = method;
         this.isProcessed = false;

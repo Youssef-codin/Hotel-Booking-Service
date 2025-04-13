@@ -18,8 +18,6 @@ public class Room {
     public RoomType roomType;
     private int rate;
     private boolean isOccupied;
-    
-
 
     public Room(int number, int floor, RoomType type, int rate, boolean status) {
 
@@ -29,28 +27,24 @@ public class Room {
         this.rate = rate;
         this.isOccupied = false;
 
-        
     }
 
-    public void occupy(){
-         isOccupied = true; 
-        }
+    public void occupy() {
+        isOccupied = true;
+    }
 
+    public void notoccupied() {
+        isOccupied = false;
+    }
 
-    public void notoccupied(){
-         isOccupied = false; 
-        }
-
-    public boolean isOccupied(){
-         return isOccupied;
-         }
-
+    public boolean isOccupied() {
+        return isOccupied;
+    }
 
     public void addRoom(Room room) {
 
-
     }
-    
+
     public int getNum() {
         return number;
     }
