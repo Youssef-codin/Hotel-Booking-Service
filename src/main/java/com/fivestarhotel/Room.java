@@ -33,7 +33,6 @@ public class Room {
         this.floor = ((number - 1) / 100) + 1;
         roomType = type;
         this.isBooked = isBooked;
-        System.out.println(this.floor);
     }
 
     public static Room.RoomType convertStr(String roomType) {
