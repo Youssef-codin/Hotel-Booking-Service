@@ -21,8 +21,7 @@ public class App {
          * program
          * 
          */
-
-        Db.connect("root", "mimimi45");
+        Db.connect("root", "1234");
         ArrayList<Room> rooms = Db.select.getRooms();
         ArrayList<Room> updatedRooms = new ArrayList<Room>();
         for (int i = 0; i < Db.select.lastRoomNum(); i++) {
