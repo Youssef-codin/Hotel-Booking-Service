@@ -24,4 +24,12 @@ public class Payment {
             isProcessed = true;
         }
     }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public PaymentMethod getMethod() {
+        return method;
+    }
 }

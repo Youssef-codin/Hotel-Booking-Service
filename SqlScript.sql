@@ -66,7 +66,6 @@ CREATE TABLE IF NOT EXISTS HMSDB.room (
   room_number INT NOT NULL auto_increment,
   room_floor INT NOT NULL,
   room_type VARCHAR(45) NULL,
-  room_rate INT NULL,
   room_status boolean NULL,
   PRIMARY KEY (room_number))
 ENGINE = InnoDB;
@@ -142,8 +141,15 @@ CREATE TABLE IF NOT EXISTS HMSDB.room_log (
     FOREIGN KEY (room_number)
     REFERENCES HMSDB.room (room_number)
     ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+    ON UPDATE NO ACTION) ENGINE = InnoDB;
+
+-- -----------------------------------------------------
+-- Table rates
+-- -----------------------------------------------------
+CREATE TABLE HMSDB.rates (
+  room_type VARCHAR(45) PRIMARY KEY,
+  room_rate INT
+);
 
 
 SET SQL_MODE=@OLD_SQL_MODE;

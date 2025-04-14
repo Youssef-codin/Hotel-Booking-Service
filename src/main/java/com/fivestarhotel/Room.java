@@ -16,21 +16,16 @@ public class Room {
     private int number;
     private int floor;
     private RoomType roomType;
-    private int rate;
-    private static int srate = 750, drate = 1200, Srate = 2200;
+    private static int srate = 750, drate = 1200, Srate = 2200; // you can load the rates from the Db.select.loadRates()
     private boolean isBooked;
 
-    public Room(int number, int floor, RoomType type) {
+    public Room(int number, RoomType type) {
 
         this.number = number;
-        this.floor = floor;
+        this.floor = ((number - 1) / 100) + 1;
         roomType = type;
-        switch (type) {
-            case SINGLE -> this.rate = srate;
-            case DOUBLE -> this.rate = drate;
-            case SUITE -> this.rate = Srate;
-        }
         this.isBooked = false;
+        System.out.println(this.floor);
     }
 
     public static Room.RoomType convertStr(String roomType) {
@@ -105,28 +100,6 @@ public class Room {
             default -> {
                 return 0;
             }
-        }
-    }
-
-    public int getRate() {
-        try {
-            switch (roomType) {
-                case SINGLE -> {
-                    return srate;
-                }
-                case DOUBLE -> {
-                    return drate;
-                }
-                case SUITE -> {
-                    return Srate;
-                }
-                default -> {
-                    return 0;
-                }
-            }
-        } catch (NullPointerException e) {
-            System.err.println("Room Error: room doesn't exist.");
-            return 0;
         }
     }
 
