@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Db {
+
     private static final String URL = "jdbc:mysql://localhost:3306/HMSDB";
     private static String user = "root";
     private static String password = "1234";

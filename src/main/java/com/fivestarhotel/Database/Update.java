@@ -11,8 +11,8 @@ public class Update {
     public void resetIncrement() {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("ALTER TABLE room AUTO_INCREMENT = 1;");
-            int columns = ps.executeUpdate();
-            System.out.println("updated " + columns + " columns.");
+            int rows = ps.executeUpdate();
+            System.out.println("updated " + rows + " rows.");
 
         } catch (SQLException e) {
             System.err.println("Connection error: Can't connect to server");
@@ -26,8 +26,8 @@ public class Update {
             ps.setInt(1, newRate);
             ps.setString(2, Room.convertRm(type));
 
-            int columns = ps.executeUpdate(); // gets the num of columns updated
-            System.out.println("updated " + columns + " columns.");
+            int rows = ps.executeUpdate(); // gets the num of rows updated
+            System.out.println("updated " + rows + " rows.");
 
         } catch (SQLException e) {
             System.err.println(e.getErrorCode());
