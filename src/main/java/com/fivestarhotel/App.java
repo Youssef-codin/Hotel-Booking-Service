@@ -1,5 +1,8 @@
 package com.fivestarhotel;
 
+import com.fivestarhotel.Database.Db;
+import com.fivestarhotel.Room.RoomType;
+
 public class App {
     public static void main(String[] args) {
 
@@ -11,6 +14,7 @@ public class App {
          * 
          * Db.connect("Enter username here (probably is just root)",
          * "Enter password here");
+         * 
          */
 
     }
