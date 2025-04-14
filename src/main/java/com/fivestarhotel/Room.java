@@ -25,6 +25,14 @@ public class Room {
         this.floor = ((number - 1) / 100) + 1;
         roomType = type;
         this.isBooked = false;
+    }
+
+    public Room(int number, RoomType type, boolean isBooked) {
+
+        this.number = number;
+        this.floor = ((number - 1) / 100) + 1;
+        roomType = type;
+        this.isBooked = isBooked;
         System.out.println(this.floor);
     }
 
@@ -117,5 +125,13 @@ public class Room {
 
     public void setStatus(boolean newStatus) {
         isBooked = newStatus;
+    }
+
+    public void getData() {
+        System.out.println("number: " + this.number);
+        System.out.println("floor: " + this.floor);
+        System.out.println("type: " + this.roomType);
+        System.out.println("booked: " + this.isBooked);
+
     }
 }

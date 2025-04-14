@@ -14,19 +14,25 @@ public class Select {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM room WHERE room_number = ?");
             ps.setInt(1, roomNumber);
+
             ResultSet result = ps.executeQuery();
+
             if (result.next()) {
                 System.out.println("Room " + roomNumber + " Found.");
                 return new Room(result.getInt("room_number"),
-                        Room.convertStr(result.getString("room_type")));
+                        Room.convertStr(result.getString("room_type")), result.getBoolean("room_status"));
+
             } else {
                 System.err.println("Query-Error: Room Not Found");
                 return null;
+
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println(e.getErrorCode());
             return null;
+
         }
     }
 
@@ -56,7 +62,8 @@ public class Select {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM room");
             ResultSet result = ps.executeQuery();
             while (result.next()) {
-                rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type"))));
+                rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
+                        result.getBoolean("room_status")));
             }
             return rooms;
         } catch (SQLException e) {
