@@ -20,7 +20,5 @@ public class App {
          * 
          */
 
-        Db.connect("root", "yoyo8080");
-        Db.select.getRoom(1);
     }
 }
