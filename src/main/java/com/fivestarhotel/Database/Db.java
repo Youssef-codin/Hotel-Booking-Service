@@ -23,6 +23,7 @@ public class Db {
         try {
             DriverManager.getConnection(URL, user, password);
             System.out.println("Connection Successful!");
+            numConn++;
         } catch (SQLException e) {
             e.printStackTrace();
         }
