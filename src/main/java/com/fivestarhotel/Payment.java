@@ -19,6 +19,7 @@ public class Payment {
     }
 
     public void process() {
+
         if (!isProcessed) {
             System.out.println("Processing payment...");
             isProcessed = true;

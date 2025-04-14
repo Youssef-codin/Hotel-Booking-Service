@@ -14,6 +14,9 @@ public class App {
          * 
          * Db.connect("Enter username here (probably is just root)",
          * "Enter password here");
+         *
+         * Use Db.select.loadRates(); to load the latest rates from the DB to the
+         * program
          * 
          */
 

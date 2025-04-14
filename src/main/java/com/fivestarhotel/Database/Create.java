@@ -33,7 +33,7 @@ public class Create {
                 updates = ps.executeUpdate();
 
             }
-            System.out.println("Added " + updates + " column");
+            System.out.println("Added " + updates + " rows");
             return true;
 
         } catch (SQLException e) {
@@ -52,7 +52,7 @@ public class Create {
             ps.setString(3, Room.convertRm(roomType));
             ps.setBoolean(4, false);
             updates = ps.executeUpdate();
-            System.out.println("Inserted " + updates + " column");
+            System.out.println("Inserted " + updates + " rows");
 
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062) {
@@ -73,7 +73,7 @@ public class Create {
             ps.setString(3, Room.convertRm(roomType));
             ps.setBoolean(4, false);
             updates = ps.executeUpdate();
-            System.out.println("overrode " + updates + " column");
+            System.out.println("overrode " + updates + " rows");
 
         } catch (SQLException e) {
             System.err.println("SQL: Error");
@@ -104,7 +104,7 @@ public class Create {
 
                 }
             }
-            System.out.println("Added " + updates + " columns");
+            System.out.println("Added " + updates + " rows");
             return true;
 
         } catch (SQLException e) {
@@ -123,8 +123,8 @@ public class Create {
             ps.setString(1, room_type);
             ps.setInt(2, newRate);
 
-            int columns = ps.executeUpdate();
-            System.out.println("added " + columns + " columns.");
+            int rows = ps.executeUpdate();
+            System.out.println("added " + rows + " rows.");
 
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062) {

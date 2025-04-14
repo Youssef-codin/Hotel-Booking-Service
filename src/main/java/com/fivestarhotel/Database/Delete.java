@@ -15,8 +15,8 @@ public class Delete {
         } else {
             try (Connection conn = Db.connect()) {
                 PreparedStatement ps = conn.prepareStatement("DELETE FROM " + tableName);
-                int columns = ps.executeUpdate();
-                System.out.println("deleted" + columns + " columns.");
+                int rows = ps.executeUpdate();
+                System.out.println("deleted" + rows + " rows.");
 
             } catch (SQLException e) {
                 System.err.println("Connection error: Can't connect to server");
@@ -29,8 +29,8 @@ public class Delete {
             PreparedStatement ps = conn.prepareStatement("DELETE FROM rates WHERE room_type = ?");
             ps.setString(1, Room.convertRm(type));
 
-            int columns = ps.executeUpdate();
-            System.out.println("deleted" + columns + " columns.");
+            int rows = ps.executeUpdate();
+            System.out.println("deleted" + rows + " rows.");
 
         } catch (SQLException e) {
             System.err.println(e.getErrorCode());
