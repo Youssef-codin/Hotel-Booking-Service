@@ -18,8 +18,10 @@ public class Db {
     protected static String tables = "admin|customer|receptionist|room|booking|billing|room_log";
 
     public static void connect(String newUser, String newPassword) {
+
         user = newUser;
         password = newPassword;
+
         try {
             DriverManager.getConnection(URL, user, password);
             System.out.println("Connection Successful!");
