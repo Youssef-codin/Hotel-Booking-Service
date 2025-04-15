@@ -24,7 +24,5 @@ public class App {
          * 
          */
 
-        Db.connect("root", "yoyo8080");
-        Db.update.roomStatus(909, true);
     }
 }
