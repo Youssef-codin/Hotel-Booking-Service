@@ -16,11 +16,30 @@ public class Delete {
             try (Connection conn = Db.connect()) {
                 PreparedStatement ps = conn.prepareStatement("DELETE FROM " + tableName);
                 int rows = ps.executeUpdate();
-                System.out.println("deleted" + rows + " rows.");
+                System.out.println("deleted " + rows + " rows.");
 
             } catch (SQLException e) {
                 System.err.println("Connection error: Can't connect to server");
             }
+        }
+    }
+
+    public void room(int roomNum) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM room WHERE room_number = ?");
+            ps.setInt(1, roomNum);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Room number not found, didn't delete anything");
+            } else {
+                System.out.println("deleted " + rows + " rows.");
+
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
         }
     }
 
@@ -30,7 +49,7 @@ public class Delete {
             ps.setString(1, Room.convertRm(type));
 
             int rows = ps.executeUpdate();
-            System.out.println("deleted" + rows + " rows.");
+            System.out.println("deleted " + rows + " rows.");
 
         } catch (SQLException e) {
             System.err.println(e.getErrorCode());

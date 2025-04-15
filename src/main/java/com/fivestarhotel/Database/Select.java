@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 public class Select {
     public Room getRoom(int roomNumber) {
+
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM room WHERE room_number = ?");
             ps.setInt(1, roomNumber);
@@ -36,6 +37,94 @@ public class Select {
         }
     }
 
+    public ArrayList<Room> getRooms() {
+        ArrayList<Room> rooms = new ArrayList<>();
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM room");
+            ResultSet result = ps.executeQuery();
+            while (result.next()) {
+                rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
+                        result.getBoolean("room_status")));
+            }
+
+            return rooms;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+        }
+    }
+
+    public ArrayList<Room> getRooms(RoomType type) {
+        ArrayList<Room> rooms = new ArrayList<>();
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM room WHERE room_type = ?");
+            ps.setString(1, Room.convertRm(type));
+            ResultSet result = ps.executeQuery();
+
+            while (result.next()) {
+                rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
+                        result.getBoolean("room_status")));
+            }
+
+            return rooms;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+        }
+    }
+
+    public ArrayList<Room> getRooms(boolean status) {
+
+        ArrayList<Room> rooms = new ArrayList<>();
+
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM room WHERE room_status = ?");
+            ps.setBoolean(1, status);
+
+            ResultSet result = ps.executeQuery();
+            while (result.next()) {
+                rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
+                        result.getBoolean("room_status")));
+            }
+
+            return rooms;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+        }
+    }
+
+    public ArrayList<Room> getRooms(RoomType type, boolean status) {
+
+        ArrayList<Room> rooms = new ArrayList<>();
+
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn
+                    .prepareStatement("SELECT * FROM room WHERE room_status =  ? AND room_type = ?");
+            ps.setBoolean(1, status);
+            ps.setString(2, Room.convertRm(type));
+            ResultSet result = ps.executeQuery();
+
+            while (result.next()) {
+                rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
+                        result.getBoolean("room_status")));
+            }
+
+            return rooms;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+        }
+    }
+
     public ArrayList<Room> getRooms(int from, int to) {
         ArrayList<Room> rooms = new ArrayList<>();
         try (Connection conn = Db.connect()) {
@@ -56,20 +145,36 @@ public class Select {
         }
     }
 
-    public ArrayList<Room> getRooms() {
-        ArrayList<Room> rooms = new ArrayList<>();
+    public int countRooms() {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM room");
-            ResultSet result = ps.executeQuery();
-            while (result.next()) {
-                rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
-                        result.getBoolean("room_status")));
-            }
-            return rooms;
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM room");
+
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return rs.getInt(1);
+
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println(e.getErrorCode());
-            return null;
+            System.err.println(e.getErrorCode());
+            return -1;
+
+        }
+    }
+
+    public int countRooms(RoomType type) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM room WHERE room_type = ?");
+            ps.setString(1, Room.convertRm(type));
+
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return rs.getInt(1);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
+            return -1;
+
         }
     }
 
