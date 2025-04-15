@@ -14,6 +14,8 @@ public class App {
          * START BY CONNECTING TO YOUR OWN DATABASE SERVER, Use Db.connect() and add
          * your username and password
          * 
+         * Afterwards use Db.select.loadRates(); to load in the rates from the database
+         *
          * Db.connect("Enter username here (probably is just root)",
          * "Enter password here");
          *
@@ -21,14 +23,8 @@ public class App {
          * program
          * 
          */
-        Db.connect("root", "1234");
-        ArrayList<Room> rooms = Db.select.getRooms();
-        ArrayList<Room> updatedRooms = new ArrayList<Room>();
-        for (int i = 0; i < Db.select.lastRoomNum(); i++) {
-            Room room = rooms.get(i);
-            room.setStatus(true);
-            updatedRooms.add(room);
-        }
-        Db.update.rooms(updatedRooms);
+
+        Db.connect("root", "yoyo8080");
+        Db.update.roomStatus(909, true);
     }
 }

@@ -9,10 +9,10 @@ public class Db {
     private static final String URL = "jdbc:mysql://localhost:3306/HMSDB";
     private static String user = "root";
     private static String password = "1234";
-    public static Select select = new Select();
-    public static Create create = new Create();
-    public static Update update = new Update();
-    public static Delete delete = new Delete();
+    public static final Select select = new Select();
+    public static final Create create = new Create();
+    public static final Update update = new Update();
+    public static final Delete delete = new Delete();
     private static int numConn = 0;
 
     protected static String tables = "admin|customer|receptionist|room|booking|billing|room_log";
@@ -37,6 +37,7 @@ public class Db {
         }
         try {
             numConn++;
+
             return DriverManager.getConnection(URL, user, password);
         } catch (SQLException e) {
             e.printStackTrace();

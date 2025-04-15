@@ -127,6 +127,7 @@ public class Room {
     }
 
     public void getData() {
+        System.out.println("-------------");
         System.out.println("number: " + this.number);
         System.out.println("floor: " + this.floor);
         System.out.println("type: " + this.roomType);
