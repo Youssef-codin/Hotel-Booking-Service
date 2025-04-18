@@ -2,6 +2,7 @@ package com.fivestarhotel;
 
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Room.RoomType;
+import com.fivestarhotel.users.Customer;
 
 import java.util.ArrayList;
 
@@ -24,7 +25,10 @@ public class App {
          * 
          */
 
-        Db.connect("root", "yoyo8080");
-        Db.update.roomStatus(909, true);
+        Customer c = new Customer(101, "joe", "loe", "joemo@gmail.com", "1234", "012304", "1234 street", 500);
+        // new Customer(customer_id, customer_fname, customer_lname, customer_email,
+        // password, phone, address, balance)
+        Payment p = new Payment(1000, c);
+        p.process(100);
     }
 }
