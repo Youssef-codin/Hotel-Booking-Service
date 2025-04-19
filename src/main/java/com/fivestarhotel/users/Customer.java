@@ -3,7 +3,7 @@ package com.fivestarhotel.users;
 public class Customer extends User {
     private String phone;
     private String address;
-    private int balance;
+    private double balance;
 
     public Customer(int customer_id, String customer_fname, String customer_lname, String customer_email,
             String password, String phone, String address, int balance) {
@@ -34,11 +34,11 @@ public class Customer extends User {
         address = addy;
     }
 
-    public int getBalance() {
+    public double getBalance() {
         return balance;
     }
 
-    public void setBalance(int bal) {
+    public void setBalance(double bal) {
         balance = bal;
 
     }

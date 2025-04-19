@@ -1,36 +1,66 @@
 package com.fivestarhotel;
 
+import com.fivestarhotel.users.Customer;
+
 public class Payment {
-    public enum PaymentMethod {
-        CASH,
-        CREDIT_CARD,
-        DEBIT_CARD,
-        ONLINE_PAYMENT
+
+    private double balance;
+    private double amountDue;
+
+    public Payment(double bill, Customer customer) {
+        this.amountDue = bill;
+        this.balance = customer.getBalance();
+
     }
 
-    private double amount;
-    private PaymentMethod method;
-    private boolean isProcessed;
-
-    public Payment(double amount, PaymentMethod method) {
-        this.amount = amount;
-        this.method = method;
-        this.isProcessed = false;
+    public boolean process(double amountPaid) {
+        double usedFromBalance = Math.min(balance, amountDue);
+        amountDue -= usedFromBalance;
+        balance -= usedFromBalance;
+        return applyPayment(amountPaid);
     }
 
-    public void process() {
+    public boolean directPay(double amountPaid) {
+        return applyPayment(amountPaid);
+    }
 
-        if (!isProcessed) {
-            System.out.println("Processing payment...");
-            isProcessed = true;
+    private boolean applyPayment(double amountPaid) {
+        amountDue -= amountPaid;
+
+        if (amountDue == 0) {
+            System.out.println("you're good to go.");
+            return true;
+
+        } else if (amountDue < 0) {
+            double refund = processHelper(amountDue);
+            balance += refund;
+            // update db
+            System.out.println("Adding " + refund + " to your balance!");
+            return true;
+
+        } else {
+            System.err.println("you still need to pay: " + processHelper(amountDue));
+            return false;
         }
     }
 
-    public double getAmount() {
-        return amount;
+    private double processHelper(double i) {
+        return Math.round(Math.abs(i) * 100.0) / 100.0;
     }
 
-    public PaymentMethod getMethod() {
-        return method;
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+
+    public double getAmountDue() {
+        return amountDue;
+    }
+
+    public void setAmountDue(double amountDue) {
+        this.amountDue = amountDue;
     }
 }
