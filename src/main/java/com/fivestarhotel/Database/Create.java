@@ -1,11 +1,14 @@
 package com.fivestarhotel.Database;
 
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 public class Create {
 
@@ -177,4 +180,72 @@ public class Create {
             }
         }
     }
+
+    // Booking stuff wa kda b2a 
+
+
+    public void addBooking(int bookingId, int roomNumber, int customer_id,int receptionist_id, String checkInDate, String checkOutDate) {
+    Connection conn = null;
+    try {
+        conn = Db.connect();
+        conn.setAutoCommit(false); 
+
+        PreparedStatement check = conn.prepareStatement(
+            "SELECT room_status FROM room WHERE room_number = ?"
+        );
+        check.setInt(1, roomNumber);
+        ResultSet rs = check.executeQuery();
+
+        if (!rs.next()) {
+            System.out.println("Room number " + roomNumber + " does not exist.");
+            return;
+        }
+
+        boolean isBooked = rs.getBoolean("room_status");
+        if (isBooked) {
+            System.out.println("Room " + roomNumber + " is already booked.");
+            return;
+        }
+
+        PreparedStatement ps = conn.prepareStatement(
+            "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) " +
+            "VALUES (?, ?, ?, ?, ?,?)"
+        );
+        ps.setInt(1, bookingId);
+        ps.setInt(2, roomNumber);
+        ps.setInt(3, customer_id);
+        ps.setInt(4, receptionist_id);
+        ps.setDate(5, Date.valueOf(checkInDate)); // Format: yyyy-MM-dd
+        ps.setDate(6, Date.valueOf(checkOutDate)); // Format: yyyy-MM-dd
+        int bookingRows = ps.executeUpdate();
+        System.out.println("Added " + bookingRows + " booking row(s).");
+
+        PreparedStatement ps2 = conn.prepareStatement(
+            "UPDATE room SET room_status = ? WHERE room_number = ?"
+        );
+        ps2.setBoolean(1, true);
+        ps2.setInt(2, roomNumber);
+        int roomRows = ps2.executeUpdate();
+        System.out.println("Updated " + roomRows + " room row(s).");
+
+        conn.commit(); // Commit transaction
+        System.out.println("Booking completed successfully.");
+
+    } catch (SQLException e) {
+        System.err.println("Booking failed. Rolling back transaction.");
+        e.printStackTrace();
+        try {
+            if (conn != null) conn.rollback();
+        } catch (SQLException rollbackEx) {
+            rollbackEx.printStackTrace();
+        }
+    } finally {
+        try {
+            if (conn != null) conn.close();
+        } catch (SQLException closeEx) {
+            closeEx.printStackTrace();
+        }
+    }
+}
+    
 }
