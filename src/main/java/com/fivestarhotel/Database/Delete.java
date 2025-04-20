@@ -57,4 +57,26 @@ public class Delete {
         }
 
     }
+
+
+    //Booking delete method wa kda b2a
+
+    
+    public void booking(int bookingId) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM booking WHERE booking_id = ?");
+            ps.setInt(1, bookingId);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Booking ID not found, didn't delete anything");
+            } else {
+                System.out.println("deleted " + rows + " rows.");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
+        }
+    }
 }

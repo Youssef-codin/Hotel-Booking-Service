@@ -219,17 +219,7 @@ public class Create {
         ps.setDate(6, Date.valueOf(checkOutDate)); // Format: yyyy-MM-dd
         int bookingRows = ps.executeUpdate();
         System.out.println("Added " + bookingRows + " booking row(s).");
-
-        PreparedStatement ps2 = conn.prepareStatement(
-            "UPDATE room SET room_status = ? WHERE room_number = ?"
-        );
-        ps2.setBoolean(1, true);
-        ps2.setInt(2, roomNumber);
-        int roomRows = ps2.executeUpdate();
-        System.out.println("Updated " + roomRows + " room row(s).");
-
-        conn.commit(); // Commit transaction
-        System.out.println("Booking completed successfully.");
+        Db.update.roomStatus(roomNumber, isBooked);
 
     } catch (SQLException e) {
         System.err.println("Booking failed. Rolling back transaction.");

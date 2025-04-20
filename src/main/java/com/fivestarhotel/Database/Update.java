@@ -5,7 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import com.fivestarhotel.*;
+import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 
 public class Update {
@@ -37,6 +37,7 @@ public class Update {
 
         }
     }
+    
 
     public void rooms(ArrayList<Room> newRooms) {
 
@@ -74,4 +75,139 @@ public class Update {
             System.err.println(e.getErrorCode());
         }
     }
+
+
+
+    //Booking update method b2a wa kda
+
+
+    public void booking(int bookingId, int roomNum, int customerId, int receptionistId) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ? WHERE booking_id = ?");
+            ps.setInt(1, roomNum);
+            ps.setInt(2, customerId);
+            ps.setInt(3, receptionistId);
+            ps.setInt(4, bookingId);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Booking ID not found.");
+            } else {
+                System.out.println("updated " + rows + " rows!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void booking(int bookingId, int roomNum) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE booking SET room_number = ? WHERE booking_id = ?");
+            ps.setInt(1, roomNum);
+            ps.setInt(2, bookingId);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Booking ID not found.");
+            } else {
+                System.out.println("updated " + rows + " rows!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void booking(int bookingId, int roomNum, int customerId) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE booking SET room_number = ?, customer_id = ? WHERE booking_id = ?");
+            ps.setInt(1, roomNum);
+            ps.setInt(2, customerId);
+            ps.setInt(3, bookingId);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Booking ID not found.");
+            } else {
+                System.out.println("updated " + rows + " rows!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void booking(int bookingId, String checkInDate,String checkOutDate){
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE booking SET check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
+            ps.setString(1, checkInDate);
+            ps.setString(2, checkOutDate);
+            ps.setInt(3, bookingId);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Booking ID not found.");
+            } else {
+                System.out.println("updated " + rows + " rows!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    // if a customer wants to extend their stay, they can use this method to update the check out date
+    public void booking(int bookingId,String checkOutDate){
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE booking SET check_out_date = ? WHERE booking_id = ?");
+            ps.setString(1, checkOutDate);
+            ps.setInt(2, bookingId);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Booking ID not found.");
+            } else {
+                System.out.println("updated " + rows + " rows!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    public void booking(int bookingId, int roomNum, int customerId, int receptionistId, String checkInDate,
+            String checkOutDate) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
+            ps.setInt(1, roomNum);
+            ps.setInt(2, customerId);
+            ps.setInt(3, receptionistId);
+            ps.setString(4, checkInDate);
+            ps.setString(5, checkOutDate);
+            ps.setInt(6, bookingId);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Booking ID not found.");
+            } else {
+                System.out.println("updated " + rows + " rows!");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

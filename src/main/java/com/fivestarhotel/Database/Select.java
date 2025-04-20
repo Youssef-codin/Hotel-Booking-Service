@@ -1,13 +1,14 @@
 package com.fivestarhotel.Database;
 
-import com.fivestarhotel.Room;
-import com.fivestarhotel.Room.RoomType;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import com.fivestarhotel.BookingSystem.Booking;
+import com.fivestarhotel.Room;
+import com.fivestarhotel.Room.RoomType;
 
 public class Select {
     public Room getRoom(int roomNumber) {
@@ -232,4 +233,138 @@ public class Select {
             }
         }
     }
+
+
+    //Booking System wa kda b2a
+
+
+
+    public Booking getbooking(int booking_id) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id = ?");
+            ps.setInt(1, booking_id);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("Booking " + booking_id + " Found.");
+                return new Booking(rs.getInt("booking_id"), rs.getInt("room_number"),
+                        rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
+            } else {
+                System.err.println("Query-Error: Booking Not Found");
+                return null;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+
+        }
+    }
+
+    public Booking getBooking(int roomNumber) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE room_number = ?");
+            ps.setInt(1, roomNumber);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return new Booking(rs.getInt("booking_id"), rs.getInt("room_number"),
+                        rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
+            } else {
+                System.err.println("Query-Error: Booking Not Found");
+                return null;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+
+        }
+    }
+
+    public ArrayList<Booking> getBookings() {
+        ArrayList<Booking> bookings = new ArrayList<>();
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking");
+            ResultSet result = ps.executeQuery();
+            while (result.next()) {
+                bookings.add(new Booking(result.getInt("booking_id"), result.getInt("room_number"),
+                        result.getInt("customer_id"), result.getInt("receptionist_id"),
+                        result.getDate("check_in_date").toLocalDate(), result.getDate("check_out_date").toLocalDate()));
+            }
+            return bookings;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+        }
+    }
+
+    public ArrayList<Booking> getBookings(int from, int to) {
+        ArrayList<Booking> bookings = new ArrayList<>();
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id BETWEEN ? AND ?");
+            ps.setInt(1, from);
+            ps.setInt(2, to);
+            ResultSet result = ps.executeQuery();
+            while (result.next()) {
+                bookings.add(new Booking(result.getInt("booking_id"), result.getInt("room_number"),
+                        result.getInt("customer_id"), result.getInt("receptionist_id"),
+                        result.getDate("check_in_date").toLocalDate(), result.getDate("check_out_date").toLocalDate()));
+            }
+            return bookings;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+        }
+    }
+    
+
+
+    public int countBookings() {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM booking");
+
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return rs.getInt(1);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
+            return -1;
+
+        }
+    }
+    public int lastBookingId() {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn
+                    .prepareStatement("SELECT * from booking ORDER BY booking_id DESC LIMIT 1");
+            ResultSet result = ps.executeQuery();
+            if (result.next()) {
+                return result.getInt("booking_id");
+            } else {
+                System.err.println("Last booking not found.");
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return 0;
+        }
+    }
+   
+
+
+        
+
+
+
+    
 }
