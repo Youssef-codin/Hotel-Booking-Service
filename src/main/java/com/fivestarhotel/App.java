@@ -1,11 +1,5 @@
 package com.fivestarhotel;
 
-import com.fivestarhotel.Database.Db;
-import com.fivestarhotel.Room.RoomType;
-import com.fivestarhotel.users.Customer;
-
-import java.util.ArrayList;
-
 public class App {
     public static void main(String[] args) {
 
@@ -24,5 +18,7 @@ public class App {
          * program
          * 
          */
+
+
     }
 }

@@ -3,9 +3,9 @@ package com.fivestarhotel.Database;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 
@@ -184,58 +184,61 @@ public class Create {
     // Booking stuff wa kda b2a 
 
 
-    public void addBooking(int bookingId, int roomNumber, int customer_id,int receptionist_id, String checkInDate, String checkOutDate) {
-    Connection conn = null;
-    try {
-        conn = Db.connect();
-        conn.setAutoCommit(false); 
-
-        PreparedStatement check = conn.prepareStatement(
-            "SELECT room_status FROM room WHERE room_number = ?"
-        );
-        check.setInt(1, roomNumber);
-        ResultSet rs = check.executeQuery();
-
-        if (!rs.next()) {
-            System.out.println("Room number " + roomNumber + " does not exist.");
-            return;
-        }
-
-        boolean isBooked = rs.getBoolean("room_status");
-        if (isBooked) {
-            System.out.println("Room " + roomNumber + " is already booked.");
-            return;
-        }
-
-        PreparedStatement ps = conn.prepareStatement(
-            "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) " +
-            "VALUES (?, ?, ?, ?, ?,?)"
-        );
-        ps.setInt(1, bookingId);
-        ps.setInt(2, roomNumber);
-        ps.setInt(3, customer_id);
-        ps.setInt(4, receptionist_id);
-        ps.setDate(5, Date.valueOf(checkInDate)); // Format: yyyy-MM-dd
-        ps.setDate(6, Date.valueOf(checkOutDate)); // Format: yyyy-MM-dd
-        int bookingRows = ps.executeUpdate();
-        System.out.println("Added " + bookingRows + " booking row(s).");
-        Db.update.roomStatus(roomNumber, isBooked);
-
-    } catch (SQLException e) {
-        System.err.println("Booking failed. Rolling back transaction.");
-        e.printStackTrace();
+    public void addBooking(Booking booking) {
+        Connection conn = null;
         try {
-            if (conn != null) conn.rollback();
-        } catch (SQLException rollbackEx) {
-            rollbackEx.printStackTrace();
-        }
-    } finally {
-        try {
-            if (conn != null) conn.close();
-        } catch (SQLException closeEx) {
-            closeEx.printStackTrace();
+            conn = Db.connect();
+            conn.setAutoCommit(false);
+    
+            int availabilityStatus = Db.select.checkBooking(booking.getRoom());
+    
+            if (availabilityStatus == 0) { // Room is available
+                Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
+    
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) " +
+                        "VALUES (?, ?, ?, ?, ?,?)"
+                );
+                ps.setInt(1, booking.getBooking_id());
+                ps.setInt(2, booking.getRoom().getNum());
+                ps.setInt(3, booking.getCustomer_id());
+                ps.setInt(4, booking.getReceptionist_id());
+                ps.setDate(5, Date.valueOf(booking.getCheckInDate()));
+                ps.setDate(6, Date.valueOf(booking.getCheckOutDate()));
+                int bookingRows = ps.executeUpdate();
+                System.out.println("Added " + bookingRows + " booking row(s).");
+                conn.commit();
+            } else if (availabilityStatus == -1) {
+                System.err.println("Error: Cannot book. Room number " + booking.getRoom().getNum() + " does not exist.");
+                // You might want to throw an exception or handle this differently
+            } else if (availabilityStatus == -2) {
+                System.err.println("Error: Cannot book. Room " + booking.getRoom().getNum() + " is already booked.");
+                // You might want to throw an exception or handle this differently
+            } else { // availabilityStatus == -3 (Database error)
+                System.err.println("Error: Could not check room availability due to a database error. Booking failed.");
+                // You might want to log this error more extensively
+            }
+    
+        } catch (SQLException e) {
+            System.err.println("Booking failed due to a SQL error. Rolling back transaction.");
+            e.printStackTrace();
+            try {
+                if (conn != null) conn.rollback();
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
+        } finally {
+            try {
+                if (conn != null) conn.close();
+            } catch (SQLException closeEx) {
+                closeEx.printStackTrace();
+            }
         }
     }
+
+
+
+
 }
     
-}
+

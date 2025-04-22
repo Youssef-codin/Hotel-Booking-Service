@@ -1,10 +1,12 @@
 package com.fivestarhotel.Database;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import com.fivestarhotel.BookingSystem.Booking; // Ensure this is the correct package for the Booking class
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 
@@ -185,17 +187,16 @@ public class Update {
 
 
 
-    public void booking(int bookingId, int roomNum, int customerId, int receptionistId, String checkInDate,
-            String checkOutDate) {
+    public void booking(Booking booking ) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
                     "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
-            ps.setInt(1, roomNum);
-            ps.setInt(2, customerId);
-            ps.setInt(3, receptionistId);
-            ps.setString(4, checkInDate);
-            ps.setString(5, checkOutDate);
-            ps.setInt(6, bookingId);
+            ps.setInt(1, booking.getRoom().getNum());
+            ps.setInt(2, booking.getCustomer_id());
+            ps.setInt(3, booking.getReceptionist_id());
+            ps.setDate(4, Date.valueOf(booking.getCheckInDate())); // Format: yyyy-MM-dd
+            ps.setDate(5, Date.valueOf(booking.getCheckOutDate())); // Format: yyyy-MM-dd
+            ps.setInt(6, booking.getBooking_id());
 
             int rows = ps.executeUpdate();
             if (rows == 0) {

@@ -2,6 +2,8 @@ package com.fivestarhotel.BookingSystem;
 
 import java.time.LocalDate;
 
+import com.fivestarhotel.Room;
+
 public class Booking {
     // public enum BookingStatus {
     //     Booked,
@@ -9,13 +11,13 @@ public class Booking {
     // }
 
     private int booking_id;
-    private int  room;
+    private Room room;
     private int  customer_id;
     private int receptionist_id;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
 
-    public Booking(int booking_id,int room, int customer_id, int receptionist_id, LocalDate checkInDate, LocalDate checkOutDate) {
+    public Booking(int booking_id,Room room, int customer_id, int receptionist_id, LocalDate checkInDate, LocalDate checkOutDate) {
         this.booking_id = booking_id;
         this.room = room;
         this.customer_id = customer_id;
@@ -33,11 +35,11 @@ public class Booking {
     }
 
 
-    public void setRoom(int room) {
+    public void setRoom(Room room) {
         this.room = room;
     }
 
-    public int getRoom() {
+    public Room getRoom() {
         return room;
     }
 
