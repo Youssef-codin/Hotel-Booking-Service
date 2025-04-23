@@ -10,6 +10,9 @@ public class App {
             loginScreen.setVisible(true);
 
             // TODO: After successful login, transition to:
+            // Simplified authentication to use hardcoded credentials:
+            //  Admin: admin@bookit.com / admin123
+            //  Receptionist: reception@bookit.com / reception123
             // new RoomManagement(userRole, userId).setVisible(true);
         });
     }
