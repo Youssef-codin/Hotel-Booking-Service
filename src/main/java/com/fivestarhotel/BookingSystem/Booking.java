@@ -82,7 +82,6 @@ public class Booking {
 
 
     public int checkBooking(Room room) {
-        try {
             if (room == null) {
                 System.out.println("Room number " + room.getNum() + " does not exist.");
                 return -1;// Indicate room not found
@@ -93,16 +92,10 @@ public class Booking {
                 System.out.println("Room " + room.getNum() + " is already booked.");
                 return -2; // Indicate room is booked
             }
-    
             return 0; // Indicate room is available
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -3; // Indicate a database error
-        }
     }
    
     public int checkBooking(int roomNum) {
-        try {
             Room room = Db.select.getRoom(roomNum);
             if (room == null) {
                 System.out.println("Room number " + roomNum + " does not exist.");
@@ -116,10 +109,6 @@ public class Booking {
             }
     
             return 0; // Indicate room is available
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -3; // Indicate a database error
-        } 
     }
 
    
