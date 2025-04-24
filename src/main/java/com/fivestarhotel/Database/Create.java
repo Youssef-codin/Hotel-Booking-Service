@@ -190,8 +190,7 @@ public class Create {
             conn = Db.connect();
             conn.setAutoCommit(false);
     
-            int availabilityStatus = Db.select.checkBooking(booking.getRoom());
-    
+            int availabilityStatus =booking.checkBooking(booking.getRoom());
             if (availabilityStatus == 0) { // Room is available
                 Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
     

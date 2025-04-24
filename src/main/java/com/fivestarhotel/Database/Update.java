@@ -85,8 +85,7 @@ public class Update {
 
     public void booking(int bookingId, int roomNum, int customerId, int receptionistId) {
         try (Connection conn = Db.connect()) {
-
-            int availabilityStatus = Db.select.checkBooking(roomNum);
+            int availabilityStatus = Db.select.getbooking(bookingId).checkBooking(roomNum);
             if (availabilityStatus == 0) {
                 Db.update.roomStatus(roomNum, true); // Update room status to booked
                 PreparedStatement ps = conn.prepareStatement(
@@ -117,7 +116,7 @@ public class Update {
 
     public void booking(int bookingId, int roomNum) {
         try (Connection conn = Db.connect()) {
-            int availabilityStatus = Db.select.checkBooking(roomNum);
+            int availabilityStatus = Db.select.getbooking(bookingId).checkBooking(roomNum);
             if (availabilityStatus == 0){
                 Db.update.roomStatus(roomNum, true); // Update room status to booked
                 PreparedStatement ps = conn.prepareStatement(
@@ -147,7 +146,7 @@ public class Update {
 
     public void booking(int bookingId, int roomNum, int customerId) {
         try (Connection conn = Db.connect()) {
-            int availabilityStatus = Db.select.checkBooking(roomNum);
+            int availabilityStatus = Db.select.getbooking(bookingId).checkBooking(roomNum);
             if (availabilityStatus == 0){
                 Db.update.roomStatus(roomNum, true); // Update room status to booked
                 PreparedStatement ps = conn.prepareStatement(
@@ -221,7 +220,7 @@ public class Update {
 
     public void booking(Booking booking ) {
         try (Connection conn = Db.connect()) {
-            int availabilityStatus = Db.select.checkBooking(booking.getRoom());
+            int availabilityStatus = booking.checkBooking(booking.getRoom());
     
             if (availabilityStatus == 0){
                 Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
@@ -247,7 +246,7 @@ public class Update {
             } else { // availabilityStatus == -3 (Database error)
                 System.err.println("Error: Could not check room availability due to a database error. Booking failed.");
             }
-            
+
         } catch (SQLException e) {
             e.printStackTrace();
         }

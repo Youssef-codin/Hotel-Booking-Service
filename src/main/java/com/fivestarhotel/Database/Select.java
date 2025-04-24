@@ -393,48 +393,7 @@ public class Select {
 
    
 
-    public int checkBooking(Room room) {
-        try(Connection conn = Db.connect()) {
-            if (room == null) {
-                System.out.println("Room number " + room.getNum() + " does not exist.");
-                return -1;// Indicate room not found
-            }
     
-            boolean isBooked = room.getStatus();
-            if (isBooked) {
-                System.out.println("Room " + room.getNum() + " is already booked.");
-                return -2; // Indicate room is booked
-            }
-    
-            return 0; // Indicate room is available
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -3; // Indicate a database error
-        }
-    }
-   
-
-
-    public int checkBooking(int roomNum) {
-        try(Connection conn = Db.connect()) {
-            Room room = getRoom(roomNum);
-            if (room == null) {
-                System.out.println("Room number " + roomNum + " does not exist.");
-                return -1; // Indicate room not found
-            }
-    
-            boolean isBooked = room.getStatus();
-            if (isBooked) {
-                System.out.println("Room " + roomNum + " is already booked.");
-                return -2; // Indicate room is booked
-            }
-    
-            return 0; // Indicate room is available
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -3; // Indicate a database error
-        } 
-    }
 
 
 }

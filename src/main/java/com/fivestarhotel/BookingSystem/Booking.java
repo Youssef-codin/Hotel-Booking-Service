@@ -2,6 +2,7 @@ package com.fivestarhotel.BookingSystem;
 
 import java.time.LocalDate;
 
+import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Room;
 
 public class Booking {
@@ -77,9 +78,49 @@ public class Booking {
     public LocalDate getCheckOutDate() {
         return checkOutDate;
     }
+
+
+
+    public int checkBooking(Room room) {
+        try {
+            if (room == null) {
+                System.out.println("Room number " + room.getNum() + " does not exist.");
+                return -1;// Indicate room not found
+            }
     
-
-
+            boolean isBooked = room.getStatus();
+            if (isBooked) {
+                System.out.println("Room " + room.getNum() + " is already booked.");
+                return -2; // Indicate room is booked
+            }
+    
+            return 0; // Indicate room is available
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -3; // Indicate a database error
+        }
+    }
+   
+    public int checkBooking(int roomNum) {
+        try {
+            Room room = Db.select.getRoom(roomNum);
+            if (room == null) {
+                System.out.println("Room number " + roomNum + " does not exist.");
+                return -1; // Indicate room not found
+            }
+    
+            boolean isBooked = room.getStatus();
+            if (isBooked) {
+                System.out.println("Room " + roomNum + " is already booked.");
+                return -2; // Indicate room is booked
+            }
+    
+            return 0; // Indicate room is available
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -3; // Indicate a database error
+        } 
+    }
 
    
 }
