@@ -77,5 +77,19 @@ public class Booking {
     public LocalDate getCheckOutDate() {
         return checkOutDate;
     }
+    
+
+
+    @Override
+    public String toString() {
+        return "Booking{" + ",\n" +
+               "bookingId=" + booking_id + ",\n" +
+               "room=" + (room != null ? room.getNum() : null) + ",\n" + // Print only the room number
+               "customerId=" + customer_id + ",\n" +
+               "receptionistId=" + receptionist_id + ",\n" +
+               "checkInDate=" + checkInDate + ",\n" +
+               "checkOutDate=" + checkOutDate + ",\n" +
+               '}';
+    }
    
 }

@@ -6,8 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import com.fivestarhotel.BookingSystem.Booking; // Ensure this is the correct package for the Booking class
-import com.fivestarhotel.Room;
+import com.fivestarhotel.BookingSystem.Booking;
+import com.fivestarhotel.Room; // Ensure this is the correct package for the Booking class
 import com.fivestarhotel.Room.RoomType;
 
 public class Update {
@@ -85,18 +85,29 @@ public class Update {
 
     public void booking(int bookingId, int roomNum, int customerId, int receptionistId) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ? WHERE booking_id = ?");
-            ps.setInt(1, roomNum);
-            ps.setInt(2, customerId);
-            ps.setInt(3, receptionistId);
-            ps.setInt(4, bookingId);
 
-            int rows = ps.executeUpdate();
-            if (rows == 0) {
-                System.err.println("Booking ID not found.");
-            } else {
-                System.out.println("updated " + rows + " rows!");
+            int availabilityStatus = Db.select.checkBooking(roomNum);
+            if (availabilityStatus == 0) {
+                Db.update.roomStatus(roomNum, true); // Update room status to booked
+                PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ? WHERE booking_id = ?");
+                ps.setInt(1, roomNum);
+                ps.setInt(2, customerId);
+                ps.setInt(3, receptionistId);
+                ps.setInt(4, bookingId);
+
+                int rows = ps.executeUpdate();
+                if (rows == 0) {
+                    System.err.println("Booking ID not found.");
+                } else {
+                    System.out.println("updated " + rows + " rows!");
+                }
+            }else if (availabilityStatus == -1) { //// Room does not exist
+                System.err.println("Error: Cannot book. Room number " + roomNum + " does not exist.");
+            } else if (availabilityStatus == -2) { //// Room is already booked
+                System.err.println("Error: Cannot book. Room " + roomNum + " is already booked.");
+            } else { // availabilityStatus == -3 (Database error)
+                System.err.println("Error: Could not check room availability due to a database error. Booking failed.");
             }
 
         } catch (SQLException e) {
@@ -106,7 +117,10 @@ public class Update {
 
     public void booking(int bookingId, int roomNum) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement(
+            int availabilityStatus = Db.select.checkBooking(roomNum);
+            if (availabilityStatus == 0){
+                Db.update.roomStatus(roomNum, true); // Update room status to booked
+                PreparedStatement ps = conn.prepareStatement(
                     "UPDATE booking SET room_number = ? WHERE booking_id = ?");
             ps.setInt(1, roomNum);
             ps.setInt(2, bookingId);
@@ -117,7 +131,15 @@ public class Update {
             } else {
                 System.out.println("updated " + rows + " rows!");
             }
+            }else if (availabilityStatus == -1) { //room does not exist
+                System.err.println("Error: Cannot book. Room number " + roomNum + " does not exist.");
+            } else if (availabilityStatus == -2) {//room is already booked
+                System.err.println("Error: Cannot book. Room " + roomNum + " is already booked.");
+            } else { // availabilityStatus == -3 (Database error)
+                System.err.println("Error: Could not check room availability due to a database error. Booking failed.");
 
+            }
+            
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -125,19 +147,29 @@ public class Update {
 
     public void booking(int bookingId, int roomNum, int customerId) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement(
+            int availabilityStatus = Db.select.checkBooking(roomNum);
+            if (availabilityStatus == 0){
+                Db.update.roomStatus(roomNum, true); // Update room status to booked
+                PreparedStatement ps = conn.prepareStatement(
                     "UPDATE booking SET room_number = ?, customer_id = ? WHERE booking_id = ?");
-            ps.setInt(1, roomNum);
-            ps.setInt(2, customerId);
-            ps.setInt(3, bookingId);
+                ps.setInt(1, roomNum);
+                ps.setInt(2, customerId);
+                ps.setInt(3, bookingId);
 
-            int rows = ps.executeUpdate();
-            if (rows == 0) {
-                System.err.println("Booking ID not found.");
-            } else {
-                System.out.println("updated " + rows + " rows!");
+                int rows = ps.executeUpdate();
+                if (rows == 0) {
+                    System.err.println("Booking ID not found.");
+                } else {
+                    System.out.println("updated " + rows + " rows!");
+                }
+            }else if (availabilityStatus == -1) {//room does not exist
+                System.err.println("Error: Cannot book. Room number " + roomNum + " does not exist.");
+            } else if (availabilityStatus == -2) { //room is already booked
+                System.err.println("Error: Cannot book. Room " + roomNum + " is already booked.");
+            } else { // availabilityStatus == -3 (Database error)
+                System.err.println("Error: Could not check room availability due to a database error. Booking failed.");
             }
-
+        
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -148,8 +180,8 @@ public class Update {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
                     "UPDATE booking SET check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
-            ps.setString(1, checkInDate);
-            ps.setString(2, checkOutDate);
+            ps.setString(1, Date.valueOf(checkInDate).toString());
+            ps.setString(2, Date.valueOf(checkOutDate).toString());
             ps.setInt(3, bookingId);
 
             int rows = ps.executeUpdate();
@@ -170,7 +202,7 @@ public class Update {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
                     "UPDATE booking SET check_out_date = ? WHERE booking_id = ?");
-            ps.setString(1, checkOutDate);
+            ps.setString(1, Date.valueOf(checkOutDate).toString());
             ps.setInt(2, bookingId);
 
             int rows = ps.executeUpdate();
@@ -189,21 +221,27 @@ public class Update {
 
     public void booking(Booking booking ) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement(
+            int availabilityStatus = Db.select.checkBooking(booking.getRoom());
+    
+            if (availabilityStatus == 0){
+                Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
+                PreparedStatement ps = conn.prepareStatement(
                     "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
-            ps.setInt(1, booking.getRoom().getNum());
-            ps.setInt(2, booking.getCustomer_id());
-            ps.setInt(3, booking.getReceptionist_id());
-            ps.setDate(4, Date.valueOf(booking.getCheckInDate())); // Format: yyyy-MM-dd
-            ps.setDate(5, Date.valueOf(booking.getCheckOutDate())); // Format: yyyy-MM-dd
-            ps.setInt(6, booking.getBooking_id());
+                ps.setInt(1, booking.getRoom().getNum());
+                ps.setInt(2, booking.getCustomer_id());
+                ps.setInt(3, booking.getReceptionist_id());
+                ps.setDate(4, Date.valueOf(booking.getCheckInDate())); // Format: yyyy-MM-dd
+                ps.setDate(5, Date.valueOf(booking.getCheckOutDate())); // Format: yyyy-MM-dd
+                ps.setInt(6, booking.getBooking_id());
 
-            int rows = ps.executeUpdate();
-            if (rows == 0) {
-                System.err.println("Booking ID not found.");
-            } else {
-                System.out.println("updated " + rows + " rows!");
+                int rows = ps.executeUpdate();
+                if (rows == 0) {
+                    System.err.println("Booking ID not found.");
+                } else {
+                    System.out.println("updated " + rows + " rows!");
+                }
             }
+            
 
         } catch (SQLException e) {
             e.printStackTrace();

@@ -252,8 +252,10 @@ public class Select {
                 Room room = getRoom(roomNumber); // Using your getRoom method
     
                 if (room != null) {
-                    return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                    Booking foundBooking = new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
                                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
+                                       System.out.println(foundBooking); // Add this line
+                                       return foundBooking;
                 } else {
                     System.err.println("Error: Room with number " + roomNumber + " not found for booking " + booking_id);
                     return null;
@@ -279,8 +281,10 @@ public class Select {
             if (rs.next()) {
                 int roomNumber = rs.getInt("room_number");
                 Room room = getRoom(roomNumber); // Using your getRoom method
-                return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                Booking foundBooking = new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
                 rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
+                System.out.println(foundBooking); // Add this line
+                return foundBooking;
             } else {
                 System.err.println("Query-Error: Booking Not Found");
                 return null;
@@ -307,6 +311,7 @@ public class Select {
                 if (room != null) {
                     bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
                                             rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+                                            System.out.println(bookings); 
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                     // Handle missing room as needed
@@ -323,11 +328,10 @@ public class Select {
     public ArrayList<Booking> getBookings(int from, int to) {
         ArrayList<Booking> bookings = new ArrayList<>();
         try (Connection conn = Db.connect();
-             PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id BETWEEN ? AND ?");
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id BETWEEN ? AND ?")){
             ps.setInt(1, from);
             ps.setInt(2, to);
-    
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 int roomNumber = rs.getInt("room_number");
                 Room room = getRoom(roomNumber); // Fetch Room *inside* the loop
@@ -335,6 +339,7 @@ public class Select {
                 if (room != null) {
                     bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
                                             rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+                                            System.out.println(bookings); 
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                     // Handle missing room as needed
@@ -356,7 +361,9 @@ public class Select {
 
             ResultSet rs = ps.executeQuery();
             rs.next();
-            return rs.getInt(1);
+            int count = rs.getInt(1);
+            System.out.println("Total number of bookings: " + count); // Added print statement
+            return count;
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -371,7 +378,10 @@ public class Select {
                     .prepareStatement("SELECT * from booking ORDER BY booking_id DESC LIMIT 1");
             ResultSet result = ps.executeQuery();
             if (result.next()) {
-                return result.getInt("booking_id");
+                int lastId = result.getInt("booking_id");
+                System.out.println("The ID of the last booking is: " + lastId);
+                return lastId;
+                
             } else {
                 System.err.println("Last booking not found.");
                 return 0;
@@ -438,6 +448,60 @@ public class Select {
         }
     }
    
+
+
+    public int checkBooking(int roomNum) {
+        Connection conn = null;
+        PreparedStatement check = null;
+        ResultSet rs = null;
+        try {
+            conn = Db.connect();
+    
+            check = conn.prepareStatement(
+                    "SELECT room_status FROM room WHERE room_number = ?");
+            check.setInt(1, roomNum);
+            rs = check.executeQuery();
+    
+            if (!rs.next()) {
+                System.out.println("Room number " + roomNum + " does not exist.");
+                return -1; // Indicate room not found
+            }
+    
+            boolean isBooked = rs.getBoolean("room_status");
+            if (isBooked) {
+                System.out.println("Room " + roomNum + " is already booked.");
+                return -2; // Indicate room is booked
+            }
+    
+            return 0; // Indicate room is available
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -3; // Indicate a database error
+        } finally {
+            // Properly close resources in the finally block
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (check != null) {
+                try {
+                    check.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
 
         
