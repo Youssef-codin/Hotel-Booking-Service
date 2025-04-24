@@ -8,11 +8,11 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class Create {
-    int updates = 0;
 
     public boolean addRoom(RoomType roomType) {
         try (Connection conn = Db.connect()) {
             int lastRoomNum = Db.select.lastRoomNum();
+            int updates = 0;
 
             if (lastRoomNum >= 1) {
                 PreparedStatement ps = conn.prepareStatement(
@@ -44,6 +44,8 @@ public class Create {
     }
 
     public void addRoom(int roomNumber, RoomType roomType) {
+
+        int updates = 0;
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
                     "INSERT INTO room(room_number, room_floor, room_type, room_status) Values(?,?,?,?)");
@@ -62,6 +64,8 @@ public class Create {
     }
 
     public void overrideRoom(int roomNumber, RoomType roomType) {
+
+        int updates = 0;
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("DELETE FROM room WHERE room_number = ?");
             ps.setInt(1, roomNumber);
@@ -81,6 +85,8 @@ public class Create {
     }
 
     public boolean addRooms(RoomType roomType, int amount) {
+
+        int updates = 0;
         try (Connection conn = Db.connect()) {
             for (int i = 0; i < amount; i++) {
                 int lastRoomNum = Db.select.lastRoomNum();
@@ -95,11 +101,47 @@ public class Create {
                 } else if (lastRoomNum == 0) {
                     Db.update.resetIncrement();
                     PreparedStatement ps = conn.prepareStatement(
-                            "INSERT INTO room(room_number, room_floor, room_type, room_status) Values(?,?,?)");
+                            "INSERT INTO room(room_number, room_floor, room_type, room_status) Values(?,?,?,?)");
                     ps.setInt(1, 1);
                     ps.setInt(2, (lastRoomNum / 100) + 1);
                     ps.setString(3, Room.convertRm(roomType));
                     ps.setBoolean(4, false);
+                    updates += ps.executeUpdate();
+
+                }
+            }
+            System.out.println("Added " + updates + " rows");
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
+            return false;
+        }
+    }
+
+    public boolean addBookedRooms(RoomType roomType, int amount) {
+
+        int updates = 0;
+        try (Connection conn = Db.connect()) {
+            for (int i = 0; i < amount; i++) {
+                int lastRoomNum = Db.select.lastRoomNum();
+                if (lastRoomNum >= 1) {
+                    PreparedStatement ps = conn.prepareStatement(
+                            "INSERT INTO room(room_floor, room_type, room_status) Values(?,?,?)");
+                    ps.setInt(1, (lastRoomNum / 100) + 1);
+                    ps.setString(2, Room.convertRm(roomType));
+                    ps.setBoolean(3, true);
+                    updates += ps.executeUpdate();
+
+                } else if (lastRoomNum == 0) {
+                    Db.update.resetIncrement();
+                    PreparedStatement ps = conn.prepareStatement(
+                            "INSERT INTO room(room_number, room_floor, room_type, room_status) Values(?,?,?,?)");
+                    ps.setInt(1, 1);
+                    ps.setInt(2, (lastRoomNum / 100) + 1);
+                    ps.setString(3, Room.convertRm(roomType));
+                    ps.setBoolean(4, true);
                     updates += ps.executeUpdate();
 
                 }

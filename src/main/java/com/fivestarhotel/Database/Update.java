@@ -9,7 +9,7 @@ import com.fivestarhotel.*;
 import com.fivestarhotel.Room.RoomType;
 
 public class Update {
-    private int updates;
+
     public void resetIncrement() {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("ALTER TABLE room AUTO_INCREMENT = 1;");
@@ -37,18 +37,41 @@ public class Update {
 
         }
     }
-    public void rooms(ArrayList<Room> newRooms){
+
+    public void rooms(ArrayList<Room> newRooms) {
+
+        int updates = 0;
         try (Connection conn = Db.connect()) {
             for (int i = 0; i < newRooms.size(); i++) {
-                PreparedStatement ps = conn.prepareStatement("UPDATE room SET room_type = ?, room_status = ? WHERE room_number = ?");
+                PreparedStatement ps = conn
+                        .prepareStatement("UPDATE room SET room_type = ?, room_status = ? WHERE room_number = ?");
                 ps.setString(1, Room.convertRm(newRooms.get(i).getRoomType()));
-                ps.setBoolean(2,newRooms.get(i).getStatus());
+                ps.setBoolean(2, newRooms.get(i).getStatus());
                 ps.setInt(3, newRooms.get(i).getNum());
-                updates+= ps.executeUpdate();
+                updates += ps.executeUpdate();
             }
             System.out.println("updated " + updates + " rows!");
-        } catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void roomStatus(int roomNum, boolean status) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("UPDATE room SET room_status = ? WHERE room_number = ?");
+            ps.setBoolean(1, status);
+            ps.setInt(2, roomNum);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Room not found.");
+            }
+
+            System.out.println("updated " + rows + " rows!");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
         }
     }
 }

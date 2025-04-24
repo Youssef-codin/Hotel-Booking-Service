@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS HMSDB.admin (
   admin_lname VARCHAR(45) NULL,
   admin_email VARCHAR(255) NULL,
   admin_password VARCHAR(255) NULL,
+  admin_salt VARCHAR(255) NULL,
   PRIMARY KEY (admin_id),
   UNIQUE INDEX admin_id_UNIQUE (admin_id ASC) VISIBLE,
   UNIQUE INDEX admin_email_UNIQUE (admin_email ASC) VISIBLE)
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS HMSDB.customer (
   customer_lname VARCHAR(45) NULL,
   customer_email VARCHAR(255) NULL,
   customer_password VARCHAR(255) NULL,
+  customer_salt VARCHAR(255) NULL,
   customer_phone VARCHAR(45) NULL,
   customer_balance INT NULL,
   PRIMARY KEY (customer_id),
@@ -54,6 +56,7 @@ CREATE TABLE IF NOT EXISTS HMSDB.receptionist (
   receptionist_lname VARCHAR(45) NULL,
   receptionist_email VARCHAR(255) NULL,
   receptionist_password VARCHAR(255) NULL,
+  receptionist_salt VARCHAR(255) NULL,
   PRIMARY KEY (receptionist_id),
   UNIQUE INDEX receptionist_email_UNIQUE (receptionist_email ASC) VISIBLE)
 ENGINE = InnoDB;
