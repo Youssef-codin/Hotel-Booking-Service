@@ -1,5 +1,9 @@
 package com.fivestarhotel.GUI;
 
+import com.fivestarhotel.Database.Db;
+import com.fivestarhotel.Room;
+import com.fivestarhotel.Room.RoomType;
+
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.border.TitledBorder;
@@ -7,7 +11,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
-
 
 public class RoomManagement extends JFrame {
     private final Color BROWN = new Color(92, 64, 51);
@@ -22,34 +25,8 @@ public class RoomManagement extends JFrame {
     private int currentUserId;
 
     // Mock room data
-    private enum RoomType { SINGLE, DOUBLE, SUITE, DELUXE }
-    private class Room {
-        private int num;
-        private RoomType roomType;
-        private boolean status;
 
-        public Room(int num, RoomType roomType, boolean status) {
-            this.num = num;
-            this.roomType = roomType;
-            this.status = status;
-        }
-
-        public int getNum() { return num; }
-        public RoomType getRoomType() { return roomType; }
-        public boolean getStatus() { return status; }
-    }
-
-    private List<Room> mockRooms = Arrays.asList(
-            new Room(101, RoomType.SINGLE, false),
-            new Room(102, RoomType.SINGLE, true),
-            new Room(201, RoomType.DOUBLE, false),
-            new Room(202, RoomType.DOUBLE, true),
-            new Room(301, RoomType.SUITE, false),
-            new Room(302, RoomType.SUITE, true),
-            new Room(401, RoomType.DELUXE, false),
-            new Room(402, RoomType.DELUXE, true)
-    );
-
+    private ArrayList<Room> mockRooms = Db.select.getRooms();
     public RoomManagement(String userRole, int userId) {
         this.currentUserRole = userRole;
         this.currentUserId = userId;
@@ -59,7 +36,7 @@ public class RoomManagement extends JFrame {
     private void initializeUI() {
         setTitle("BookIt - Room Management (" + currentUserRole + ")");
         setSize(1200, 800);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         getContentPane().setBackground(OFF_WHITE);
 
@@ -98,6 +75,10 @@ public class RoomManagement extends JFrame {
         styleButton(logoutButton, BROWN);
         logoutButton.addActionListener(e -> {
             dispose();
+            SwingUtilities.invokeLater(() -> {
+                BookItLogin loginSystem = new BookItLogin();
+                loginSystem.setVisible(true);
+            });
         });
         headerPanel.add(logoutButton, BorderLayout.WEST);
 
@@ -620,6 +601,7 @@ public class RoomManagement extends JFrame {
     }
 
     public static void main(String[] args) {
+        //Insert Db.connect(user,pass) here if you want to test
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);

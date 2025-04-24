@@ -3,6 +3,7 @@ package com.fivestarhotel.GUI;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import com.fivestarhotel.Database.*;
 
 public class BookItLogin extends JFrame {
     private final Color BROWN = new Color(92, 64, 51);
@@ -180,5 +181,12 @@ public class BookItLogin extends JFrame {
         button.setFont(BUTTON_FONT);
         button.setFocusPainted(false);
         button.setMnemonic(KeyEvent.VK_ENTER);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            BookItLogin loginSystem = new BookItLogin();
+            loginSystem.setVisible(true);
+        });
     }
 }
