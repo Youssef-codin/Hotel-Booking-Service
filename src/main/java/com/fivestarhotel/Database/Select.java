@@ -252,10 +252,8 @@ public class Select {
                 Room room = getRoom(roomNumber); // Using your getRoom method
     
                 if (room != null) {
-                    Booking foundBooking = new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                    return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
                                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
-                                       System.out.println(foundBooking); // Add this line
-                                       return foundBooking;
                 } else {
                     System.err.println("Error: Room with number " + roomNumber + " not found for booking " + booking_id);
                     return null;
@@ -281,10 +279,8 @@ public class Select {
             if (rs.next()) {
                 int roomNumber = rs.getInt("room_number");
                 Room room = getRoom(roomNumber); // Using your getRoom method
-                Booking foundBooking = new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                return  new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
                 rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
-                System.out.println(foundBooking); // Add this line
-                return foundBooking;
             } else {
                 System.err.println("Query-Error: Booking Not Found");
                 return null;
@@ -298,11 +294,13 @@ public class Select {
         }
     }
 
+
+    
     public ArrayList<Booking> getBookings() {
         ArrayList<Booking> bookings = new ArrayList<>();
-        try (Connection conn = Db.connect();
-             PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking");
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = Db.connect()){
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking");
+            ResultSet rs = ps.executeQuery();
     
             while (rs.next()) {
                 int roomNumber = rs.getInt("room_number");
@@ -311,7 +309,6 @@ public class Select {
                 if (room != null) {
                     bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
                                             rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
-                                            System.out.println(bookings); 
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                     // Handle missing room as needed
@@ -322,13 +319,15 @@ public class Select {
             e.printStackTrace();
             System.out.println(e.getErrorCode());
             return null;
-        }
+        }            
     }
+
+
 
     public ArrayList<Booking> getBookings(int from, int to) {
         ArrayList<Booking> bookings = new ArrayList<>();
-        try (Connection conn = Db.connect();
-             PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id BETWEEN ? AND ?")){
+        try (Connection conn = Db.connect()){
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id BETWEEN ? AND ?");
             ps.setInt(1, from);
             ps.setInt(2, to);
             ResultSet rs = ps.executeQuery();
@@ -339,7 +338,6 @@ public class Select {
                 if (room != null) {
                     bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
                                             rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
-                                            System.out.println(bookings); 
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                     // Handle missing room as needed
@@ -396,23 +394,13 @@ public class Select {
    
 
     public int checkBooking(Room room) {
-        Connection conn = null;
-        PreparedStatement check = null;
-        ResultSet rs = null;
-        try {
-            conn = Db.connect();
-    
-            check = conn.prepareStatement(
-                    "SELECT room_status FROM room WHERE room_number = ?");
-            check.setInt(1, room.getNum());
-            rs = check.executeQuery();
-    
-            if (!rs.next()) {
+        try(Connection conn = Db.connect()) {
+            if (room == null) {
                 System.out.println("Room number " + room.getNum() + " does not exist.");
-                return -1; // Indicate room not found
+                return -1;// Indicate room not found
             }
     
-            boolean isBooked = rs.getBoolean("room_status");
+            boolean isBooked = room.getStatus();
             if (isBooked) {
                 System.out.println("Room " + room.getNum() + " is already booked.");
                 return -2; // Indicate room is booked
@@ -422,52 +410,20 @@ public class Select {
         } catch (SQLException e) {
             e.printStackTrace();
             return -3; // Indicate a database error
-        } finally {
-            // Properly close resources in the finally block
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (check != null) {
-                try {
-                    check.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
    
 
 
     public int checkBooking(int roomNum) {
-        Connection conn = null;
-        PreparedStatement check = null;
-        ResultSet rs = null;
-        try {
-            conn = Db.connect();
-    
-            check = conn.prepareStatement(
-                    "SELECT room_status FROM room WHERE room_number = ?");
-            check.setInt(1, roomNum);
-            rs = check.executeQuery();
-    
-            if (!rs.next()) {
+        try(Connection conn = Db.connect()) {
+            Room room = getRoom(roomNum);
+            if (room == null) {
                 System.out.println("Room number " + roomNum + " does not exist.");
                 return -1; // Indicate room not found
             }
     
-            boolean isBooked = rs.getBoolean("room_status");
+            boolean isBooked = room.getStatus();
             if (isBooked) {
                 System.out.println("Room " + roomNum + " is already booked.");
                 return -2; // Indicate room is booked
@@ -477,36 +433,8 @@ public class Select {
         } catch (SQLException e) {
             e.printStackTrace();
             return -3; // Indicate a database error
-        } finally {
-            // Properly close resources in the finally block
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (check != null) {
-                try {
-                    check.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        } 
     }
 
 
-        
-
-
-
-    
 }

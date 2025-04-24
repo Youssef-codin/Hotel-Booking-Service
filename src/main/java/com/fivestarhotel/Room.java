@@ -136,16 +136,6 @@ public class Room {
     }
 
 
-    @Override
-    public String toString() {
-        return "Room{" +
-               "number=" + number +
-               ", floor=" + floor +
-               ", roomType=" + roomType +
-               ", isBooked=" + isBooked +
-               '}';
-    }
 
 
-    
 }

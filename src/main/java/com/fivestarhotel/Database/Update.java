@@ -240,9 +240,14 @@ public class Update {
                 } else {
                     System.out.println("updated " + rows + " rows!");
                 }
+            }else if (availabilityStatus == -1) {//room does not exist
+                System.err.println("Error: Cannot book. Room number " + booking.getRoom().getNum() + " does not exist.");
+            } else if (availabilityStatus == -2) { //room is already booked
+                System.err.println("Error: Cannot book. Room " + booking.getRoom().getNum() + " is already booked.");
+            } else { // availabilityStatus == -3 (Database error)
+                System.err.println("Error: Could not check room availability due to a database error. Booking failed.");
             }
             
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
