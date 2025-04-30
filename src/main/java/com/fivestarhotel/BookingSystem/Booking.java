@@ -5,10 +5,7 @@ import java.time.LocalDate;
 import com.fivestarhotel.Room;
 
 public class Booking {
-    // public enum BookingStatus {
-    //     Booked,
-    //     NotBooked
-    // }
+
 
     private int booking_id;
     private Room room;
@@ -86,9 +83,6 @@ public class Booking {
         return checkOutDate;
     }
 
-
-
-    
 
    
 }

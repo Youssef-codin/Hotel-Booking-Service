@@ -5,7 +5,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 
 import com.fivestarhotel.BookingSystem.Booking;
@@ -240,64 +239,6 @@ public class Select {
 
 
     //m4 booking awy bs ahoo
-
-
-
-    public boolean IsRoomAvailable(int roomNum , LocalDate requestedCheckIn, LocalDate requestedCheckOut) {
-        try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement(
-                "SELECT COUNT(*) FROM booking WHERE room_number = ? AND check_in_date < ? AND check_out_date > ?");
-            ps.setInt(1, roomNum);
-            ps.setDate(2, Date.valueOf(requestedCheckOut));
-            ps.setDate(3, Date.valueOf(requestedCheckIn));
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-
-                int overlappingBookingsCount = rs.getInt(1);
-                // If count is 0, no overlapping bookings exist, so the room is available.
-                return overlappingBookingsCount == 0;
-            } 
-            return true;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Database error while checking room availability: " + e.getMessage());
-            System.err.println(e.getErrorCode());
-            return false;
-        }
-
-
-    }
-
-    public boolean IsRoomAvailable(int roomNum , LocalDate requestedCheckIn, LocalDate requestedCheckOut,int excludeBookingId) {
-        try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement(
-                "SELECT COUNT(*) FROM booking WHERE room_number = ? AND check_in_date < ? AND check_out_date > ? AND booking_id <> ?");
-            ps.setInt(1, roomNum);
-            ps.setDate(2, Date.valueOf(requestedCheckOut));
-            ps.setDate(3, Date.valueOf(requestedCheckIn));
-            ps.setInt(4, excludeBookingId);  // Exclude this booking ID
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-
-                int overlappingBookingsCount = rs.getInt(1);
-                // If count is 0, no overlapping bookings exist, so the room is available.
-                return overlappingBookingsCount == 0;
-            } 
-            return true;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Database error while checking room availability: " + e.getMessage());
-            System.err.println(e.getErrorCode());
-            return false;
-        }
-
-
-    }
-
 
 
 

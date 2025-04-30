@@ -4,13 +4,12 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
-import com.fivestarhotel.Room; // Ensure this is the correct package for the Booking class
-import com.fivestarhotel.Room.RoomType;
+import com.fivestarhotel.Room;
+import com.fivestarhotel.Room.RoomType; // Ensure this is the correct package for the Booking class
 
 public class Update {
 
@@ -85,34 +84,7 @@ public class Update {
     //Booking update method b2a wa kda
 
 
-    public void booking(int bookingId,int room, LocalDate checkInDate,LocalDate checkOutDate){
-        if (Db.select.IsRoomAvailable(room,checkInDate,checkOutDate,bookingId)){
-            System.out.println("Room " + room + " is available. Proceeding with booking...");
-            try (Connection conn = Db.connect()) {
-
-                PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE booking SET check_in_date = ?, check_out_date = ? WHERE booking_id = ? AND room_number = ?");
-                ps.setString(1, Date.valueOf(checkInDate).toString());
-                ps.setString(2, Date.valueOf(checkOutDate).toString());
-                ps.setInt(3, bookingId);
-                ps.setInt(4, room);
     
-                int rows = ps.executeUpdate();
-                if (rows == 0) {
-                    System.err.println("Booking ID not found.");
-                } else {
-                    System.out.println("updated " + rows + " rows!");
-                }
-    
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }else{
-            System.out.println("Room " + room + " is not available for the requested dates.");
-        }
-        
-    }
-
 
 
     // if a customer wants to extend their stay, they can use this method to update the check out date
