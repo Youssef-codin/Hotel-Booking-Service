@@ -1,11 +1,15 @@
 package com.fivestarhotel.Database;
 
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import com.fivestarhotel.BookingSystem.Booking;
+import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 
 public class Create {
 
@@ -177,4 +181,48 @@ public class Create {
             }
         }
     }
-}
+
+    // Booking stuff wa kda b2a 
+
+
+    public void addBooking(Booking booking) {
+        BookingManager bm = new BookingManager();
+        Room room = booking.getRoom();
+        bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
+
+        if (Db.select.IsRoomAvailable(room,booking)) {
+            // Throw custom exception if room is not available
+            System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
+            
+            try(Connection conn = Db.connect()) {
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) " +
+                        "VALUES (?, ?, ?, ?, ?,?)");
+    
+                ps.setInt(1, booking.getBooking_id());
+                ps.setInt(2, booking.getRoom().getNum());
+                ps.setInt(3, booking.getCustomer_id());
+                ps.setInt(4, booking.getReceptionist_id());
+                ps.setDate(5, Date.valueOf(booking.getCheckInDate()));
+                ps.setDate(6, Date.valueOf(booking.getCheckOutDate()));
+                int bookingRows = ps.executeUpdate();
+                System.out.println("Added " + bookingRows + " booking row(s).");
+                Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
+                
+            } catch (SQLException e) {
+                System.err.println("Booking failed due to a SQL error. Rolling back transaction.");
+                e.printStackTrace();
+                
+            }
+        }else{
+            System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
+        
+    }
+}}
+
+
+
+
+
+    
+
