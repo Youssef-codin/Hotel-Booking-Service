@@ -1,7 +1,7 @@
 package com.fivestarhotel;
 
 public class App {
-    public static void main(String[] args) {
+    public static void main(String[] args)  {
 
         /*
          * WELCOME TO Db!! You may do "limited" sql functionalities in Java by using

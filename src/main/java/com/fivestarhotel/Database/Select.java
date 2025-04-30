@@ -1,9 +1,11 @@
 package com.fivestarhotel.Database;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import com.fivestarhotel.BookingSystem.Booking;
@@ -233,6 +235,124 @@ public class Select {
             }
         }
     }
+
+
+
+
+    //m4 booking awy bs ahoo
+
+
+
+    public boolean IsRoomAvailable(int roomNum , LocalDate requestedCheckIn, LocalDate requestedCheckOut) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT COUNT(*) FROM booking WHERE room_number = ? AND check_in_date < ? AND check_out_date > ?");
+            ps.setInt(1, roomNum);
+            ps.setDate(2, Date.valueOf(requestedCheckOut));
+            ps.setDate(3, Date.valueOf(requestedCheckIn));
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+
+                int overlappingBookingsCount = rs.getInt(1);
+                // If count is 0, no overlapping bookings exist, so the room is available.
+                return overlappingBookingsCount == 0;
+            } 
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error while checking room availability: " + e.getMessage());
+            System.err.println(e.getErrorCode());
+            return false;
+        }
+
+
+    }
+
+    public boolean IsRoomAvailable(int roomNum , LocalDate requestedCheckIn, LocalDate requestedCheckOut,int excludeBookingId) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT COUNT(*) FROM booking WHERE room_number = ? AND check_in_date < ? AND check_out_date > ? AND booking_id <> ?");
+            ps.setInt(1, roomNum);
+            ps.setDate(2, Date.valueOf(requestedCheckOut));
+            ps.setDate(3, Date.valueOf(requestedCheckIn));
+            ps.setInt(4, excludeBookingId);  // Exclude this booking ID
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+
+                int overlappingBookingsCount = rs.getInt(1);
+                // If count is 0, no overlapping bookings exist, so the room is available.
+                return overlappingBookingsCount == 0;
+            } 
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error while checking room availability: " + e.getMessage());
+            System.err.println(e.getErrorCode());
+            return false;
+        }
+
+
+    }
+
+
+
+
+    public boolean IsRoomAvailable(Room room, Booking booking) {
+        String sql = "SELECT COUNT(*) FROM booking WHERE room_number = ? AND check_in_date < ? AND check_out_date > ?";
+        try (Connection conn = Db.connect();) {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, room.getNum());
+            ps.setDate(2, Date.valueOf(booking.getCheckOutDate()));
+            ps.setDate(3, Date.valueOf(booking.getCheckInDate()));
+            ResultSet rs = ps.executeQuery();
+    
+            if (rs.next()) {
+
+                int overlappingBookingsCount = rs.getInt(1);
+                // If count is 0, no overlapping bookings exist, so the room is available.
+                return overlappingBookingsCount == 0;
+            } 
+            return true;
+    
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error while checking room availability: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean IsRoomAvailable(Room room, Booking booking, int excludeBookingId) {
+        String sql = "SELECT COUNT(*) FROM booking " +
+                     "WHERE room_number = ? " +
+                     "AND check_in_date < ? " +     // Existing booking starts before new checkout
+                     "AND check_out_date > ? " +    // Existing booking ends after new checkin
+                     "AND booking_id <> ?";         // Exclude the current booking being updated
+    
+        try (Connection conn = Db.connect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+    
+            ps.setInt(1, room.getNum());
+            ps.setDate(2, Date.valueOf(booking.getCheckOutDate()));
+            ps.setDate(3, Date.valueOf(booking.getCheckInDate()));
+            ps.setInt(4, excludeBookingId);  // Exclude this booking ID
+    
+            ResultSet rs = ps.executeQuery();
+            return rs.next() && rs.getInt(1) == 0; // True if no overlaps (other than current booking)
+    
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+
+
+
 
 
     //Booking System wa kda b2a

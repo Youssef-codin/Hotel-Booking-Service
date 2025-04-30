@@ -2,7 +2,6 @@ package com.fivestarhotel.BookingSystem;
 
 import java.time.LocalDate;
 
-import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Room;
 
 public class Booking {
@@ -20,6 +19,14 @@ public class Booking {
 
     public Booking(int booking_id,Room room, int customer_id, int receptionist_id, LocalDate checkInDate, LocalDate checkOutDate) {
         this.booking_id = booking_id;
+        this.room = room;
+        this.customer_id = customer_id;
+        this.receptionist_id = receptionist_id;
+        this.checkInDate = checkInDate;
+        this.checkOutDate = checkOutDate;
+    }
+    public Booking(Room room, int customer_id, int receptionist_id, LocalDate checkInDate, LocalDate checkOutDate) {
+
         this.room = room;
         this.customer_id = customer_id;
         this.receptionist_id = receptionist_id;
@@ -81,35 +88,7 @@ public class Booking {
 
 
 
-    public int checkBooking(Room room) {
-            if (room == null) {
-                System.out.println("Room number " + room.getNum() + " does not exist.");
-                return -1;// Indicate room not found
-            }
     
-            boolean isBooked = room.getStatus();
-            if (isBooked) {
-                System.out.println("Room " + room.getNum() + " is already booked.");
-                return -2; // Indicate room is booked
-            }
-            return 0; // Indicate room is available
-    }
-   
-    public int checkBooking(int roomNum) {
-            Room room = Db.select.getRoom(roomNum);
-            if (room == null) {
-                System.out.println("Room number " + roomNum + " does not exist.");
-                return -1; // Indicate room not found
-            }
-    
-            boolean isBooked = room.getStatus();
-            if (isBooked) {
-                System.out.println("Room " + roomNum + " is already booked.");
-                return -2; // Indicate room is booked
-            }
-    
-            return 0; // Indicate room is available
-    }
 
    
 }
