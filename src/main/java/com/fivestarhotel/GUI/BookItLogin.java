@@ -2,19 +2,12 @@ package com.fivestarhotel.GUI;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import com.fivestarhotel.Database.*;
 
 public class BookItLogin extends JFrame {
-    private final Color BROWN = new Color(92, 64, 51);
-    private final Color OFF_WHITE = new Color(246, 241, 233);
-    private final Font LABEL_FONT = new Font("Arial", Font.PLAIN, 14);
-    private final Font BUTTON_FONT = new Font("Arial", Font.BOLD, 14);
-    private final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);
-
     private JTextField emailField;
     private JPasswordField passwordField;
     private JProgressBar loadingBar;
+    private char originalEchoChar;
 
     public BookItLogin() {
         initializeUI();
@@ -26,33 +19,27 @@ public class BookItLogin extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-        getContentPane().setBackground(OFF_WHITE);
+        getContentPane().setBackground(Utils.OFF_WHITE);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(OFF_WHITE);
+        mainPanel.setBackground(Utils.OFF_WHITE);
 
         mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
         mainPanel.add(createLoginPanel(), BorderLayout.CENTER);
 
         // Loading indicator
-        loadingBar = new JProgressBar();
-        loadingBar.setIndeterminate(true);
-        loadingBar.setVisible(false);
-        loadingBar.setBackground(OFF_WHITE);
-        loadingBar.setForeground(BROWN);
-        mainPanel.add(loadingBar, BorderLayout.SOUTH);
-
+        JProgressBar loadingBar = Utils.createLoadingBar();
         add(mainPanel);
     }
 
     private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(OFF_WHITE);
+        headerPanel.setBackground(Utils.OFF_WHITE);
 
         JLabel titleLabel = new JLabel("BookIt Hotel Management", JLabel.CENTER);
-        titleLabel.setFont(TITLE_FONT);
-        titleLabel.setForeground(BROWN);
+        titleLabel.setFont(Utils.TITLE_FONT);
+        titleLabel.setForeground(Utils.BROWN);
         headerPanel.add(titleLabel);
 
         return headerPanel;
@@ -60,9 +47,9 @@ public class BookItLogin extends JFrame {
 
     private JPanel createLoginPanel() {
         JPanel loginPanel = new JPanel(new GridBagLayout());
-        loginPanel.setBackground(OFF_WHITE);
+        loginPanel.setBackground(Utils.OFF_WHITE);
         loginPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(BROWN, 1),
+                BorderFactory.createLineBorder(Utils.BROWN, 1),
                 BorderFactory.createEmptyBorder(20, 20, 20, 20)
         ));
 
@@ -77,27 +64,39 @@ public class BookItLogin extends JFrame {
 
         gbc.gridx = 1;
         emailField = new JTextField(20);
-        emailField.setFont(LABEL_FONT);
+        emailField.setFont(Utils.LABEL_FONT);
         emailField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(BROWN, 1),
+                BorderFactory.createLineBorder(Utils.BROWN, 1),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
         loginPanel.add(emailField, gbc);
 
         // Password field
-        gbc.gridx = 0;
         gbc.gridy = 1;
+        gbc.gridx = 0;
         loginPanel.add(new JLabel("Password:"), gbc);
-
         gbc.gridx = 1;
+        JPanel passwordContainer = new JPanel(new BorderLayout(5, 0));
+        passwordContainer.setBackground(Utils.OFF_WHITE);
         passwordField = new JPasswordField(20);
-        passwordField.setFont(LABEL_FONT);
+        passwordField.setFont(Utils.LABEL_FONT);
         passwordField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(BROWN, 1),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                BorderFactory.createLineBorder(Utils.BROWN, 1),
+                BorderFactory.createEmptyBorder(1, 5, 1, 5)
         ));
         passwordField.addActionListener(e -> authenticateUser());
-        loginPanel.add(passwordField, gbc);
+
+        // Store original echo character
+        originalEchoChar = passwordField.getEchoChar();
+
+        // Toggle button
+        JButton togglePasswordButton = new JButton("(0)");
+        Utils.styleToggleButton(togglePasswordButton, Utils.BROWN);
+        togglePasswordButton.addActionListener(e -> togglePasswordVisibility(togglePasswordButton));
+
+        passwordContainer.add(passwordField, BorderLayout.CENTER);
+        passwordContainer.add(togglePasswordButton, BorderLayout.EAST);
+        loginPanel.add(passwordContainer, gbc);
 
         // Login button
         gbc.gridx = 0;
@@ -105,7 +104,7 @@ public class BookItLogin extends JFrame {
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.CENTER;
         JButton loginButton = new JButton("Login");
-        styleButton(loginButton, BROWN);
+        Utils.styleButton(loginButton, Utils.BROWN);
         loginButton.addActionListener(e -> authenticateUser());
         loginPanel.add(loginButton, gbc);
 
@@ -130,7 +129,7 @@ public class BookItLogin extends JFrame {
                 System.out.println("Receptionist login successful");
                 openRoomManagement("Receptionist", 2);
             } else {
-                showError("Invalid email or password");
+                Utils.showError(this,"User doesn't exist");
             }
 
             loadingBar.setVisible(false);
@@ -142,21 +141,31 @@ public class BookItLogin extends JFrame {
 
     private boolean validateInputs(String email, String password) {
         if (email.isEmpty() || password.isEmpty()) {
-            showError("Please enter both email and password");
+            Utils.showError(this,"Please enter both email and password");
             return false;
         }
 
-        if (!email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-            showError("Please enter a valid email address");
+        if (!email.matches(Utils.emailRegex)) {
+            Utils.showError(this,"Please enter a valid email address");
             return false;
         }
 
-        if (password.length() < 6) {
-            showError("Password must be at least 6 characters");
+        if (!password.matches(Utils.passwordRegex)) {
+            Utils.showError(this,"Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
             return false;
         }
 
         return true;
+    }
+
+    private void togglePasswordVisibility(JButton togglePasswordButton) {
+        if (passwordField.getEchoChar() == originalEchoChar) {
+            passwordField.setEchoChar((char) 0);
+            togglePasswordButton.setText("Hide");
+        } else {
+            passwordField.setEchoChar(originalEchoChar);
+            togglePasswordButton.setText("Show");
+        }
     }
 
     private void openRoomManagement(String userRole, int userId) {
@@ -167,21 +176,6 @@ public class BookItLogin extends JFrame {
         });
     }
 
-    private void showError(String message) {
-        JOptionPane.showMessageDialog(this,
-                message,
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void styleButton(JButton button, Color color) {
-        button.setPreferredSize(new Dimension(120, 40));
-        button.setBackground(color);
-        button.setForeground(OFF_WHITE);
-        button.setFont(BUTTON_FONT);
-        button.setFocusPainted(false);
-        button.setMnemonic(KeyEvent.VK_ENTER);
-    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
