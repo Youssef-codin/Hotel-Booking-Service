@@ -2,20 +2,27 @@ package com.fivestarhotel.GUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 public class Utils {
     // Colors
-    public static final Color BROWN = new Color(92, 64, 51);
-    public static final Color OFF_WHITE = new Color(246, 241, 233);
+    protected static final Color BROWN = new Color(92, 64, 51);
+    protected static final Color OFF_WHITE = new Color(246, 241, 233);
 
     // Fonts
-    public static final Font LABEL_FONT = new Font("Arial", Font.PLAIN, 14);
-    public static final Font BUTTON_FONT = new Font("Arial", Font.BOLD, 14);
-    public static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);
+    protected static final Font LABEL_FONT = new Font("Arial", Font.PLAIN, 14);
+    protected static final Font BUTTON_FONT = new Font("Arial", Font.BOLD, 14);
+    protected static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);
 
     //Email & Password validation
-    public static final String emailRegex = "^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-    public static final String passwordRegex = "^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+    protected static final String emailRegex = "^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+    protected static final String passwordRegex = "^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+
+    //Sizes
+    protected static final int buttonWidth = 120;
+    protected static final int buttonHeight = 40;
+    protected static final int toggleButtonWidth = 30;
+    protected static final int toggleButtonHeight = 30;
 
 
     // UI Components
@@ -29,7 +36,15 @@ public class Utils {
     }
 
     public static void styleButton(JButton button, Color bgColor) {
-        button.setPreferredSize(new Dimension(120, 40));
+        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
+        button.setBackground(bgColor);
+        button.setForeground(OFF_WHITE);
+        button.setFont(BUTTON_FONT);
+        button.setFocusPainted(false);
+    }
+
+    public static void styleButton(JButton button, Color bgColor, int buttonWidth, int buttonHeight) {
+        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
         button.setBackground(bgColor);
         button.setForeground(OFF_WHITE);
         button.setFont(BUTTON_FONT);
@@ -37,20 +52,28 @@ public class Utils {
     }
 
     public static void styleToggleButton(JButton button, Color bgColor) {
-        button.setPreferredSize(new Dimension(40, 40));
+        button.setPreferredSize(new Dimension(toggleButtonWidth, toggleButtonHeight));
         button.setBackground(bgColor);
         button.setForeground(OFF_WHITE);
-        button.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        button.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 5));
         button.setFocusPainted(false);
     }
 
-    public static JPanel createStyledPanel(int padding, Color borderColor) {
+    public static JPanel createStyledPanel(int padding, Color borderColor, boolean border) {
         JPanel panel = new JPanel();
         panel.setBackground(OFF_WHITE);
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(borderColor, 1),
-                BorderFactory.createEmptyBorder(padding, padding, padding, padding)
-        ));
+        if(border){
+            panel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(borderColor, 1),
+                    BorderFactory.createEmptyBorder(padding, padding, padding, padding)
+            ));
+        } else{
+            panel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(borderColor, 0),
+                    BorderFactory.createEmptyBorder(padding, padding, padding, padding)
+            ));
+        }
+
         return panel;
     }
 
@@ -62,7 +85,7 @@ public class Utils {
 
         field.setFont(LABEL_FONT);
         if (field instanceof JTextField) {
-            ((JTextField) field).setBorder(BorderFactory.createCompoundBorder(
+            (field).setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(BROWN, 1),
                     BorderFactory.createEmptyBorder(5, 5, 5, 5)
             ));
@@ -74,4 +97,29 @@ public class Utils {
         JOptionPane.showMessageDialog(parent, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
+    public static boolean validateInputs(String email, String password, Component parent) {
+        if (email.isEmpty() || password.isEmpty()) {
+            Utils.showError(parent,"Please enter both email and password");
+            return false;
+        }
+
+        if (!email.matches(Utils.emailRegex)) {
+            Utils.showError(parent,"Please enter a valid email address");
+            return false;
+        }
+
+        if (!password.matches(Utils.passwordRegex)) {
+            Utils.showError(parent,"Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
+            return false;
+        }
+
+        return true;
+    }
+
+    public static JButton createActionButton(String text, ActionListener action) {
+        JButton button = new JButton(text);
+        styleButton(button, BROWN);
+        button.addActionListener(action);
+        return button;
+    }
 }

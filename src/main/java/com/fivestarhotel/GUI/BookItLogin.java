@@ -29,7 +29,7 @@ public class BookItLogin extends JFrame {
         mainPanel.add(createLoginPanel(), BorderLayout.CENTER);
 
         // Loading indicator
-        JProgressBar loadingBar = Utils.createLoadingBar();
+        loadingBar = Utils.createLoadingBar();
         add(mainPanel);
     }
 
@@ -76,28 +76,23 @@ public class BookItLogin extends JFrame {
         gbc.gridx = 0;
         loginPanel.add(new JLabel("Password:"), gbc);
         gbc.gridx = 1;
-        JPanel passwordContainer = new JPanel(new BorderLayout(5, 0));
-        passwordContainer.setBackground(Utils.OFF_WHITE);
         passwordField = new JPasswordField(20);
         passwordField.setFont(Utils.LABEL_FONT);
         passwordField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Utils.BROWN, 1),
-                BorderFactory.createEmptyBorder(1, 5, 1, 5)
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
         passwordField.addActionListener(e -> authenticateUser());
-
+        loginPanel.add(passwordField, gbc);
         // Store original echo character
         originalEchoChar = passwordField.getEchoChar();
 
         // Toggle button
-        JButton togglePasswordButton = new JButton("(0)");
+        gbc.gridx = 2;
+        JButton togglePasswordButton = new JButton("( 0 )");
         Utils.styleToggleButton(togglePasswordButton, Utils.BROWN);
         togglePasswordButton.addActionListener(e -> togglePasswordVisibility(togglePasswordButton));
-
-        passwordContainer.add(passwordField, BorderLayout.CENTER);
-        passwordContainer.add(togglePasswordButton, BorderLayout.EAST);
-        loginPanel.add(passwordContainer, gbc);
-
+        loginPanel.add(togglePasswordButton, gbc);
         // Login button
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -111,11 +106,12 @@ public class BookItLogin extends JFrame {
         return loginPanel;
     }
 
+
     private void authenticateUser() {
         String email = emailField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
 
-        if (!validateInputs(email, password)) return;
+        if (!Utils.validateInputs(email, password, this)) return;
 
         loadingBar.setVisible(true);
         setEnabled(false); // Disable UI during authentication
@@ -139,32 +135,15 @@ public class BookItLogin extends JFrame {
         timer.start();
     }
 
-    private boolean validateInputs(String email, String password) {
-        if (email.isEmpty() || password.isEmpty()) {
-            Utils.showError(this,"Please enter both email and password");
-            return false;
-        }
 
-        if (!email.matches(Utils.emailRegex)) {
-            Utils.showError(this,"Please enter a valid email address");
-            return false;
-        }
-
-        if (!password.matches(Utils.passwordRegex)) {
-            Utils.showError(this,"Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
-            return false;
-        }
-
-        return true;
-    }
 
     private void togglePasswordVisibility(JButton togglePasswordButton) {
         if (passwordField.getEchoChar() == originalEchoChar) {
             passwordField.setEchoChar((char) 0);
-            togglePasswordButton.setText("Hide");
+            togglePasswordButton.setText("( - )");
         } else {
             passwordField.setEchoChar(originalEchoChar);
-            togglePasswordButton.setText("Show");
+            togglePasswordButton.setText("( 0 )");
         }
     }
 

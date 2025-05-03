@@ -7,7 +7,6 @@ import com.fivestarhotel.Room.RoomType;
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
-import java.awt.event.*;
 import java.util.*;
 
 public class RoomManagement extends JFrame {
@@ -51,25 +50,39 @@ public class RoomManagement extends JFrame {
         headerPanel.setBackground(Utils.OFF_WHITE);
 
         if ("Admin".equals(currentUserRole)) {
-            JLabel titleLabel = new JLabel(currentUserRole, JLabel.EAST);
-            titleLabel.setFont(Utils.TITLE_FONT);
-            titleLabel.setForeground(Utils.BROWN);
-            headerPanel.add(titleLabel, BorderLayout.CENTER);
             headerPanel.add(createAdminControls(), BorderLayout.EAST);
-        }else {
-            JLabel titleLabel = new JLabel("Room Management - " + currentUserRole, JLabel.CENTER);
-            titleLabel.setFont(Utils.TITLE_FONT);
-            titleLabel.setForeground(Utils.BROWN);
-            headerPanel.add(titleLabel, BorderLayout.CENTER);
         }
-
-        JButton logoutButton = new JButton("Logout");
-        Utils.styleButton(logoutButton, Utils.BROWN);
-        logoutButton.addActionListener(e -> returnToLogin());
+        JPanel searchPanel = Utils.createStyledPanel(0, Utils.BROWN, false);
+        JLabel titleLabel = new JLabel("Room Management - " + currentUserRole, JLabel.CENTER);
+        titleLabel.setFont(Utils.TITLE_FONT);
+        titleLabel.setForeground(Utils.BROWN);
+        searchPanel.add(titleLabel);
+        JTextField roomSearch = new JTextField(5);
+        roomSearch.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Utils.BROWN, 1),
+                BorderFactory.createEmptyBorder(10, 5, 10, 5)
+        ));
+        searchPanel.add(roomSearch);
+        JButton searchButton = Utils.createActionButton("S", e -> {
+            try {
+                int roomNumber = Integer.parseInt(roomSearch.getText().trim());
+                if(roomNumber == 0 || roomNumber > mockRooms.size()){
+                    mockRooms = Db.select.getRooms();
+                }else if(roomNumber < 0){
+                    Utils.showError(this, "Invalid Number!");
+                }else {
+                    mockRooms.clear();
+                    mockRooms.add(Db.select.getRoom(roomNumber));
+                }
+            } catch (NumberFormatException a){
+                mockRooms = Db.select.getRooms();
+            }
+        });
+        Utils.styleButton(searchButton, Utils.BROWN, 40,40);
+        searchPanel.add(searchButton);
+        headerPanel.add(searchPanel, BorderLayout.CENTER);
+        JButton logoutButton = Utils.createActionButton("logout",e -> returnToLogin());
         headerPanel.add(logoutButton, BorderLayout.WEST);
-
-
-
 
         return headerPanel;
     }
@@ -78,20 +91,15 @@ public class RoomManagement extends JFrame {
         JPanel adminPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         adminPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton addButton = createActionButton("Add Room", e -> showAddRoomDialog());
-        JButton removeButton = createActionButton("Remove Room", e -> showRemoveRoomDialog());
+        JButton addButton = Utils.createActionButton("Add Room", e -> showAddRoomDialog());
+        JButton removeButton = Utils.createActionButton("Remove Room", e -> showRemoveRoomDialog());
 
         adminPanel.add(addButton);
         adminPanel.add(removeButton);
         return adminPanel;
     }
 
-    private JButton createActionButton(String text, ActionListener action) {
-        JButton button = new JButton(text);
-        Utils.styleButton(button, Utils.BROWN);
-        button.addActionListener(action);
-        return button;
-    }
+
 
     private JScrollPane createRoomsScrollPane() {
         roomsPanel = new JPanel(new WrapLayout(WrapLayout.LEADING, 20, 20));
@@ -125,7 +133,7 @@ public class RoomManagement extends JFrame {
     }
 
     private void addRoomCard(Room room) {
-        JPanel card = Utils.createStyledPanel(15, Utils.BROWN);
+        JPanel card = Utils.createStyledPanel(15, Utils.BROWN, true);
         card.setPreferredSize(new Dimension(300, 200));
 
         // Room Info
@@ -157,14 +165,14 @@ public class RoomManagement extends JFrame {
         panel.setBackground(Utils.OFF_WHITE);
 
         if (room.getStatus()) {
-            panel.add(createActionButton("Check Out", e -> Utils.showError(panel,"hi")));//showCheckoutMessage(room)));
+            panel.add(Utils.createActionButton("Check Out", e -> Utils.showError(panel,"hi")));//showCheckoutMessage(room)));
             if ("Admin".equals(currentUserRole)) {
-                panel.add(createActionButton("Set Available", e -> Utils.showError(panel,"hi")));//showSetAvailableMessage(room)));
+                panel.add(Utils.createActionButton("Set Available", e -> Utils.showError(panel,"hi")));//showSetAvailableMessage(room)));
             }
         } else {
-            panel.add(createActionButton("Check In", e -> showCheckInDialog(room.getNum())));
+            panel.add(Utils.createActionButton("Check In", e -> showCheckInDialog(room.getNum())));
             if ("Admin".equals(currentUserRole)) {
-                panel.add(createActionButton("Set Unavailable", e -> Utils.showError(panel,"hi")));//showSetUnavailableMessage(room)));
+                panel.add(Utils.createActionButton("Set Unavailable", e -> Utils.showError(panel,"hi")));//showSetUnavailableMessage(room)));
             }
         }
         return panel;
@@ -207,9 +215,7 @@ public class RoomManagement extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton submitButton = new JButton("Add Room");
-        Utils.styleButton(submitButton, Utils.BROWN);
-        submitButton.addActionListener(e -> {
+        JButton submitButton = Utils.createActionButton("Add Room",e -> {
             if (roomNumberField.getText().trim().isEmpty()) {
                 Utils.showError(addRoomDialog, "Room number cannot be empty");
                 return;
@@ -230,10 +236,7 @@ public class RoomManagement extends JFrame {
                 Utils.showError(addRoomDialog, "Please enter a valid room number");
             }
         });
-
-        JButton cancelButton = new JButton("Cancel");
-        Utils.styleButton(cancelButton, Utils.BROWN);
-        cancelButton.addActionListener(e -> addRoomDialog.dispose());
+        JButton cancelButton = Utils.createActionButton("Cancel",e -> addRoomDialog.dispose());
 
         buttonPanel.add(submitButton);
         buttonPanel.add(cancelButton);
@@ -243,7 +246,9 @@ public class RoomManagement extends JFrame {
 
         addRoomDialog.add(mainPanel);
         addRoomDialog.setVisible(true);
-    }
+        }
+
+
 
     private void showRemoveRoomDialog() {
         JDialog removeDialog = new JDialog(this, "Remove Room", true);
@@ -271,9 +276,7 @@ public class RoomManagement extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton removeButton = new JButton("Remove");
-        Utils.styleButton(removeButton, Utils.BROWN);
-        removeButton.addActionListener(e -> {
+        JButton removeButton = Utils.createActionButton("Remove", e -> {
             try {
                 String roomNumberText = roomNumberField.getText().trim();
                 if (roomNumberText.isEmpty()) {
@@ -307,9 +310,7 @@ public class RoomManagement extends JFrame {
             }
         });
 
-        JButton cancelButton = new JButton("Cancel");
-        Utils.styleButton(cancelButton, Utils.BROWN);
-        cancelButton.addActionListener(e -> removeDialog.dispose());
+        JButton cancelButton = Utils.createActionButton("Cancel", e -> removeDialog.dispose());
 
         buttonPanel.add(removeButton);
         buttonPanel.add(cancelButton);
@@ -403,10 +404,7 @@ public class RoomManagement extends JFrame {
             Utils.addFormField(datesPanel, "Receptionist:", receptionistCombo);
         }
 
-        JButton submitButton = new JButton("Complete Check In");
-        Utils.styleButton(submitButton, Utils.BROWN);
-
-        verifyButton.addActionListener(e -> {
+        JButton submitButton = Utils.createActionButton("Complete Check In", e -> {
             try {
                 if (customerIdField.getText().isEmpty()) {
                     customerInfoLabel.setText("Please enter a customer ID");
@@ -426,9 +424,7 @@ public class RoomManagement extends JFrame {
                 customerInfoLabel.setText("Please enter a valid customer ID");
                 customerInfoLabel.setForeground(Color.RED);
             }
-        });
 
-        submitButton.addActionListener(e -> {
             try {
                 Date checkInDate = (Date) checkInSpinner.getValue();
                 Date checkOutDate = (Date) checkOutSpinner.getValue();
