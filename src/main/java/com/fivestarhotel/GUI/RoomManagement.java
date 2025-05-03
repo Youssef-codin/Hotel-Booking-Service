@@ -16,6 +16,7 @@ public class RoomManagement extends JFrame {
     private int currentUserId;
 
     //room data
+    private ArrayList<Room> allRooms = Db.select.getRooms();
     private ArrayList<Room> mockRooms = Db.select.getRooms();
 
     public RoomManagement(String userRole, int userId) {
@@ -48,7 +49,7 @@ public class RoomManagement extends JFrame {
     private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Utils.OFF_WHITE);
-
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 38, 0, 50));
         if ("Admin".equals(currentUserRole)) {
             headerPanel.add(createAdminControls(), BorderLayout.EAST);
         }
@@ -58,27 +59,30 @@ public class RoomManagement extends JFrame {
         titleLabel.setForeground(Utils.BROWN);
         searchPanel.add(titleLabel);
         JTextField roomSearch = new JTextField(5);
+
         roomSearch.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Utils.BROWN, 1),
                 BorderFactory.createEmptyBorder(10, 5, 10, 5)
         ));
-        searchPanel.add(roomSearch);
+
         JButton searchButton = Utils.createActionButton("S", e -> {
             try {
                 int roomNumber = Integer.parseInt(roomSearch.getText().trim());
-                if(roomNumber == 0 || roomNumber > mockRooms.size()){
-                    mockRooms = Db.select.getRooms();
+                mockRooms = new ArrayList<>();
+                if(roomNumber == 0 || roomNumber > allRooms.size()){
+                    mockRooms.addAll(allRooms);
                 }else if(roomNumber < 0){
                     Utils.showError(this, "Invalid Number!");
                 }else {
-                    mockRooms.clear();
-                    mockRooms.add(Db.select.getRoom(roomNumber));
+                    mockRooms.add(allRooms.get(roomNumber-1));
                 }
             } catch (NumberFormatException a){
                 mockRooms = Db.select.getRooms();
             }
         });
         Utils.styleButton(searchButton, Utils.BROWN, 40,40);
+        roomSearch.addActionListener(e -> searchButton.doClick());
+        searchPanel.add(roomSearch);
         searchPanel.add(searchButton);
         headerPanel.add(searchPanel, BorderLayout.CENTER);
         JButton logoutButton = Utils.createActionButton("logout",e -> returnToLogin());
@@ -482,7 +486,7 @@ public class RoomManagement extends JFrame {
         //Insert Db.connect(user,pass) here if you want to test
         Db.connect("root", "mimimi45");
         SwingUtilities.invokeLater(() -> {
-            RoomManagement roomManagement = new RoomManagement("Admin", 1);
+            RoomManagement roomManagement = new RoomManagement("Receptionist", 1);
             roomManagement.setVisible(true);
         });
     }
