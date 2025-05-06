@@ -14,10 +14,6 @@ public class Utils {
     protected static final Font BUTTON_FONT = new Font("Arial", Font.BOLD, 14);
     protected static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);
 
-    //Email & Password validation
-    protected static final String emailRegex = "^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-    protected static final String passwordRegex = "^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-
     //Sizes
     protected static final int buttonWidth = 120;
     protected static final int buttonHeight = 40;
@@ -103,12 +99,12 @@ public class Utils {
             return false;
         }
 
-        if (!email.matches(Utils.emailRegex)) {
+        if (!email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
             Utils.showError(parent,"Please enter a valid email address");
             return false;
         }
 
-        if (!password.matches(Utils.passwordRegex)) {
+        if (!password.matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[-_+$#%&]).{6,20}$")) {
             Utils.showError(parent,"Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
             return false;
         }

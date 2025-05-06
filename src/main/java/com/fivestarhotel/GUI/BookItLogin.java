@@ -1,16 +1,31 @@
 package com.fivestarhotel.GUI;
 
+import com.fivestarhotel.Database.Db;
+
 import javax.swing.*;
 import java.awt.*;
+import java.io.*;
 
 public class BookItLogin extends JFrame {
-    private JTextField emailField;
-    private JPasswordField passwordField;
+    private JTextField emailField = new JTextField();
+    private JPasswordField passwordField = new JPasswordField();
     private JProgressBar loadingBar;
     private char originalEchoChar;
+    private JCheckBox rememberMe;
 
     public BookItLogin() {
         initializeUI();
+    }
+    public BookItLogin(String email, String password) {
+        try {
+            if(directAuthenticate(email, password)){
+                emailField.setText(email);
+                passwordField.setText(password);
+            }
+        } catch (Exception e) {
+            initializeUI();
+        }
+
     }
 
     private void initializeUI() {
@@ -46,93 +61,134 @@ public class BookItLogin extends JFrame {
     }
 
     private JPanel createLoginPanel() {
-        JPanel loginPanel = new JPanel(new GridBagLayout());
-        loginPanel.setBackground(Utils.OFF_WHITE);
-        loginPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Utils.BROWN, 1),
-                BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
+        try {
+            JPanel loginPanel = new JPanel(new GridBagLayout());
+            loginPanel.setBackground(Utils.OFF_WHITE);
+            loginPanel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Utils.BROWN, 1),
+                    BorderFactory.createEmptyBorder(20, 20, 20, 20)
+            ));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(10, 10, 10, 10);
+            gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Email field
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        loginPanel.add(new JLabel("Email:"), gbc);
+            // Email field
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            loginPanel.add(new JLabel("Email:"), gbc);
 
-        gbc.gridx = 1;
-        emailField = new JTextField(20);
-        emailField.setFont(Utils.LABEL_FONT);
-        emailField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Utils.BROWN, 1),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-        loginPanel.add(emailField, gbc);
+            gbc.gridx = 1;
+            emailField = new JTextField(20);
+            emailField.setFont(Utils.LABEL_FONT);
+            emailField.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Utils.BROWN, 1),
+                    BorderFactory.createEmptyBorder(5, 5, 5, 5)
+            ));
+            loginPanel.add(emailField, gbc);
 
-        // Password field
-        gbc.gridy = 1;
-        gbc.gridx = 0;
-        loginPanel.add(new JLabel("Password:"), gbc);
-        gbc.gridx = 1;
-        passwordField = new JPasswordField(20);
-        passwordField.setFont(Utils.LABEL_FONT);
-        passwordField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Utils.BROWN, 1),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-        passwordField.addActionListener(e -> authenticateUser());
-        loginPanel.add(passwordField, gbc);
-        // Store original echo character
-        originalEchoChar = passwordField.getEchoChar();
+            // Password field
+            gbc.gridy = 1;
+            gbc.gridx = 0;
+            loginPanel.add(new JLabel("Password:"), gbc);
+            gbc.gridx = 1;
+            passwordField = new JPasswordField(20);
+            passwordField.setFont(Utils.LABEL_FONT);
+            passwordField.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Utils.BROWN, 1),
+                    BorderFactory.createEmptyBorder(5, 5, 5, 5)
+            ));
+            passwordField.addActionListener(e -> authenticateUser());
+            loginPanel.add(passwordField, gbc);
+            // Store original echo character
+            originalEchoChar = passwordField.getEchoChar();
 
-        // Toggle button
-        gbc.gridx = 2;
-        JButton togglePasswordButton = new JButton("( 0 )");
-        Utils.styleToggleButton(togglePasswordButton, Utils.BROWN);
-        togglePasswordButton.addActionListener(e -> togglePasswordVisibility(togglePasswordButton));
-        loginPanel.add(togglePasswordButton, gbc);
-        // Login button
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        gbc.fill = GridBagConstraints.CENTER;
-        JButton loginButton = new JButton("Login");
-        Utils.styleButton(loginButton, Utils.BROWN);
-        loginButton.addActionListener(e -> authenticateUser());
-        loginPanel.add(loginButton, gbc);
+            // Toggle button
+            gbc.gridx = 2;
+            JButton togglePasswordButton = new JButton("( 0 )");
+            Utils.styleToggleButton(togglePasswordButton, Utils.BROWN);
+            togglePasswordButton.addActionListener(e -> togglePasswordVisibility(togglePasswordButton));
+            loginPanel.add(togglePasswordButton, gbc);
+            // Remember me
+            gbc.gridx = 0;
+            gbc.gridy = 2;
+            gbc.gridwidth = 2;
+            gbc.fill = GridBagConstraints.CENTER;
+            rememberMe = new JCheckBox("Remember Me");
+            rememberMe.setBackground(Utils.OFF_WHITE);
+            loginPanel.add(rememberMe, gbc);
+            // Login button
+            gbc.gridx = 0;
+            gbc.gridy = 3;
+            gbc.gridwidth = 2;
+            gbc.fill = GridBagConstraints.CENTER;
+            JButton loginButton = new JButton("Login");
+            Utils.styleButton(loginButton, Utils.BROWN);
+            loginButton.addActionListener(e -> authenticateUser());
+            loginPanel.add(loginButton, gbc);
 
-        return loginPanel;
+            return loginPanel;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
     private void authenticateUser() {
-        String email = emailField.getText().trim();
-        String password = new String(passwordField.getPassword()).trim();
+        try {
+            String email = emailField.getText().trim();
+            String password = new String(passwordField.getPassword()).trim();
 
-        if (!Utils.validateInputs(email, password, this)) return;
+            if (!Utils.validateInputs(email, password, this)) return;
 
-        loadingBar.setVisible(true);
-        setEnabled(false); // Disable UI during authentication
+            loadingBar.setVisible(true);
+            setEnabled(false); // Disable UI during authentication
 
-        // Simulate authentication delay
-        Timer timer = new Timer(1500, e -> {
-            if (email.equals("admin@bookit.com") && password.equals("admin123")) {
-                System.out.println("Admin login successful");
-                openRoomManagement("Admin", 1);
-            } else if (email.equals("reception@bookit.com") && password.equals("reception123")) {
-                System.out.println("Receptionist login successful");
-                openRoomManagement("Receptionist", 2);
+            // Simulate authentication delay
+            Timer timer = new Timer(1500, e -> {
+                if (email.equals("admin@bookit.com") && password.equals("Admin_123")) {
+                    System.out.println("Admin login successful");
+                    openRoomManagement("Admin", 1);
+                } else if (email.equals("reception@bookit.com") && password.equals("reception123")) {
+                    System.out.println("Receptionist login successful");
+                    openRoomManagement("Receptionist", 2);
+                } else {
+                    Utils.showError(this,"User doesn't exist");
+                }
+
+
+
+                loadingBar.setVisible(false);
+                setEnabled(true);
+            });
+            if (rememberMe.isSelected()){
+                try {
+                    FileWriter writer = new FileWriter(new File("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt"));
+                    writer.write(emailField.getText() + "\n");
+                    writer.write(passwordField.getText());
+                    writer.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             } else {
-                Utils.showError(this,"User doesn't exist");
+                new File("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt").delete();
             }
+            timer.setRepeats(false);
+            timer.start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-            loadingBar.setVisible(false);
-            setEnabled(true);
-        });
-        timer.setRepeats(false);
-        timer.start();
+    private boolean directAuthenticate(String email, String password) {
+        if (email.equals("admin@bookit.com") && password.equals("Admin_123")) {
+            openRoomManagement("Admin", 1);
+            return true;
+        } else if (email.equals("reception@bookit.com") && password.equals("reception123")) {
+            openRoomManagement("Receptionist", 2);
+            return true;
+        }
+        return false;
     }
 
 
@@ -157,9 +213,23 @@ public class BookItLogin extends JFrame {
 
 
     public static void main(String[] args) {
+        Db.connect("root", "mimimi45");
         SwingUtilities.invokeLater(() -> {
-            BookItLogin loginSystem = new BookItLogin();
-            loginSystem.setVisible(true);
+            if(!new File("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt").exists()){
+                BookItLogin loginSystem = new BookItLogin();
+                loginSystem.setVisible(true);
+            }else {
+                try {
+                    BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt"));
+                    String email = reader.readLine();
+                    String password = reader.readLine();
+                    new BookItLogin(email, password);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+
+            }
         });
     }
 }
