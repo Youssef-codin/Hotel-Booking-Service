@@ -14,6 +14,8 @@ public class RoomManagement extends JFrame {
     private JProgressBar loadingBar;
     private String currentUserRole;
     private int currentUserId;
+    private JTextField roomSearch; //extracted variable
+    //private JTextField roomSearch = new JTextField(5); //alternative way to do this so u dont have to create the object below
 
     //room data
     private ArrayList<Room> allRooms = Db.select.getRooms();
@@ -58,28 +60,16 @@ public class RoomManagement extends JFrame {
         titleLabel.setFont(Utils.TITLE_FONT);
         titleLabel.setForeground(Utils.BROWN);
         searchPanel.add(titleLabel);
-        JTextField roomSearch = new JTextField(5);
 
+        //extracted variable
+        roomSearch = new JTextField(5);
         roomSearch.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Utils.BROWN, 1),
                 BorderFactory.createEmptyBorder(10, 5, 10, 5)
         ));
 
-        JButton searchButton = Utils.createActionButton("S", e -> {
-            try {
-                int roomNumber = Integer.parseInt(roomSearch.getText().trim());
-                mockRooms = new ArrayList<>();
-                if(roomNumber == 0 || roomNumber > allRooms.size()){
-                    mockRooms.addAll(allRooms);
-                }else if(roomNumber < 0){
-                    Utils.showError(this, "Invalid Number!");
-                }else {
-                    mockRooms.add(allRooms.get(roomNumber-1));
-                }
-            } catch (NumberFormatException a){
-                mockRooms = Db.select.getRooms();
-            }
-        });
+        JButton searchButton = Utils.createActionButton("S", e -> extractedAction());
+
         Utils.styleButton(searchButton, Utils.BROWN, 40,40);
         roomSearch.addActionListener(e -> searchButton.doClick());
         searchPanel.add(roomSearch);
@@ -89,6 +79,22 @@ public class RoomManagement extends JFrame {
         headerPanel.add(logoutButton, BorderLayout.WEST);
 
         return headerPanel;
+    }
+
+    private void extractedAction() { //basically, expand the scope of the variables used (like the roomSearch textField) then u can just do this
+        try {
+            int roomNumber = Integer.parseInt(roomSearch.getText().trim());
+            mockRooms = new ArrayList<>();
+            if(roomNumber == 0 || roomNumber > allRooms.size()){
+                mockRooms.addAll(allRooms);
+            }else if(roomNumber < 0){
+                Utils.showError(this, "Invalid Number!");
+            }else {
+                mockRooms.add(allRooms.get(roomNumber-1));
+            }
+        } catch (NumberFormatException a){
+            mockRooms = Db.select.getRooms();
+        }
     }
 
     private JPanel createAdminControls() {
@@ -484,7 +490,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         //Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "mimimi45");
+        Db.connect("root", "yoyo8080");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Receptionist", 1);
             roomManagement.setVisible(true);
