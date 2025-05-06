@@ -10,11 +10,18 @@ import java.awt.*;
 import java.util.*;
 
 public class RoomManagement extends JFrame {
+    private JTextField roomSearch, roomNumberField, customerIdField, firstNameField, lastNameField, emailField, phoneField;
+    private JDialog addRoomDialog, removeDialog, checkInDialog;
+    private JSpinner checkInSpinner, checkOutSpinner;
+    private int currentUserId, roomNumber;
+    private String currentUserRole;
     private JPanel roomsPanel;
     private JProgressBar loadingBar;
-    private String currentUserRole;
-    private int currentUserId;
-    private JTextField roomSearch; //extracted variable
+    private JCheckBox bookedCheckbox;
+    private JComboBox<RoomType> roomTypes;
+    private JLabel customerInfoLabel;
+    private JTabbedPane tabbedPane;
+    //extracted variable
     //private JTextField roomSearch = new JTextField(5); //alternative way to do this so u dont have to create the object below
 
     //room data
@@ -199,7 +206,7 @@ public class RoomManagement extends JFrame {
     }
 
     private void showAddRoomDialog() {
-        JDialog addRoomDialog = new JDialog(this, "Add New Room", true);
+        addRoomDialog = new JDialog(this, "Add New Room", true);
         addRoomDialog.setSize(400, 250);
         addRoomDialog.setLocationRelativeTo(this);
         addRoomDialog.getContentPane().setBackground(Utils.OFF_WHITE);
@@ -211,13 +218,13 @@ public class RoomManagement extends JFrame {
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         formPanel.setBackground(Utils.OFF_WHITE);
 
-        JTextField roomNumberField = new JTextField();
+        roomNumberField = new JTextField();
         Utils.addFormField(formPanel, "Room Number:", roomNumberField);
 
-        JComboBox<RoomType> roomTypeCombo = new JComboBox<>(RoomType.values());
-        Utils.addFormField(formPanel, "Room Type:", roomTypeCombo);
+        roomTypes = new JComboBox<>(RoomType.values());
+        Utils.addFormField(formPanel, "Room Type:", roomTypes);
 
-        JCheckBox bookedCheckbox = new JCheckBox();
+        bookedCheckbox = new JCheckBox();
         Utils.addFormField(formPanel, "Initially Booked:", bookedCheckbox);
 
         mainPanel.add(formPanel, BorderLayout.CENTER);
@@ -225,27 +232,7 @@ public class RoomManagement extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton submitButton = Utils.createActionButton("Add Room",e -> {
-            if (roomNumberField.getText().trim().isEmpty()) {
-                Utils.showError(addRoomDialog, "Room number cannot be empty");
-                return;
-            }
-
-            try {
-                int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
-                RoomType roomType = (RoomType) roomTypeCombo.getSelectedItem();
-                boolean isBooked = bookedCheckbox.isSelected();
-
-                mockRooms.add(new Room(roomNumber, roomType, isBooked));
-                JOptionPane.showMessageDialog(addRoomDialog,
-                        "Room #" + roomNumber + " added successfully! (Mock implementation)",
-                        "Success", JOptionPane.INFORMATION_MESSAGE);
-                addRoomDialog.dispose();
-                loadRooms();
-            } catch (NumberFormatException ex) {
-                Utils.showError(addRoomDialog, "Please enter a valid room number");
-            }
-        });
+        JButton submitButton = Utils.createActionButton("Add Room", e -> {addRoomAction();});
         JButton cancelButton = Utils.createActionButton("Cancel",e -> addRoomDialog.dispose());
 
         buttonPanel.add(submitButton);
@@ -256,12 +243,32 @@ public class RoomManagement extends JFrame {
 
         addRoomDialog.add(mainPanel);
         addRoomDialog.setVisible(true);
+    }
+
+    private void addRoomAction() {
+        if (roomNumberField.getText().trim().isEmpty()) {
+            Utils.showError(addRoomDialog, "Room number cannot be empty");
+            return;
         }
 
+        try {
+            int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
+            RoomType roomType = (RoomType) roomTypes.getSelectedItem();
+            boolean isBooked = bookedCheckbox.isSelected();
 
+            mockRooms.add(new Room(roomNumber, roomType, isBooked));
+            JOptionPane.showMessageDialog(addRoomDialog,
+                    "Room #" + roomNumber + " added successfully! (Mock implementation)",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            addRoomDialog.dispose();
+            loadRooms();
+        } catch (NumberFormatException ex) {
+            Utils.showError(addRoomDialog, "Please enter a valid room number");
+        }
+    }
 
     private void showRemoveRoomDialog() {
-        JDialog removeDialog = new JDialog(this, "Remove Room", true);
+        removeDialog = new JDialog(this, "Remove Room", true);
         removeDialog.setSize(400, 200);
         removeDialog.setLocationRelativeTo(this);
         removeDialog.getContentPane().setBackground(Utils.OFF_WHITE);
@@ -286,40 +293,7 @@ public class RoomManagement extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton removeButton = Utils.createActionButton("Remove", e -> {
-            try {
-                String roomNumberText = roomNumberField.getText().trim();
-                if (roomNumberText.isEmpty()) {
-                    Utils.showError(removeDialog, "Please enter a room number");
-                    return;
-                }
-
-                int roomNumber = Integer.parseInt(roomNumberText);
-                int confirm = JOptionPane.showConfirmDialog(
-                        removeDialog,
-                        "Are you sure you want to permanently remove Room #" + roomNumber + "?",
-                        "Confirm Removal",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                );
-
-                if (confirm == JOptionPane.YES_OPTION) {
-                    boolean removed = mockRooms.removeIf(room -> room.getNum() == roomNumber);
-                    if (removed) {
-                        JOptionPane.showMessageDialog(removeDialog,
-                                "Room #" + roomNumber + " was successfully removed (Mock implementation)",
-                                "Success", JOptionPane.INFORMATION_MESSAGE);
-                        removeDialog.dispose();
-                        loadRooms();
-                    } else {
-                        Utils.showError(removeDialog, "Room #" + roomNumber + " not found");
-                    }
-                }
-            } catch (NumberFormatException ex) {
-                Utils.showError(removeDialog, "Please enter a valid room number");
-            }
-        });
-
+        JButton removeButton = Utils.createActionButton("Remove", e -> {removeButtonAction();});
         JButton cancelButton = Utils.createActionButton("Cancel", e -> removeDialog.dispose());
 
         buttonPanel.add(removeButton);
@@ -332,8 +306,42 @@ public class RoomManagement extends JFrame {
         removeDialog.setVisible(true);
     }
 
+    private void removeButtonAction(){
+        try {
+            String roomNumberText = roomNumberField.getText().trim();
+            if (roomNumberText.isEmpty()) {
+                Utils.showError(removeDialog, "Please enter a room number");
+                return;
+            }
+
+            roomNumber = Integer.parseInt(roomNumberText);
+            int confirm = JOptionPane.showConfirmDialog(
+                    removeDialog,
+                    "Are you sure you want to permanently remove Room #" + roomNumber + "?",
+                    "Confirm Removal",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                boolean removed = mockRooms.removeIf(room -> room.getNum() == roomNumber);
+                if (removed) {
+                    JOptionPane.showMessageDialog(removeDialog,
+                            "Room #" + roomNumber + " was successfully removed (Mock implementation)",
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                    removeDialog.dispose();
+                    loadRooms();
+                } else {
+                    Utils.showError(removeDialog, "Room #" + roomNumber + " not found");
+                }
+            }
+        } catch (NumberFormatException ex) {
+            Utils.showError(removeDialog, "Please enter a valid room number");
+        }
+    };
+
     private void showCheckInDialog(int roomNumber) {
-        JDialog checkInDialog = new JDialog(this, "Check In - Room #" + roomNumber, true);
+        checkInDialog = new JDialog(this, "Check In - Room #" + roomNumber, true);
         checkInDialog.setSize(600, 600);
         checkInDialog.setLocationRelativeTo(this);
         checkInDialog.getContentPane().setBackground(Utils.OFF_WHITE);
@@ -352,7 +360,7 @@ public class RoomManagement extends JFrame {
 
         mainPanel.add(roomInfoPanel, BorderLayout.NORTH);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane = new JTabbedPane();
         tabbedPane.setBackground(Utils.OFF_WHITE);
         tabbedPane.setFont(Utils.LABEL_FONT);
 
@@ -362,7 +370,7 @@ public class RoomManagement extends JFrame {
         JPanel verifyPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         verifyPanel.setBackground(Utils.OFF_WHITE);
 
-        JTextField customerIdField = new JTextField();
+        customerIdField = new JTextField();
         JButton verifyButton = new JButton("Verify Customer");
         Utils.styleButton(verifyButton, Utils.BROWN);
 
@@ -370,7 +378,7 @@ public class RoomManagement extends JFrame {
         verifyPanel.add(new JLabel());
         verifyPanel.add(verifyButton);
 
-        JLabel customerInfoLabel = new JLabel("", JLabel.CENTER);
+        customerInfoLabel = new JLabel("", JLabel.CENTER);
         customerInfoLabel.setFont(Utils.LABEL_FONT);
 
         existingCustomerPanel.add(verifyPanel, BorderLayout.NORTH);
@@ -379,10 +387,10 @@ public class RoomManagement extends JFrame {
         JPanel newCustomerPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         newCustomerPanel.setBackground(Utils.OFF_WHITE);
 
-        JTextField firstNameField = new JTextField();
-        JTextField lastNameField = new JTextField();
-        JTextField emailField = new JTextField();
-        JTextField phoneField = new JTextField();
+        firstNameField = new JTextField();
+        lastNameField = new JTextField();
+        emailField = new JTextField();
+        phoneField = new JTextField();
 
         Utils.addFormField(newCustomerPanel, "First Name:", firstNameField);
         Utils.addFormField(newCustomerPanel, "Last Name:", lastNameField);
@@ -396,12 +404,12 @@ public class RoomManagement extends JFrame {
         datesPanel.setBorder(BorderFactory.createTitledBorder("Booking Dates"));
         datesPanel.setBackground(Utils.OFF_WHITE);
 
-        JSpinner checkInSpinner = new JSpinner(new SpinnerDateModel());
+        checkInSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor checkInEditor = new JSpinner.DateEditor(checkInSpinner, "yyyy-MM-dd");
         checkInSpinner.setEditor(checkInEditor);
         checkInSpinner.setValue(new Date());
 
-        JSpinner checkOutSpinner = new JSpinner(new SpinnerDateModel());
+        checkOutSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor checkOutEditor = new JSpinner.DateEditor(checkOutSpinner, "yyyy-MM-dd");
         checkOutSpinner.setEditor(checkOutEditor);
         checkOutSpinner.setValue(new Date(System.currentTimeMillis() + 86400000));
@@ -414,66 +422,7 @@ public class RoomManagement extends JFrame {
             Utils.addFormField(datesPanel, "Receptionist:", receptionistCombo);
         }
 
-        JButton submitButton = Utils.createActionButton("Complete Check In", e -> {
-            try {
-                if (customerIdField.getText().isEmpty()) {
-                    customerInfoLabel.setText("Please enter a customer ID");
-                    return;
-                }
-
-                int customerId = Integer.parseInt(customerIdField.getText());
-                if (customerId > 0) {
-                    customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
-                    customerInfoLabel.setForeground(new Color(0, 128, 0));
-                } else {
-                    customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
-                    customerInfoLabel.setForeground(Color.RED);
-                    tabbedPane.setSelectedIndex(1);
-                }
-            } catch (NumberFormatException ex) {
-                customerInfoLabel.setText("Please enter a valid customer ID");
-                customerInfoLabel.setForeground(Color.RED);
-            }
-
-            try {
-                Date checkInDate = (Date) checkInSpinner.getValue();
-                Date checkOutDate = (Date) checkOutSpinner.getValue();
-
-                if (checkOutDate.before(checkInDate)) {
-                    JOptionPane.showMessageDialog(checkInDialog,
-                            "Check-out date must be after check-in date",
-                            "Invalid Dates", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                if (tabbedPane.getSelectedIndex() == 0) {
-                    if (customerIdField.getText().isEmpty()) {
-                        JOptionPane.showMessageDialog(checkInDialog,
-                                "Please verify customer ID first",
-                                "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                } else {
-                    if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
-                        JOptionPane.showMessageDialog(checkInDialog,
-                                "First and last name are required",
-                                "Error", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
-
-                JOptionPane.showMessageDialog(checkInDialog,
-                        "Room #" + roomNumber + " checked in successfully! (Mock implementation)",
-                        "Success", JOptionPane.INFORMATION_MESSAGE);
-
-                checkInDialog.dispose();
-                loadRooms();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(checkInDialog,
-                        "Error during check-in: " + ex.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
+        JButton submitButton = Utils.createActionButton("Complete Check In", e -> {completeCheckButtonAction();});
 
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
         centerPanel.setBackground(Utils.OFF_WHITE);
@@ -487,10 +436,71 @@ public class RoomManagement extends JFrame {
         checkInDialog.setVisible(true);
     }
 
+    private void completeCheckButtonAction(){
+        try {
+            if (customerIdField.getText().isEmpty()) {
+                customerInfoLabel.setText("Please enter a customer ID");
+                return;
+            }
+
+            int customerId = Integer.parseInt(customerIdField.getText());
+            if (customerId > 0) {
+                customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
+                customerInfoLabel.setForeground(new Color(0, 128, 0));
+            } else {
+                customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
+                customerInfoLabel.setForeground(Color.RED);
+                tabbedPane.setSelectedIndex(1);
+            }
+        } catch (NumberFormatException ex) {
+            customerInfoLabel.setText("Please enter a valid customer ID");
+            customerInfoLabel.setForeground(Color.RED);
+        }
+
+        try {
+            Date checkInDate = (Date) checkInSpinner.getValue();
+            Date checkOutDate = (Date) checkOutSpinner.getValue();
+
+            if (checkOutDate.before(checkInDate)) {
+                JOptionPane.showMessageDialog(checkInDialog,
+                        "Check-out date must be after check-in date",
+                        "Invalid Dates", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (tabbedPane.getSelectedIndex() == 0) {
+                if (customerIdField.getText().isEmpty()) {
+                    JOptionPane.showMessageDialog(checkInDialog,
+                            "Please verify customer ID first",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } else {
+                if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
+                    JOptionPane.showMessageDialog(checkInDialog,
+                            "First and last name are required",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Room #" + roomNumber + " checked in successfully! (Mock implementation)",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+
+            checkInDialog.dispose();
+            loadRooms();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Error during check-in: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 
     public static void main(String[] args) {
         //Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "mimimi45");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Receptionist", 1);
             roomManagement.setVisible(true);
