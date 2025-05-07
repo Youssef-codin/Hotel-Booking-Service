@@ -25,15 +25,6 @@ public class App {
          * 
          */
 
-        Db.connect("root","root");
-        User user = Db.select.signInUser("john.doe@example.com", "StrongP@ssw0rd!");
-        if (user != null) {
-            System.out.println("Welcome, " + user.getFname() + " " + user.getLname() + "!");
-        } else {
-            System.out.println("Sign-in failed. Please check your credentials.");
-        }
-
-        System.out.println("Sign-in process complete.");
 
 
     }
