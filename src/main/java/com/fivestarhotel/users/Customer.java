@@ -6,7 +6,7 @@ public class Customer extends User {
     private double balance;
 
     public Customer(int customer_id, String customer_fname, String customer_lname, String customer_email,
-            String password, String phone, String address, int balance) {
+            String password, String phone, String address, double balance) {
         super(customer_id, customer_fname, customer_lname, customer_email, password);
         this.phone = phone;
         this.address = address;
