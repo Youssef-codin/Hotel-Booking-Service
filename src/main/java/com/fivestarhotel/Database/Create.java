@@ -1,14 +1,17 @@
 package com.fivestarhotel.Database;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
+import com.fivestarhotel.users.Customer;
+
+import static com.fivestarhotel.security.Crypto.makeSalt;
+import static com.fivestarhotel.security.Crypto.stringToHash;
+import com.fivestarhotel.users.User;
+import com.fivestarhotel.users.Receptionist;
 
 
 public class Create {
@@ -214,11 +217,75 @@ public class Create {
                 e.printStackTrace();
                 
             }
-        }else{
+        }
+        else{
             System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
         
+                }
+
     }
-}}
+    public static User signUpUser(User user) {
+        try (Connection conn = Db.connect()) {
+            String salt = makeSalt();
+            String hashedPassword = stringToHash(user.getPassword(), salt);
+
+            if (user instanceof Customer customer) {
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO customer (customer_fname, customer_lname, customer_email, customer_password, customer_salt, customer_phone, customer_address, customer_balance) " +
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS
+                );
+                ps.setString(1, customer.getFname());
+                ps.setString(2, customer.getLname());
+                ps.setString(3, customer.getEmail());
+                ps.setString(4, hashedPassword);
+                ps.setString(5, salt);
+                ps.setString(6, customer.getPhone());
+                ps.setString(7, customer.getAddress());
+                ps.setDouble(8, 0.0);
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    return new Customer(id, customer.getFname(), customer.getLname(), customer.getEmail(),
+                            hashedPassword, customer.getPhone(), customer.getAddress(), 0);
+                }
+
+            } else if (user instanceof Receptionist receptionist) {
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO receptionist (receptionist_fname, receptionist_lname, receptionist_email, receptionist_password, receptionist_salt) " +
+                                "VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS
+                );
+                ps.setString(1, receptionist.getFname());
+                ps.setString(2, receptionist.getLname());
+                ps.setString(3, receptionist.getEmail());
+                ps.setString(4, hashedPassword);
+                ps.setString(5, salt);
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    return new Receptionist(id, receptionist.getFname(), receptionist.getLname(),
+                            receptionist.getEmail(), hashedPassword);
+                }
+            }
+
+            System.err.println("Unsupported user type or insertion failed.");
+            return null;
+
+        } catch (SQLIntegrityConstraintViolationException e) {
+            System.err.println("Email already exists: " + user.getEmail());
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+
+}
 
 
 

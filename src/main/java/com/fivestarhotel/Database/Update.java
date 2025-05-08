@@ -151,6 +151,32 @@ public class Update {
             e.printStackTrace();
         }
     }
+    public void updateCustomerBalance(int customerId, double newBalance) {
+        if (newBalance < 0) {
+            System.err.println("Balance cannot be negative.");
+            return;
+        }
+
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE customer SET customer_balance = ? WHERE customer_id = ?"
+            );
+            ps.setDouble(1, newBalance);
+            ps.setInt(2, customerId);
+
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                System.err.println("Customer ID not found: " + customerId);
+            } else {
+                System.out.println("Updated balance for customer ID: " + customerId);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error during balance update: " + e.getMessage());
+        }
+    }
+
 
 
 }
