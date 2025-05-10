@@ -517,7 +517,7 @@ public class Select {
 
 
     }
-    public ArrayList<User> getAllRoles(String role) {
+    public ArrayList<User> getAllRoles(String role, Integer userId) {
         ArrayList<User> users = new ArrayList<>();
 
         try (Connection conn = Db.connect()) {
@@ -526,7 +526,12 @@ public class Select {
 
             switch (role.toLowerCase()) {
                 case "admin":
-                    ps = conn.prepareStatement("SELECT * FROM admin");
+                    if (userId != null) {
+                        ps = conn.prepareStatement("SELECT * FROM admin WHERE admin_id = ?");
+                        ps.setInt(1, userId);
+                    } else {
+                        ps = conn.prepareStatement("SELECT * FROM admin");
+                    }
                     rs = ps.executeQuery();
                     while (rs.next()) {
                         users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
@@ -536,7 +541,12 @@ public class Select {
                     break;
 
                 case "receptionist":
-                    ps = conn.prepareStatement("SELECT * FROM receptionist");
+                    if (userId != null) {
+                        ps = conn.prepareStatement("SELECT * FROM receptionist WHERE receptionist_id = ?");
+                        ps.setInt(1, userId);
+                    } else {
+                        ps = conn.prepareStatement("SELECT * FROM receptionist");
+                    }
                     rs = ps.executeQuery();
                     while (rs.next()) {
                         users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
@@ -546,7 +556,12 @@ public class Select {
                     break;
 
                 case "customer":
-                    ps = conn.prepareStatement("SELECT * FROM customer");
+                    if (userId != null) {
+                        ps = conn.prepareStatement("SELECT * FROM customer WHERE customer_id = ?");
+                        ps.setInt(1, userId);
+                    } else {
+                        ps = conn.prepareStatement("SELECT * FROM customer");
+                    }
                     rs = ps.executeQuery();
                     while (rs.next()) {
                         users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
@@ -557,10 +572,10 @@ public class Select {
                     break;
 
                 case "all":
-
-                    users.addAll(getAllRoles("admin"));
-                    users.addAll(getAllRoles("receptionist"));
-                    users.addAll(getAllRoles("customer"));
+                    // Retrieve all users if "all" is specified
+                    users.addAll(getAllRoles("admin", null));
+                    users.addAll(getAllRoles("receptionist", null));
+                    users.addAll(getAllRoles("customer", null));
                     break;
 
                 default:
@@ -575,6 +590,7 @@ public class Select {
             return null;
         }
     }
+
 
 
     public ArrayList<String> getAllRoomLogs() {
