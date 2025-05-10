@@ -13,6 +13,7 @@ import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
+import com.fivestarhotel.users.Admin;
 
 import static com.fivestarhotel.security.Crypto.stringToHash;
 
@@ -516,4 +517,85 @@ public class Select {
 
 
     }
+    public ArrayList<User> getAllRoles(String role) {
+        ArrayList<User> users = new ArrayList<>();
+
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+
+            switch (role.toLowerCase()) {
+                case "admin":
+                    ps = conn.prepareStatement("SELECT * FROM admin");
+                    rs = ps.executeQuery();
+                    while (rs.next()) {
+                        users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                                rs.getString("admin_lname"), rs.getString("admin_email"),
+                                rs.getString("admin_password")));
+                    }
+                    break;
+
+                case "receptionist":
+                    ps = conn.prepareStatement("SELECT * FROM receptionist");
+                    rs = ps.executeQuery();
+                    while (rs.next()) {
+                        users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                                rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                                rs.getString("receptionist_password")));
+                    }
+                    break;
+
+                case "customer":
+                    ps = conn.prepareStatement("SELECT * FROM customer");
+                    rs = ps.executeQuery();
+                    while (rs.next()) {
+                        users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                                rs.getString("customer_lname"), rs.getString("customer_email"),
+                                rs.getString("customer_password"), rs.getString("customer_phone"),
+                                rs.getString("customer_address"), rs.getDouble("customer_balance")));
+                    }
+                    break;
+
+                case "all":
+
+                    users.addAll(getAllRoles("admin"));
+                    users.addAll(getAllRoles("receptionist"));
+                    users.addAll(getAllRoles("customer"));
+                    break;
+
+                default:
+                    System.err.println("Invalid role specified. Use 'admin', 'receptionist', 'customer' or 'all'.");
+                    return null;
+            }
+
+            return users;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+    public ArrayList<String> getAllRoomLogs() {
+        ArrayList<String> roomLogs = new ArrayList<>();
+
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM room_log");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String log = "Log ID: " + rs.getInt("log_id") +
+                        ", Admin ID: " + rs.getInt("admin_id") +
+                        ", Room Number: " + rs.getInt("room_number") +
+                        ", Action Type: " + rs.getString("action_type") +
+                        ", Action Date: " + rs.getString("action_date");
+                roomLogs.add(log);
+            }
+            return roomLogs;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }
