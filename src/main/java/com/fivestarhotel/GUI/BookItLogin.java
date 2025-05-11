@@ -227,8 +227,6 @@ public class BookItLogin extends JFrame {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-
-
             }
         });
     }

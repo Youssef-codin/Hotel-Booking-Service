@@ -89,6 +89,30 @@ public class Utils {
         panel.add(field);
     }
 
+
+    public static void UiStyleTabs(){
+        UIManager.put("TabbedPane.selected", Utils.OFF_WHITE);
+        UIManager.put("TabbedPane.contentAreaColor", Utils.OFF_WHITE);
+        UIManager.put("TabbedPane.focus", Utils.BROWN);
+        UIManager.put("TabbedPane.darkShadow", Utils.BROWN);
+        UIManager.put("TabbedPane.light", Utils.BROWN);
+        UIManager.put("TabbedPane.highlight", Utils.BROWN);
+        UIManager.put("TabbedPane.shadow", Utils.BROWN);
+        UIManager.put("TabbedPane.unselectedBackground", Utils.OFF_WHITE);
+        UIManager.put("TabbedPane.foreground", Utils.BROWN);
+        UIManager.put("TabbedPane.selectedForeground", Utils.BROWN);
+        UIManager.put("TabbedPane.selected", Utils.OFF_WHITE);
+        UIManager.put("TabbedPane.foreground", Utils.BROWN);
+        UIManager.put("TabbedPane.background", Utils.OFF_WHITE);
+        UIManager.put("TabbedPane.unselectedBackground", Utils.OFF_WHITE);
+        UIManager.put("TabbedPane.shadow", Utils.BROWN);
+        UIManager.put("TabbedPane.darkShadow", Utils.BROWN);
+        UIManager.put("TabbedPane.highlight", Utils.BROWN);
+        UIManager.put("TabbedPane.light", Utils.BROWN);
+        UIManager.put("TabbedPane.borderHightlightColor", Utils.BROWN); // yes, typo in API
+        UIManager.put("TabbedPane.focus", Utils.BROWN);
+    }
+
     public static void showError(Component parent, String message) {
         JOptionPane.showMessageDialog(parent, message, "Error", JOptionPane.ERROR_MESSAGE);
     }

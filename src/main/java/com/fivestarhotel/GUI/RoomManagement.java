@@ -9,8 +9,9 @@ import javax.swing.Timer;
 import java.awt.*;
 import java.util.*;
 
+
 public class RoomManagement extends JFrame {
-    private JTextField roomSearch, roomNumberField, customerIdField, firstNameField, lastNameField, emailField, phoneField;
+    private JTextField searchField, roomNumberField, customerIdField, firstNameField, lastNameField, emailField, phoneField;
     private JDialog addRoomDialog, removeDialog, checkInDialog;
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, roomNumber;
@@ -21,12 +22,15 @@ public class RoomManagement extends JFrame {
     private JComboBox<RoomType> roomTypes;
     private JLabel customerInfoLabel;
     private JTabbedPane tabbedPane;
-    //extracted variable
-    //private JTextField roomSearch = new JTextField(5); //alternative way to do this so u dont have to create the object below
 
-    //room data
+
+    //Lists
     private ArrayList<Room> allRooms = Db.select.getRooms();
-    private ArrayList<Room> mockRooms = Db.select.getRooms();
+    private ArrayList<Room> activeRooms = Db.select.getRooms();
+    private ArrayList<Room> allLogs;
+    private ArrayList<Room> activeLogs;
+    private ArrayList<Room> allUserAccounts;
+    private ArrayList<Room> activeUserAccounts;
 
     public RoomManagement(String userRole, int userId) {
         this.currentUserRole = userRole;
@@ -35,6 +39,7 @@ public class RoomManagement extends JFrame {
     }
 
     private void initializeUI() {
+        Utils.UiStyleTabs();
         setTitle("BookIt - Room Management (" + currentUserRole + ")");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -46,70 +51,103 @@ public class RoomManagement extends JFrame {
         mainPanel.setBackground(Utils.OFF_WHITE);
 
         mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
-        mainPanel.add(createRoomsScrollPane(), BorderLayout.CENTER);
+        if(currentUserRole.matches("Admin")){
+            mainPanel.add(tabbedInterface(), BorderLayout.CENTER);
+        }else{
+            mainPanel.add(createRoomsScrollPane(), BorderLayout.CENTER);
+        }
+
 
         loadingBar = Utils.createLoadingBar();
         mainPanel.add(loadingBar, BorderLayout.SOUTH);
 
         add(mainPanel);
         loadRooms();
+
     }
+
+    private JTabbedPane tabbedInterface(){
+        JTabbedPane tabbedPane = new JTabbedPane();
+
+        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tabbedPane.setBackground(Utils.OFF_WHITE);
+
+        JScrollPane roomsPanel = createRoomsScrollPane();
+        JPanel logsPanel = new JPanel(); // put logs GUI here
+        JPanel accountsPanel = new JPanel();
+
+        tabbedPane.addTab("Available Rooms", roomsPanel);
+        tabbedPane.addTab("Room Logs", logsPanel);
+        tabbedPane.addTab("Accounts", accountsPanel);
+
+        return tabbedPane;
+    };
 
     private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Utils.OFF_WHITE);
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 38, 0, 50));
-        if ("Admin".equals(currentUserRole)) {
-            headerPanel.add(createAdminControls(), BorderLayout.EAST);
-        }
-        JPanel searchPanel = Utils.createStyledPanel(0, Utils.BROWN, false);
-        JLabel titleLabel = new JLabel("Room Management - " + currentUserRole, JLabel.CENTER);
-        titleLabel.setFont(Utils.TITLE_FONT);
-        titleLabel.setForeground(Utils.BROWN);
-        searchPanel.add(titleLabel);
-
-        //extracted variable
-        roomSearch = new JTextField(5);
-        roomSearch.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Utils.BROWN, 1),
-                BorderFactory.createEmptyBorder(10, 5, 10, 5)
+        headerPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(5, 10, 5, 0),
+                BorderFactory.createLineBorder(Utils.BROWN, 0)
         ));
 
-        JButton searchButton = Utils.createActionButton("S", e -> extractedAction());
+        JButton logoutButton = Utils.createActionButton("<-", e -> returnToLogin());
+        Utils.styleButton(logoutButton, Utils.BROWN, 50, 40);
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
+        leftPanel.setOpaque(false);
+        leftPanel.add(logoutButton);
+        headerPanel.add(leftPanel, BorderLayout.WEST);
 
-        Utils.styleButton(searchButton, Utils.BROWN, 40,40);
-        roomSearch.addActionListener(e -> searchButton.doClick());
-        searchPanel.add(roomSearch);
+        searchField = new JTextField(15);
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Utils.BROWN, 1),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+        searchField.setPreferredSize(new Dimension(120, 40)); // match height
+
+        JButton searchButton = Utils.createActionButton("Search", e -> SearchButton());
+        Utils.styleButton(searchButton, Utils.BROWN, 85, 40);
+        searchField.addActionListener(e -> searchButton.doClick());
+
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        searchPanel.setOpaque(false);
+        searchPanel.add(searchField);
         searchPanel.add(searchButton);
         headerPanel.add(searchPanel, BorderLayout.CENTER);
-        JButton logoutButton = Utils.createActionButton("logout",e -> returnToLogin());
-        headerPanel.add(logoutButton, BorderLayout.WEST);
+
+        if(currentUserRole.matches("Admin")){
+            headerPanel.add(createAdminControls(), BorderLayout.EAST);
+        }
+
 
         return headerPanel;
     }
 
-    private void extractedAction() { //basically, expand the scope of the variables used (like the roomSearch textField) then u can just do this
+
+
+
+    private void SearchButton(){
         try {
-            int roomNumber = Integer.parseInt(roomSearch.getText().trim());
-            mockRooms = new ArrayList<>();
-            if(roomNumber == 0 || roomNumber > allRooms.size()){
-                mockRooms.addAll(allRooms);
-            }else if(roomNumber < 0){
+            int searchNumber = Integer.parseInt(searchField.getText().trim());
+            activeRooms = new ArrayList<>();
+            if(searchNumber == 0 || searchNumber > allRooms.size()){
+                activeRooms.addAll(allRooms);
+            }else if(searchNumber < 0){
                 Utils.showError(this, "Invalid Number!");
             }else {
-                mockRooms.add(allRooms.get(roomNumber-1));
+                activeRooms.add(allRooms.get(searchNumber-1));
             }
         } catch (NumberFormatException a){
-            mockRooms = Db.select.getRooms();
+            activeRooms = Db.select.getRooms();
         }
     }
 
     private JPanel createAdminControls() {
-        JPanel adminPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        JPanel adminPanel = new JPanel(new GridLayout(1, 2,10,0));
         adminPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton addButton = Utils.createActionButton("Add Room", e -> showAddRoomDialog());
-        JButton removeButton = Utils.createActionButton("Remove Room", e -> showRemoveRoomDialog());
+        JButton addButton = Utils.createActionButton("Room +", e -> showAddRoomDialog());
+        JButton removeButton = Utils.createActionButton("Room -", e -> showRemoveRoomDialog());
 
         adminPanel.add(addButton);
         adminPanel.add(removeButton);
@@ -139,10 +177,10 @@ public class RoomManagement extends JFrame {
         // Simulated loading
         new Timer(1000, e -> {
             roomsPanel.removeAll();
-            if (mockRooms.isEmpty()) {
+            if (activeRooms.isEmpty()) {
                 roomsPanel.add(new JLabel("No rooms found"));
             } else {
-                mockRooms.forEach(this::addRoomCard);
+                activeRooms.forEach(this::addRoomCard);
             }
             loadingBar.setVisible(false);
             refreshUI();
@@ -184,12 +222,12 @@ public class RoomManagement extends JFrame {
         if (room.getStatus()) {
             panel.add(Utils.createActionButton("Check Out", e -> Utils.showError(panel,"hi")));//showCheckoutMessage(room)));
             if ("Admin".equals(currentUserRole)) {
-                panel.add(Utils.createActionButton("Set Available", e -> Utils.showError(panel,"hi")));//showSetAvailableMessage(room)));
+                panel.add(Utils.createActionButton("Set Open", e -> Utils.showError(panel,"hi")));//showSetAvailableMessage(room)));
             }
         } else {
             panel.add(Utils.createActionButton("Check In", e -> showCheckInDialog(room.getNum())));
             if ("Admin".equals(currentUserRole)) {
-                panel.add(Utils.createActionButton("Set Unavailable", e -> Utils.showError(panel,"hi")));//showSetUnavailableMessage(room)));
+                panel.add(Utils.createActionButton("Set Closed", e -> Utils.showError(panel,"hi")));//showSetUnavailableMessage(room)));
             }
         }
         return panel;
@@ -256,7 +294,7 @@ public class RoomManagement extends JFrame {
             RoomType roomType = (RoomType) roomTypes.getSelectedItem();
             boolean isBooked = bookedCheckbox.isSelected();
 
-            mockRooms.add(new Room(roomNumber, roomType, isBooked));
+            activeRooms.add(new Room(roomNumber, roomType, isBooked));
             JOptionPane.showMessageDialog(addRoomDialog,
                     "Room #" + roomNumber + " added successfully! (Mock implementation)",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -293,7 +331,7 @@ public class RoomManagement extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton removeButton = Utils.createActionButton("Remove", e -> {removeButtonAction();});
+        JButton removeButton = Utils.createActionButton("Remove", e -> removeButtonAction());
         JButton cancelButton = Utils.createActionButton("Cancel", e -> removeDialog.dispose());
 
         buttonPanel.add(removeButton);
@@ -324,7 +362,7 @@ public class RoomManagement extends JFrame {
             );
 
             if (confirm == JOptionPane.YES_OPTION) {
-                boolean removed = mockRooms.removeIf(room -> room.getNum() == roomNumber);
+                boolean removed = activeRooms.removeIf(room -> room.getNum() == roomNumber);
                 if (removed) {
                     JOptionPane.showMessageDialog(removeDialog,
                             "Room #" + roomNumber + " was successfully removed (Mock implementation)",
@@ -502,7 +540,7 @@ public class RoomManagement extends JFrame {
         //Insert Db.connect(user,pass) here if you want to test
         Db.connect("root", "mimimi45");
         SwingUtilities.invokeLater(() -> {
-            RoomManagement roomManagement = new RoomManagement("Receptionist", 1);
+            RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);
         });
     }
