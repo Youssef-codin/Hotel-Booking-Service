@@ -1,5 +1,6 @@
 package com.fivestarhotel;
 
+import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.users.Customer;
 
 public class Payment {
@@ -13,11 +14,17 @@ public class Payment {
 
     }
 
-    public boolean process(double amountPaid) {
+    public boolean process(double amountPaid, Customer customer, int billId) {
         double usedFromBalance = Math.min(balance, amountDue);
         amountDue -= usedFromBalance;
         balance -= usedFromBalance;
-        return applyPayment(amountPaid);
+
+        boolean success = applyPayment(amountPaid);
+        if (success) {
+            Db.update.updateCustomerBalance(customer.getId(), balance);
+            Db.update.updateBillStatus(billId, Billing.BillingStatus.PAID);
+        }
+        return success;
     }
 
     public boolean directPay(double amountPaid) {

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import com.fivestarhotel.Billing;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 
@@ -79,4 +80,48 @@ public class Delete {
             System.err.println(e.getErrorCode());
         }
     }
+
+
+
+
+    //billing delete method wa kda b2a
+
+    public void bill(int billId) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE bill_id = ?");
+            ps.setInt(1, billId);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Bill ID not found, didn't delete anything");
+            } else {
+                System.out.println("deleted " + rows + " rows.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
+        }
+    }
+
+
+    public void bill(Billing bill) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE bill_id = ?");
+            ps.setInt(1, bill.getBillId());
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Bill ID not found, didn't delete anything");
+            } else {
+                System.out.println("deleted " + rows + " rows.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
+        }
+    }
+
+
+
+
+
+
 }

@@ -7,14 +7,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
+import static com.fivestarhotel.security.Crypto.stringToHash;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
-
-import static com.fivestarhotel.security.Crypto.stringToHash;
 
 public class Select {
     public Room getRoom(int roomNumber) {
@@ -447,6 +447,8 @@ public class Select {
         }
     }
 
+    
+
     public User signInUser(String email, String password) {
         try (Connection conn = Db.connect()) {
 
@@ -516,4 +518,141 @@ public class Select {
 
 
     }
+
+
+
+
+    //Billing wa kda
+
+    public Billing getBill(int billId) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM billing WHERE bill_id = ?");
+            ps.setInt(1, billId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Billing(
+                        rs.getInt("bill_id"),
+                        rs.getInt("booking_id"),
+                        rs.getInt("customer_id"),
+                        rs.getDouble("amount"),
+                        Billing.convertStr(rs.getString("status")),
+                        rs.getDate("created_date").toLocalDate()
+                );
+            } else {
+                System.err.println("Bill not found for ID: " + billId);
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error: " + e.getMessage());
+            return null;
+        }
+    }
+
+
+
+    public Billing getBillCustomer(int customerId) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM billing WHERE customer_id = ?");
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Billing(
+                        rs.getInt("bill_id"),
+                        rs.getInt("booking_id"),
+                        rs.getInt("customer_id"),
+                        rs.getDouble("amount"),
+                        Billing.convertStr(rs.getString("status")),
+                        rs.getDate("created_date").toLocalDate()
+                );
+            } else {
+                System.err.println("Bill not found for customer ID: " + customerId);
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Billing getBillBooking(int bookingId) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM billing WHERE booking_id = ?");
+            ps.setInt(1, bookingId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Billing(
+                        rs.getInt("bill_id"),
+                        rs.getInt("booking_id"),
+                        rs.getInt("customer_id"),
+                        rs.getDouble("amount"),
+                        Billing.convertStr(rs.getString("status")),
+                        rs.getDate("created_date").toLocalDate()
+                );
+            } else {
+                System.err.println("Bill not found for booking ID: " + bookingId);
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error: " + e.getMessage());
+            return null;
+        }
+    }
+
+
+    public ArrayList<Billing> getBillsByCustomer(int customerId) {
+        ArrayList<Billing> bills = new ArrayList<>();
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM billing WHERE customer_id = ?");
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                bills.add(new Billing(
+                        rs.getInt("bill_id"),
+                        rs.getInt("booking_id"),
+                        rs.getInt("customer_id"),
+                        rs.getDouble("amount"),
+                        Billing.convertStr(rs.getString("status")),
+                        rs.getDate("created_date").toLocalDate()
+                ));
+            }
+            return bills;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error: " + e.getMessage());
+            return null;
+        }
+    }
+    
+
+    public ArrayList<Billing> getAllBills() {
+        ArrayList<Billing> bills = new ArrayList<>();
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM billing");
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                bills.add(new Billing(
+                        rs.getInt("bill_id"),
+                        rs.getInt("booking_id"),
+                        rs.getInt("customer_id"),
+                        rs.getDouble("amount"),
+                        Billing.convertStr(rs.getString("status")),
+                        rs.getDate("created_date").toLocalDate()
+                ));
+            }
+            return bills;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error: " + e.getMessage());
+            return null;
+        }
+    }
+
+
+
+
+
+
 }
