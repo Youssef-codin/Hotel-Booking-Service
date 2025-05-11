@@ -7,7 +7,7 @@ import com.fivestarhotel.Database.Db;
 public class BillingSystem {
 
 
-    public void viewAllBills() {
+    public static void viewAllBills() {
         ArrayList<Billing> bills = Db.select.getAllBills();
         if (bills == null || bills.isEmpty()) {
             System.out.println("No bills found.");
@@ -24,7 +24,7 @@ public class BillingSystem {
         }
     }
 
-    public void viewCusBills(int customerId) {
+    public static void viewCusBills(int customerId) {
         ArrayList<Billing> bills = Db.select.getBillsByCustomer(customerId);
         if (bills == null || bills.isEmpty()) {
             System.out.println("No bills found for customer ID: " + customerId);
@@ -41,7 +41,7 @@ public class BillingSystem {
     }
 
 
-    public void viewCusBills(Billing bill) {
+    public static void viewCusBills(Billing bill) {
         ArrayList<Billing> bills = Db.select.getBillsByCustomer(bill.getCustomerId());
         if (bills == null || bills.isEmpty()) {
             System.out.println("No bills found for customer ID: " + bill.getCustomerId());
