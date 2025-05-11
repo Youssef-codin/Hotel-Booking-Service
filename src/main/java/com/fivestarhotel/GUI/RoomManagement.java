@@ -286,7 +286,7 @@ public class RoomManagement extends JFrame {
     private void addRoomAction() {
         if (roomNumberField.getText().trim().isEmpty()) {
             Utils.showError(addRoomDialog, "Room number cannot be empty");
-            return;
+            return; //
         }
 
         try {
