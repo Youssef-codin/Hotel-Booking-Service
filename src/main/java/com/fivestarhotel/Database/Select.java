@@ -12,6 +12,8 @@ import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 import static com.fivestarhotel.security.Crypto.stringToHash;
+
+import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
@@ -649,6 +651,114 @@ public class Select {
             return null;
         }
     }
+    public ArrayList<User> getAllRoles(String role, Integer userId, String name, String email) {
+        ArrayList<User> users = new ArrayList<>();
+        String sql;
+
+        // Use the modern switch statement
+        sql = switch (role.toLowerCase()) {
+            case "admin" -> "SELECT * FROM admin";
+            case "receptionist" -> "SELECT * FROM receptionist";
+            case "customer" -> "SELECT * FROM customer";
+            case "all" -> {
+
+                users.addAll(getAllRoles("admin", userId, name, email));
+                users.addAll(getAllRoles("receptionist", userId, name, email));
+                users.addAll(getAllRoles("customer", userId, name, email));
+                yield null;
+            }
+            default -> {
+                System.err.println("Invalid role specified. Use 'admin', 'receptionist', 'customer' or 'all'.");
+                yield null;
+            }
+        };
+
+
+        if (sql == null) return users;
+
+        ArrayList<String> conditions = new ArrayList<>();
+        if (userId != null) conditions.add(role + "_id = " + userId);
+        if (name != null) conditions.add(role + "_fname LIKE '%" + name + "%'");
+        if (email != null) conditions.add(role + "_email LIKE '%" + email + "%'");
+
+        if (!conditions.isEmpty()) {
+            sql += " WHERE " + String.join(" AND ", conditions);
+        }
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+
+
+            while (rs.next()) {
+                switch (role) {
+                    case "admin" -> users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                            rs.getString("admin_lname"), rs.getString("admin_email"),
+                            rs.getString("admin_password")));
+                    case "receptionist" -> users.add(new Receptionist(rs.getInt("receptionist_id"),
+                            rs.getString("receptionist_fname"), rs.getString("receptionist_lname"),
+                            rs.getString("receptionist_email"), rs.getString("receptionist_password")));
+                    case "customer" -> users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                            rs.getString("customer_lname"), rs.getString("customer_email"),
+                            rs.getString("customer_password"), rs.getString("customer_phone"),
+                            rs.getString("customer_address"), rs.getDouble("customer_balance")));
+                }
+            }
+
+            return users;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public ArrayList<String> getRoomsByCustomer(int customerId) {
+        ArrayList<String> rooms = new ArrayList<>();
+        String sql = "SELECT b.room_number, c.customer_fname, c.customer_lname " +
+                "FROM booking b " +
+                "JOIN customer c ON b.customer_id = c.customer_id " +
+                "WHERE b.customer_id = ?";
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                int roomNumber = rs.getInt("room_number");
+                String customerName = rs.getString("customer_fname") + " " + rs.getString("customer_lname");
+                rooms.add("Room Number: " + roomNumber + " (Customer: " + customerName + ")");
+            }
+
+            return rooms;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public Customer getCustomerByRoom(int roomNumber) {
+        String sql = "SELECT c.* FROM customer c " +
+                "JOIN booking b ON c.customer_id = b.customer_id " +
+                "WHERE b.room_number = ?";
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roomNumber);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                        rs.getString("customer_lname"), rs.getString("customer_email"),
+                        rs.getString("customer_password"), rs.getString("customer_phone"),
+                        rs.getString("customer_address"), rs.getDouble("customer_balance"));
+            } else {
+                System.err.println("No customer found for room number " + roomNumber);
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
 
 
 
