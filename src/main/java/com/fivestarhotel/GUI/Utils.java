@@ -83,7 +83,7 @@ public class Utils {
         if (field instanceof JTextField) {
             (field).setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(BROWN, 1),
-                    BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                    BorderFactory.createEmptyBorder(0, 5, 0, 5)
             ));
         }
         panel.add(field);
