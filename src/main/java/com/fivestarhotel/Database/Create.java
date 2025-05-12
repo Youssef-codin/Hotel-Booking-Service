@@ -1,17 +1,24 @@
 package com.fivestarhotel.Database;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Statement;
+import java.time.LocalDate;
 
+import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
-import com.fivestarhotel.users.Customer;
-
 import static com.fivestarhotel.security.Crypto.makeSalt;
 import static com.fivestarhotel.security.Crypto.stringToHash;
-import com.fivestarhotel.users.User;
+import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
+import com.fivestarhotel.users.User;
 
 
 public class Create {
@@ -211,6 +218,20 @@ public class Create {
                 int bookingRows = ps.executeUpdate();
                 System.out.println("Added " + bookingRows + " booking row(s).");
                 Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
+
+                // Calculate bill amount
+                double amount = Billing.calculateAmount(booking);
+
+                // Create bill
+                Billing bill = new Billing(
+                    booking.getBooking_id(),
+                    booking.getCustomer_id(),
+                    amount,
+                    Billing.BillingStatus.PENDING,
+                    LocalDate.now()
+                );
+                addBill(bill);
+                System.out.println("Added bill for booking ID: " + booking.getBooking_id() + ", Amount: $" + amount);
                 
             } catch (SQLException e) {
                 System.err.println("Booking failed due to a SQL error. Rolling back transaction.");
@@ -220,10 +241,12 @@ public class Create {
         }
         else{
             System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
-        
-                }
+            }
 
     }
+
+
+    
     public static User signUpUser(User user) {
         try (Connection conn = Db.connect()) {
             String salt = makeSalt();
@@ -283,6 +306,39 @@ public class Create {
         }
 
     }
+
+
+
+    //billing stuff
+
+    public void addBill(Billing bill) {
+        if (Db.select.getbooking(bill.getBookingId()) == null) {
+            System.err.println("Invalid booking ID: " + bill.getBookingId());
+            return;
+        }
+        if (Db.select.getBillBooking(bill.getBookingId()) != null) {
+            System.err.println("A bill already exists for booking ID: " + bill.getBookingId());
+            return;
+        }
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO billing(booking_id, customer_id, amount, status, created_date) VALUES (?, ?, ?, ?, ?)");
+            ps.setInt(1, bill.getBookingId());
+            ps.setInt(2, bill.getCustomerId());
+            ps.setDouble(3, bill.getAmount());
+            ps.setString(4, Billing.convertBill(bill.getStatus()));
+            ps.setDate(5, Date.valueOf(bill.getCreatedDate()));
+            int rows = ps.executeUpdate();
+            System.out.println("Added " + rows + " bill row(s).");
+        } catch (SQLException e) {
+            System.err.println("Failed to create bill: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+
+
 
 
 }
