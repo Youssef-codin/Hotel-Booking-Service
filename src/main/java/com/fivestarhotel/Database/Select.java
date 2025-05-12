@@ -12,6 +12,8 @@ import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 import static com.fivestarhotel.security.Crypto.stringToHash;
+
+import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
@@ -649,6 +651,207 @@ public class Select {
             return null;
         }
     }
+    public User getUserById(String role, int userId) {
+        String sql = switch (role.toLowerCase()) {
+            case "admin" -> "SELECT * FROM admin WHERE admin_id = ?";
+            case "receptionist" -> "SELECT * FROM receptionist WHERE receptionist_id = ?";
+            case "customer" -> "SELECT * FROM customer WHERE customer_id = ?";
+            default -> throw new IllegalArgumentException("Invalid role: " + role);
+        };
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                if (role.equals("admin")) {
+                    return new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                            rs.getString("admin_lname"), rs.getString("admin_email"),
+                            rs.getString("admin_password"));
+                } else if (role.equals("receptionist")) {
+                    return new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                            rs.getString("receptionist_password"));
+                } else if (role.equals("customer")) {
+                    return new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                            rs.getString("customer_lname"), rs.getString("customer_email"),
+                            rs.getString("customer_password"), rs.getString("customer_phone"),
+                            rs.getString("customer_address"), rs.getDouble("customer_balance"));
+                }
+            }
+
+            System.err.println(role + " with ID " + userId + " not found.");
+            return null;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public ArrayList<User> getUsersByName(String role, String name) {
+        ArrayList<User> users = new ArrayList<>();
+        String sql = switch (role.toLowerCase()) {
+            case "admin" -> "SELECT * FROM admin WHERE admin_fname LIKE ?";
+            case "receptionist" -> "SELECT * FROM receptionist WHERE receptionist_fname LIKE ?";
+            case "customer" -> "SELECT * FROM customer WHERE customer_fname LIKE ?";
+            default -> throw new IllegalArgumentException("Invalid role: " + role);
+        };
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + name + "%");
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                if (role.equals("admin")) {
+                    users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                            rs.getString("admin_lname"), rs.getString("admin_email"),
+                            rs.getString("admin_password")));
+                } else if (role.equals("receptionist")) {
+                    users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                            rs.getString("receptionist_password")));
+                } else if (role.equals("customer")) {
+                    users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                            rs.getString("customer_lname"), rs.getString("customer_email"),
+                            rs.getString("customer_password"), rs.getString("customer_phone"),
+                            rs.getString("customer_address"), rs.getDouble("customer_balance")));
+                }
+            }
+
+            return users;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
+    public ArrayList<String> getRoomsByCustomer(int customerId) {
+        ArrayList<String> rooms = new ArrayList<>();
+        String sql = "SELECT b.room_number, c.customer_fname, c.customer_lname " +
+                "FROM booking b " +
+                "JOIN customer c ON b.customer_id = c.customer_id " +
+                "WHERE b.customer_id = ?";
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                int roomNumber = rs.getInt("room_number");
+                String customerName = rs.getString("customer_fname") + " " + rs.getString("customer_lname");
+                rooms.add("Room Number: " + roomNumber + " (Customer: " + customerName + ")");
+            }
+
+            return rooms;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public ArrayList<User> getUsersByEmail(String role, String email) {
+        ArrayList<User> users = new ArrayList<>();
+        String sql = switch (role.toLowerCase()) {
+            case "admin" -> "SELECT * FROM admin WHERE admin_email LIKE ?";
+            case "receptionist" -> "SELECT * FROM receptionist WHERE receptionist_email LIKE ?";
+            case "customer" -> "SELECT * FROM customer WHERE customer_email LIKE ?";
+            default -> throw new IllegalArgumentException("Invalid role: " + role);
+        };
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + email + "%");
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                if (role.equals("admin")) {
+                    users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                            rs.getString("admin_lname"), rs.getString("admin_email"),
+                            rs.getString("admin_password")));
+                } else if (role.equals("receptionist")) {
+                    users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                            rs.getString("receptionist_password")));
+                } else if (role.equals("customer")) {
+                    users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                            rs.getString("customer_lname"), rs.getString("customer_email"),
+                            rs.getString("customer_password"), rs.getString("customer_phone"),
+                            rs.getString("customer_address"), rs.getDouble("customer_balance")));
+                }
+            }
+
+            return users;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public ArrayList<User> getAllUsers(String role) {
+        ArrayList<User> users = new ArrayList<>();
+        String sql = switch (role.toLowerCase()) {
+            case "admin" -> "SELECT * FROM admin";
+            case "receptionist" -> "SELECT * FROM receptionist";
+            case "customer" -> "SELECT * FROM customer";
+            default -> throw new IllegalArgumentException("Invalid role: " + role);
+        };
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                if (role.equals("admin")) {
+                    users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                            rs.getString("admin_lname"), rs.getString("admin_email"),
+                            rs.getString("admin_password")));
+                } else if (role.equals("receptionist")) {
+                    users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                            rs.getString("receptionist_password")));
+                } else if (role.equals("customer")) {
+                    users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                            rs.getString("customer_lname"), rs.getString("customer_email"),
+                            rs.getString("customer_password"), rs.getString("customer_phone"),
+                            rs.getString("customer_address"), rs.getDouble("customer_balance")));
+                }
+            }
+
+            return users;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+    public Customer getCustomerByRoom(int roomNumber) {
+        String sql = "SELECT c.* FROM customer c " +
+                "JOIN booking b ON c.customer_id = b.customer_id " +
+                "WHERE b.room_number = ?";
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roomNumber);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                        rs.getString("customer_lname"), rs.getString("customer_email"),
+                        rs.getString("customer_password"), rs.getString("customer_phone"),
+                        rs.getString("customer_address"), rs.getDouble("customer_balance"));
+            } else {
+                System.err.println("No customer found for room number " + roomNumber);
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
 
 
 

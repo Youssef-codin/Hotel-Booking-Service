@@ -6,6 +6,8 @@ import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
 import com.fivestarhotel.users.Customer;
 
+import java.util.ArrayList;
+
 public class App {
     public static void main(String[] args)  {
 
@@ -24,9 +26,12 @@ public class App {
          * program
          * 
          */
-
+        Db.connect("root", "root");
 
 
     }
+
+
+
 }
 
