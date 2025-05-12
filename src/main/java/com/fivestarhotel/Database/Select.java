@@ -651,53 +651,67 @@ public class Select {
             return null;
         }
     }
-    public ArrayList<User> getAllRoles(String role, Integer userId, String name, String email) {
-        ArrayList<User> users = new ArrayList<>();
-        String sql;
-
-        // Use the modern switch statement
-        sql = switch (role.toLowerCase()) {
-            case "admin" -> "SELECT * FROM admin";
-            case "receptionist" -> "SELECT * FROM receptionist";
-            case "customer" -> "SELECT * FROM customer";
-            case "all" -> {
-
-                users.addAll(getAllRoles("admin", userId, name, email));
-                users.addAll(getAllRoles("receptionist", userId, name, email));
-                users.addAll(getAllRoles("customer", userId, name, email));
-                yield null;
-            }
-            default -> {
-                System.err.println("Invalid role specified. Use 'admin', 'receptionist', 'customer' or 'all'.");
-                yield null;
-            }
+    public User getUserById(String role, int userId) {
+        String sql = switch (role.toLowerCase()) {
+            case "admin" -> "SELECT * FROM admin WHERE admin_id = ?";
+            case "receptionist" -> "SELECT * FROM receptionist WHERE receptionist_id = ?";
+            case "customer" -> "SELECT * FROM customer WHERE customer_id = ?";
+            default -> throw new IllegalArgumentException("Invalid role: " + role);
         };
 
-
-        if (sql == null) return users;
-
-        ArrayList<String> conditions = new ArrayList<>();
-        if (userId != null) conditions.add(role + "_id = " + userId);
-        if (name != null) conditions.add(role + "_fname LIKE '%" + name + "%'");
-        if (email != null) conditions.add(role + "_email LIKE '%" + email + "%'");
-
-        if (!conditions.isEmpty()) {
-            sql += " WHERE " + String.join(" AND ", conditions);
-        }
-
         try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
 
+            if (rs.next()) {
+                if (role.equals("admin")) {
+                    return new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                            rs.getString("admin_lname"), rs.getString("admin_email"),
+                            rs.getString("admin_password"));
+                } else if (role.equals("receptionist")) {
+                    return new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                            rs.getString("receptionist_password"));
+                } else if (role.equals("customer")) {
+                    return new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                            rs.getString("customer_lname"), rs.getString("customer_email"),
+                            rs.getString("customer_password"), rs.getString("customer_phone"),
+                            rs.getString("customer_address"), rs.getDouble("customer_balance"));
+                }
+            }
+
+            System.err.println(role + " with ID " + userId + " not found.");
+            return null;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public ArrayList<User> getUsersByName(String role, String name) {
+        ArrayList<User> users = new ArrayList<>();
+        String sql = switch (role.toLowerCase()) {
+            case "admin" -> "SELECT * FROM admin WHERE admin_fname LIKE ?";
+            case "receptionist" -> "SELECT * FROM receptionist WHERE receptionist_fname LIKE ?";
+            case "customer" -> "SELECT * FROM customer WHERE customer_fname LIKE ?";
+            default -> throw new IllegalArgumentException("Invalid role: " + role);
+        };
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + name + "%");
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                switch (role) {
-                    case "admin" -> users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                if (role.equals("admin")) {
+                    users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
                             rs.getString("admin_lname"), rs.getString("admin_email"),
                             rs.getString("admin_password")));
-                    case "receptionist" -> users.add(new Receptionist(rs.getInt("receptionist_id"),
-                            rs.getString("receptionist_fname"), rs.getString("receptionist_lname"),
-                            rs.getString("receptionist_email"), rs.getString("receptionist_password")));
-                    case "customer" -> users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                } else if (role.equals("receptionist")) {
+                    users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                            rs.getString("receptionist_password")));
+                } else if (role.equals("customer")) {
+                    users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
                             rs.getString("customer_lname"), rs.getString("customer_email"),
                             rs.getString("customer_password"), rs.getString("customer_phone"),
                             rs.getString("customer_address"), rs.getDouble("customer_balance")));
@@ -705,11 +719,15 @@ public class Select {
             }
 
             return users;
+
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
         }
     }
+
+
+
     public ArrayList<String> getRoomsByCustomer(int customerId) {
         ArrayList<String> rooms = new ArrayList<>();
         String sql = "SELECT b.room_number, c.customer_fname, c.customer_lname " +
@@ -733,6 +751,81 @@ public class Select {
             return null;
         }
     }
+    public ArrayList<User> getUsersByEmail(String role, String email) {
+        ArrayList<User> users = new ArrayList<>();
+        String sql = switch (role.toLowerCase()) {
+            case "admin" -> "SELECT * FROM admin WHERE admin_email LIKE ?";
+            case "receptionist" -> "SELECT * FROM receptionist WHERE receptionist_email LIKE ?";
+            case "customer" -> "SELECT * FROM customer WHERE customer_email LIKE ?";
+            default -> throw new IllegalArgumentException("Invalid role: " + role);
+        };
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, "%" + email + "%");
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                if (role.equals("admin")) {
+                    users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                            rs.getString("admin_lname"), rs.getString("admin_email"),
+                            rs.getString("admin_password")));
+                } else if (role.equals("receptionist")) {
+                    users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                            rs.getString("receptionist_password")));
+                } else if (role.equals("customer")) {
+                    users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                            rs.getString("customer_lname"), rs.getString("customer_email"),
+                            rs.getString("customer_password"), rs.getString("customer_phone"),
+                            rs.getString("customer_address"), rs.getDouble("customer_balance")));
+                }
+            }
+
+            return users;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public ArrayList<User> getAllUsers(String role) {
+        ArrayList<User> users = new ArrayList<>();
+        String sql = switch (role.toLowerCase()) {
+            case "admin" -> "SELECT * FROM admin";
+            case "receptionist" -> "SELECT * FROM receptionist";
+            case "customer" -> "SELECT * FROM customer";
+            default -> throw new IllegalArgumentException("Invalid role: " + role);
+        };
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                if (role.equals("admin")) {
+                    users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                            rs.getString("admin_lname"), rs.getString("admin_email"),
+                            rs.getString("admin_password")));
+                } else if (role.equals("receptionist")) {
+                    users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                            rs.getString("receptionist_password")));
+                } else if (role.equals("customer")) {
+                    users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                            rs.getString("customer_lname"), rs.getString("customer_email"),
+                            rs.getString("customer_password"), rs.getString("customer_phone"),
+                            rs.getString("customer_address"), rs.getDouble("customer_balance")));
+                }
+            }
+
+            return users;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
     public Customer getCustomerByRoom(int roomNumber) {
         String sql = "SELECT c.* FROM customer c " +
                 "JOIN booking b ON c.customer_id = b.customer_id " +
