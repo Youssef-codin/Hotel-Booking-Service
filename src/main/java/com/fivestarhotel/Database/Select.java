@@ -830,11 +830,9 @@ public class Select {
         String sql = "SELECT c.* FROM customer c " +
                 "JOIN booking b ON c.customer_id = b.customer_id " +
                 "WHERE b.room_number = ?";
-
         try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, roomNumber);
             ResultSet rs = ps.executeQuery();
-
             if (rs.next()) {
                 return new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
                         rs.getString("customer_lname"), rs.getString("customer_email"),
@@ -849,13 +847,4 @@ public class Select {
             return null;
         }
     }
-
-
-
-
-
-
-
-
-
 }

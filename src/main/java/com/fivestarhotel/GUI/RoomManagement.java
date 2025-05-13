@@ -3,6 +3,9 @@ package com.fivestarhotel.GUI;
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
+import com.fivestarhotel.users.Admin;
+import com.fivestarhotel.users.Customer;
+import com.fivestarhotel.users.User;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -20,6 +23,7 @@ public class RoomManagement extends JFrame {
     private JProgressBar loadingBar;
     private JCheckBox bookedCheckbox;
     private JComboBox<RoomType> roomTypes;
+    private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[]{"Admin", "Receptionist", "Customer"});;
     private JLabel customerInfoLabel;
     private JTabbedPane tabbedPane;
     private JButton addButton, removeButton;
@@ -30,9 +34,15 @@ public class RoomManagement extends JFrame {
     private ArrayList<Room> activeRooms = Db.select.getRooms();
     private ArrayList<Room> allLogs;
     private ArrayList<Room> activeLogs;
-    private ArrayList<Room> allUserAccounts;
-    private ArrayList<Room> activeUserAccounts;
+    private ArrayList<User> allAdminAccounts = Db.select.getAllUsers("admin");
+    private ArrayList<User> activeAdminAccounts = Db.select.getAllUsers("admin");;
+    private ArrayList<User> allRecepAccounts = Db.select.getAllUsers("receptionist");
+    private ArrayList<User> activeRecepAccounts = Db.select.getAllUsers("receptionist");
+    private ArrayList<User> allCustAccounts = Db.select.getAllUsers("customer");
+    private ArrayList<User> activeCustAccounts = Db.select.getAllUsers("customer");
 
+
+    
 
     public RoomManagement(String userRole, int userId) {
         this.currentUserRole = userRole;
@@ -132,30 +142,35 @@ public class RoomManagement extends JFrame {
         accountsPanel.setBackground(Utils.OFF_WHITE);
 
         // Three vertical sections
-        accountsPanel.add(createAccountSection("Admins", getMockAdmins()));
-        accountsPanel.add(createAccountSection("Receptionists", getMockReceptionists()));
-        accountsPanel.add(createAccountSection("Customers", getMockCustomers()));
+        accountsPanel.add(createAccountSection("Admins", activeAdminAccounts));
+        accountsPanel.add(createAccountSection("Receptionists", activeRecepAccounts));
+        accountsPanel.add(createAccountSection("Customers", activeCustAccounts));
 
         return accountsPanel;
     }
 
-    private JScrollPane createAccountSection(String title, ArrayList<Map<String, String>> users) {
-        JPanel sectionPanel = new JPanel(new WrapLayout(WrapLayout.LEADING, 10, 10));
+    private JScrollPane createAccountSection(String title, ArrayList<User> users) {
+        JPanel sectionPanel = new JPanel(); // Create panel
+        sectionPanel.setLayout(new GridLayout(0, 1, 0, 0)); // 0 rows, 1 col, 0 hgap, 10 vgap
+
         sectionPanel.setBackground(Utils.OFF_WHITE);
         sectionPanel.setBorder(BorderFactory.createTitledBorder(title));
 
-        users.forEach(user -> sectionPanel.add(createAccountCard(user)));
+        for(User user : users){
+            JPanel card = createAccountCard(user);
+            sectionPanel.add(card);
+            sectionPanel.add(Box.createRigidArea(new Dimension(0, 0)));
+        }
 
         return new JScrollPane(sectionPanel);
     }
-
-    private JPanel createAccountCard(Map<String, String> user) {  //Change the attribute here and add an Unknown list of user types
+    private JPanel createAccountCard(User user) {  //Change the attribute here and add an Unknown list of user types
         JPanel card = Utils.createStyledPanel(10, Utils.BROWN, true);
         card.setLayout(new BorderLayout(0, 0));
         card.setPreferredSize(new Dimension(335, 40));
 
         JLabel infoLabel = new JLabel(
-                user.get("id") + "  |     " + user.get("name")
+                user.getId() + "  |     " + user.getFullName()
         );
 
         JButton detailsButton = Utils.createActionButton("i", e -> showUserDetails(user));
@@ -167,18 +182,21 @@ public class RoomManagement extends JFrame {
         return card;
     }
 
-    private void showUserDetails(Map<String, String> user) {
+    private void showUserDetails(User user) {
         JDialog detailsDialog = new JDialog(this, "User Details", true);
         detailsDialog.setSize(300, 250);
 
         JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        panel.add(createDetailLabel("ID: " + user.get("id")));
-        panel.add(createDetailLabel("Name: " + user.get("name")));
-        panel.add(createDetailLabel("Email: " + user.get("email")));
-        panel.add(createDetailLabel("Phone: " + user.get("phone")));
-
+        panel.add(createDetailLabel("ID: " + user.getId()));
+        panel.add(createDetailLabel("Name: " + user.getFullName()));
+        panel.add(createDetailLabel("Email: " + user.getEmail()));
+        if(user instanceof Customer) {
+            panel.add(createDetailLabel("Phone: " + ((Customer) user).getPhone()));
+            panel.add(createDetailLabel("Address: " + ((Customer) user).getAddress()));
+            panel.add(createDetailLabel("Balance: " + ((Customer) user).getBalance()));
+        }
         detailsDialog.add(panel);
         detailsDialog.setLocationRelativeTo(this);
         detailsDialog.setVisible(true);
@@ -205,27 +223,126 @@ public class RoomManagement extends JFrame {
     }
 
 
-    // Add account dialog (skeleton)
     private void showAddAccountDialog() {
-        JDialog dialog = new JDialog(this, "Add Account", true);
-        dialog.setSize(400, 300);
+        JDialog addAccountDialog = new JDialog(this, "Add New Account", true);
+        addAccountDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        addAccountDialog.getContentPane().setBackground(Utils.OFF_WHITE);
+        addAccountDialog.setSize(450, 380);
+        addAccountDialog.setLocationRelativeTo(this);
 
-        JPanel panel = new JPanel(new GridLayout(0, 2, 10, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBackground(Utils.OFF_WHITE);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"Admin", "Receptionist", "Customer"});
+        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        formPanel.setBackground(Utils.OFF_WHITE);
+
         JTextField nameField = new JTextField();
         JTextField emailField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
 
-        Utils.addFormField(panel, "Account Type:", typeCombo);
-        Utils.addFormField(panel, "Full Name:", nameField);
-        Utils.addFormField(panel, "Email:", emailField);
-        Utils.addFormField(panel, "Password:", passwordField);
+        Utils.addFormField(formPanel, "Account Type:", accountTypeCombo);
+        Utils.addFormField(formPanel, "Full Name:", nameField);
+        Utils.addFormField(formPanel, "Email:", emailField);
+        Utils.addFormField(formPanel, "Password:", passwordField);
 
-        dialog.add(panel);
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
+        JLabel phoneLabel = new JLabel("Phone:");
+        JTextField phoneFieldLocal = new JTextField();
+
+        JLabel addressLabel = new JLabel("Address:");
+        JTextField addressFieldLocal = new JTextField();
+
+        phoneLabel.setFont(Utils.LABEL_FONT);
+        phoneLabel.setForeground(Utils.BROWN);
+        addressLabel.setFont(Utils.LABEL_FONT);
+        addressLabel.setForeground(Utils.BROWN);
+
+        phoneFieldLocal.setFont(Utils.LABEL_FONT);
+        phoneFieldLocal.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Utils.BROWN, 1),
+                BorderFactory.createEmptyBorder(0, 5, 0, 5)
+        ));
+        addressFieldLocal.setFont(Utils.LABEL_FONT);
+        addressFieldLocal.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Utils.BROWN, 1),
+                BorderFactory.createEmptyBorder(0, 5, 0, 5)
+        ));
+
+        formPanel.add(phoneLabel);
+        formPanel.add(phoneFieldLocal);
+        formPanel.add(addressLabel);
+        formPanel.add(addressFieldLocal);
+
+        phoneLabel.setVisible(false);
+        phoneFieldLocal.setVisible(false);
+        addressLabel.setVisible(false);
+        addressFieldLocal.setVisible(false);
+
+        accountTypeCombo.addActionListener(e -> {
+            String selectedType = (String) accountTypeCombo.getSelectedItem();
+            boolean isCustomer = "Customer".equals(selectedType);
+
+            phoneLabel.setVisible(isCustomer);
+            phoneFieldLocal.setVisible(isCustomer);
+            addressLabel.setVisible(isCustomer);
+            addressFieldLocal.setVisible(isCustomer);
+
+            addAccountDialog.pack(); // Adjust dialog size to fit new content
+            // Ensure dialog is not smaller than a minimum reasonable size after pack
+            addAccountDialog.setMinimumSize(new Dimension(400, (isCustomer ? 420 : 350)));
+            // Re-center dialog if its size changed
+            addAccountDialog.setLocationRelativeTo(RoomManagement.this);
+        });
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBackground(Utils.OFF_WHITE);
+
+        JButton submitButton = Utils.createActionButton("Add", e -> {
+            String accountType = (String) accountTypeCombo.getSelectedItem();
+            String fullName = nameField.getText().trim();
+            String email = emailField.getText().trim();
+            String password = new String(passwordField.getPassword()).trim();
+
+            if (fullName.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                Utils.showError(addAccountDialog, "Full Name, Email, and Password are required.");
+                return;
+            }
+
+            String message = "GUI: Would add Account:\nType: " + accountType +
+                    "\nName: " + fullName + "\nEmail: " + email;
+
+            if ("Customer".equals(accountType)) {
+                String phone = phoneFieldLocal.getText().trim();
+                String address = addressFieldLocal.getText().trim();
+                if (phone.isEmpty() || address.isEmpty()) {
+                    Utils.showError(addAccountDialog, "Phone and Address are required for Customer accounts.");
+                    return;
+                }
+                message += "\nPhone: " + phone + "\nAddress: " + address;
+            }
+
+            JOptionPane.showMessageDialog(addAccountDialog,
+                    message, "Account Action (GUI Only)", JOptionPane.INFORMATION_MESSAGE);
+
+            addAccountDialog.dispose();
+            refreshAccounts();
+        });
+
+        JButton cancelButton = Utils.createActionButton("Cancel", e -> {
+            addAccountDialog.dispose(); // Close the dialog
+        });
+
+        buttonPanel.add(submitButton);
+        buttonPanel.add(cancelButton);
+
+        mainPanel.add(formPanel, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        addAccountDialog.add(mainPanel);
+        addAccountDialog.pack();
+        addAccountDialog.setMinimumSize(new Dimension(400, 350));
+        addAccountDialog.setLocationRelativeTo(this);
+        addAccountDialog.setVisible(true);
     }
 
     private void showRemoveAccountDialog() {
@@ -240,8 +357,6 @@ public class RoomManagement extends JFrame {
 
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         inputPanel.setBackground(Utils.OFF_WHITE);
-
-        JComboBox<String> accountTypeCombo = new JComboBox<>(new String[]{"Admin", "Receptionist", "Customer"});
         accountIdField = new JTextField();
 
         Utils.addFormField(inputPanel, "Account Type:", accountTypeCombo);
@@ -273,9 +388,9 @@ public class RoomManagement extends JFrame {
 
     private void refreshAccounts() {
         accountsPanel.removeAll();
-        accountsPanel.add(createAccountSection("Admins", getMockAdmins()));
-        accountsPanel.add(createAccountSection("Receptionists", getMockReceptionists()));
-        accountsPanel.add(createAccountSection("Customers", getMockCustomers()));
+        accountsPanel.add(createAccountSection("Admins", activeAdminAccounts));
+        accountsPanel.add(createAccountSection("Receptionists", activeRecepAccounts));
+        accountsPanel.add(createAccountSection("Customers", activeCustAccounts));
         accountsPanel.revalidate();
         accountsPanel.repaint();
     }
@@ -328,13 +443,29 @@ public class RoomManagement extends JFrame {
                     activeRooms.add(allRooms.get(searchNumber - 1));
                 }
             } else if (tabbedPane.getSelectedIndex() == 1) {
-                activeUserAccounts = new ArrayList<>();
-                if (searchNumber == 0 || searchNumber > allUserAccounts.size()) {
-                    activeUserAccounts.addAll(allUserAccounts);
+                activeAdminAccounts = new ArrayList<>();
+                if (searchNumber == 0 || searchNumber > allAdminAccounts.size()) {
+                    activeAdminAccounts.addAll(allAdminAccounts);
                 } else if (searchNumber < 0) {
                     Utils.showError(this, "Invalid Number!");
                 } else {
-                    activeUserAccounts.add(allUserAccounts.get(searchNumber - 1));
+                    activeAdminAccounts.add(allAdminAccounts.get(searchNumber - 1));
+                }
+                activeRecepAccounts = new ArrayList<>();
+                if (searchNumber == 0 || searchNumber > allRecepAccounts.size()) {
+                    activeRecepAccounts.addAll(allRecepAccounts);
+                } else if (searchNumber < 0) {
+                    Utils.showError(this, "Invalid Number!");
+                } else {
+                    activeRecepAccounts.add(allRecepAccounts.get(searchNumber - 1));
+                }
+                activeCustAccounts = new ArrayList<>();
+                if (searchNumber == 0 || searchNumber > allCustAccounts.size()) {
+                    activeCustAccounts.addAll(allCustAccounts);
+                } else if (searchNumber < 0) {
+                    Utils.showError(this, "Invalid Number!");
+                } else {
+                    activeCustAccounts.add(allCustAccounts.get(searchNumber - 1));
                 }
             }
             else if (tabbedPane.getSelectedIndex() == 2) {
@@ -349,6 +480,9 @@ public class RoomManagement extends JFrame {
             }
         } catch (NumberFormatException a){
             activeRooms = Db.select.getRooms();
+            activeAdminAccounts = Db.select.getAllUsers("admin");
+            activeRecepAccounts = Db.select.getAllUsers("receptionist");
+            activeCustAccounts = Db.select.getAllUsers("customer");
             // do same for accounts and logs
         }
     }
@@ -500,7 +634,6 @@ public class RoomManagement extends JFrame {
     private void addRoomAction() {
         if (roomNumberField.getText().trim().isEmpty()) {
             Utils.showError(addRoomDialog, "Room number cannot be empty");
-            return; //
         }
 
         try {
@@ -688,23 +821,6 @@ public class RoomManagement extends JFrame {
         checkInDialog.setVisible(true);
     }
 
-    private ArrayList<Map<String, String>> getMockAdmins() {
-        return new ArrayList<>() {{
-            add(Map.of("id", "1", "name", "Admin User", "email", "admin@hotel.com", "phone", "555-0101"));
-        }};
-    }
-
-    private ArrayList<Map<String, String>> getMockReceptionists() {
-        return new ArrayList<>() {{
-            add(Map.of("id", "101", "name", "Receptionist 1", "email", "recep1@hotel.com", "phone", "555-0202"));
-        }};
-    }
-
-    private ArrayList<Map<String, String>> getMockCustomers() {
-        return new ArrayList<>() {{
-            add(Map.of("id", "1001", "name", "John Doe", "email", "john@email.com", "phone", "555-0303"));
-        }};
-    }
 
     private void completeCheckButtonAction(){
         try {

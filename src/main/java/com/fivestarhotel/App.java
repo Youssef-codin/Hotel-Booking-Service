@@ -2,6 +2,10 @@ package com.fivestarhotel;
 
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.GUI.BookItLogin;
+import com.fivestarhotel.users.Admin;
+import com.fivestarhotel.users.Customer;
+import com.fivestarhotel.users.Receptionist;
+
 import javax.swing.*;
 
 public class App {
@@ -30,6 +34,11 @@ public class App {
         //  Receptionist: reception@bookit.com / reception123
         // new RoomManagement(userRole, userId).setVisible(true);
         Db.connect("root", "mimimi45");
+        Admin user= new Admin(1, "Ahmed","Mohamed" ,"mohamasdasdasdasded22@gmail.com", "asdasdasdasdasd");
+        for (int i = 0; i < 10; i++) {
+            Db.create.signUpUser(user);
+            user.setEmail(user.getEmail().substring(i + 1));
+        }
         // Start the application
         SwingUtilities.invokeLater(() -> {
             BookItLogin loginSystem = new BookItLogin();

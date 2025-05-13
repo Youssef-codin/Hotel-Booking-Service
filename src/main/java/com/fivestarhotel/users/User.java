@@ -36,6 +36,10 @@ public abstract class User {
         return lname;
     }
 
+    public String getFullName(){
+        return fname + " " + lname;
+    }
+
     public void setLname(String lname) {
         this.lname = lname;
     }

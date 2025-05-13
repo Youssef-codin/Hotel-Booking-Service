@@ -20,4 +20,5 @@ public class Receptionist extends User {
 
     public void viewBookings() {
     }
+
 }

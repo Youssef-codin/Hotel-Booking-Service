@@ -247,7 +247,7 @@ public class Create {
 
 
     
-    public static User signUpUser(User user) {
+    public User signUpUser(User user) {
         try (Connection conn = Db.connect()) {
             String salt = makeSalt();
             String hashedPassword = stringToHash(user.getPassword(), salt);
