@@ -34,11 +34,7 @@ public class App {
         //  Receptionist: reception@bookit.com / reception123
         // new RoomManagement(userRole, userId).setVisible(true);
         Db.connect("root", "mimimi45");
-        Admin user= new Admin(1, "Ahmed","Mohamed" ,"mohamasdasdasdasded22@gmail.com", "asdasdasdasdasd");
-        for (int i = 0; i < 10; i++) {
-            Db.create.signUpUser(user);
-            user.setEmail(user.getEmail().substring(i + 1));
-        }
+        Db.create.addRooms(Room.RoomType.SINGLE, 200);
         // Start the application
         SwingUtilities.invokeLater(() -> {
             BookItLogin loginSystem = new BookItLogin();

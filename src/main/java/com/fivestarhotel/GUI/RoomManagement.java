@@ -17,7 +17,7 @@ public class RoomManagement extends JFrame {
     private JTextField accountIdField, searchField, roomNumberField, customerIdField, firstNameField, lastNameField, emailField, phoneField;
     private JDialog addRoomDialog, removeDialog, checkInDialog;
     private JSpinner checkInSpinner, checkOutSpinner;
-    private int currentUserId, roomNumber;
+    private int currentUserId, roomNumber, searchNumber;
     private String currentUserRole;
     private JPanel roomsPanel, headerPanel, accountsPanel;
     private JProgressBar loadingBar;
@@ -136,51 +136,264 @@ public class RoomManagement extends JFrame {
         return tabbedPane;
     }
 
-
-    private JPanel createAccountsPanel() {
-        accountsPanel = new JPanel(new GridLayout(1, 3, 10, 0));
-        accountsPanel.setBackground(Utils.OFF_WHITE);
-
-        // Three vertical sections
-        accountsPanel.add(createAccountSection("Admins", activeAdminAccounts));
-        accountsPanel.add(createAccountSection("Receptionists", activeRecepAccounts));
-        accountsPanel.add(createAccountSection("Customers", activeCustAccounts));
-
-        return accountsPanel;
+    private void filter(ArrayList from, ArrayList to) {
+        to.clear(); // Clear existing entries
+        if (searchNumber == 0 || searchNumber > from.size()) {
+            to.addAll(from);
+        } else if (searchNumber < 0) {
+            Utils.showError(this, "Invalid Number!");
+        } else {
+            to.add(from.get(searchNumber - 1));
+        }
     }
 
-    private JScrollPane createAccountSection(String title, ArrayList<User> users) {
-        JPanel sectionPanel = new JPanel(); // Create panel
-        sectionPanel.setLayout(new GridLayout(0, 1, 0, 0)); // 0 rows, 1 col, 0 hgap, 10 vgap
+    private void SearchButton() {
+        try {
+            searchNumber = Integer.parseInt(searchField.getText().trim());
+            if (tabbedPane.getSelectedIndex() == 0) {
+                filter(allRooms, activeRooms);
+                loadRooms();
+            } else if (tabbedPane.getSelectedIndex() == 1) {
+                filter(allAdminAccounts, activeAdminAccounts);
+                filter(allRecepAccounts, activeRecepAccounts);
+                filter(allCustAccounts, activeCustAccounts);
+                refreshAccounts();
+            }
+        } catch (NumberFormatException a) {
+            activeRooms = new ArrayList<>(allRooms);
+            activeAdminAccounts = new ArrayList<>(allAdminAccounts);
+            activeRecepAccounts = new ArrayList<>(allRecepAccounts);
+            activeCustAccounts = new ArrayList<>(allCustAccounts);
+            refreshAccounts();
+            loadRooms();
+        }
+    }
 
+    private JPanel createAdminControls(boolean switcher) {
+        JPanel adminPanel = new JPanel(new GridLayout(1, 2,10,0));
+        adminPanel.setBackground(Utils.OFF_WHITE);
+        if(!switcher) {
+            addButton = Utils.createActionButton("Room +", e -> showAddRoomDialog());
+            removeButton= Utils.createActionButton("Room -", e -> showRemoveRoomDialog());
+        }else{
+            addButton = Utils.createActionButton("Account +", e -> showAddAccountDialog());
+            removeButton = Utils.createActionButton("Account -", e -> showRemoveAccountDialog());
+        }
+        adminPanel.add(addButton);
+        adminPanel.add(removeButton);
+        return adminPanel;
+    }
+
+
+    private JScrollPane createRoomsScrollPane() {
+        roomsPanel = new JPanel(new WrapLayout(WrapLayout.LEADING, 20, 20));
+        roomsPanel.setBackground(Utils.OFF_WHITE);
+        roomsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JScrollPane scrollPane = new JScrollPane(roomsPanel);
+        scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        return scrollPane;
+    }
+
+    private JScrollPane createAccountScrollPane(String title, ArrayList<User> users) {
+        JPanel sectionPanel = new JPanel();
+        sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
         sectionPanel.setBackground(Utils.OFF_WHITE);
         sectionPanel.setBorder(BorderFactory.createTitledBorder(title));
 
-        for(User user : users){
-            JPanel card = createAccountCard(user);
-            sectionPanel.add(card);
-            sectionPanel.add(Box.createRigidArea(new Dimension(0, 0)));
-        }
+        // Add spacing between components
+        loadAccounts(users, sectionPanel);
 
-        return new JScrollPane(sectionPanel);
+        JScrollPane scrollPane = new JScrollPane(sectionPanel);
+        scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
+        return scrollPane;
     }
-    private JPanel createAccountCard(User user) {  //Change the attribute here and add an Unknown list of user types
+
+    private void loadRooms() {
+        loadingBar.setVisible(true);
+        roomsPanel.removeAll();
+        roomsPanel.add(new JLabel("Loading rooms..."));
+        roomsPanel.revalidate();
+        roomsPanel.repaint();
+
+        // Simulate loading delay
+        Timer timer = new Timer(1000, e -> {
+            roomsPanel.removeAll();
+
+            if (activeRooms.isEmpty()) {
+                roomsPanel.add(new JLabel("No rooms found"));
+            } else {
+                activeRooms.forEach(room -> addRoomCard(room));
+            }
+
+            loadingBar.setVisible(false);
+            roomsPanel.revalidate();
+            roomsPanel.repaint();
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+
+    private void loadAccounts(ArrayList<User> users, JPanel sectionPanel) {
+        sectionPanel.removeAll();
+        sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
+        sectionPanel.add(new JLabel("Loading Accounts..."));
+
+        Timer timer = new Timer(1000, e -> {
+            sectionPanel.removeAll();
+            if (users.isEmpty()) {
+                sectionPanel.add(new JLabel("No account found"));
+            } else {
+                users.forEach(user -> {
+                    sectionPanel.add(addAccountCard(user));
+                    sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+                });
+            }
+            sectionPanel.revalidate();
+            sectionPanel.repaint();
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+    private void addRoomCard(Room room) {
+        JPanel card = Utils.createStyledPanel(15, Utils.BROWN, true);
+        card.setPreferredSize(new Dimension(300, 200));
+
+        // Room Info
+        JPanel infoPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        infoPanel.setBackground(Utils.OFF_WHITE);
+
+        JLabel numberLabel = new JLabel("Room #" + room.getNum());
+        numberLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        numberLabel.setForeground(Utils.BROWN);
+
+        infoPanel.add(numberLabel);
+        infoPanel.add(new JLabel("Floor: " + ((room.getNum()-1)/100 +1)));
+        infoPanel.add(new JLabel("Type: " + room.getRoomType()));
+        infoPanel.add(createStatusLabel(room.getStatus()));
+
+        card.add(infoPanel, BorderLayout.CENTER);
+        card.add(createActionButtons(room), BorderLayout.SOUTH);
+        roomsPanel.add(card);
+    }
+
+    private JPanel addAccountCard(User user) {
         JPanel card = Utils.createStyledPanel(10, Utils.BROWN, true);
-        card.setLayout(new BorderLayout(0, 0));
-        card.setPreferredSize(new Dimension(335, 40));
+        card.setLayout(new BorderLayout());
+
+        // Make card fill available width
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40)); // Fixed height
+        card.setPreferredSize(new Dimension(card.getPreferredSize().width, 40));
 
         JLabel infoLabel = new JLabel(
                 user.getId() + "  |     " + user.getFullName()
         );
 
+        // Add padding
+        infoLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+
         JButton detailsButton = Utils.createActionButton("i", e -> showUserDetails(user));
-        Utils.styleButton(detailsButton, Utils.BROWN,20,20);
+        Utils.styleButton(detailsButton, Utils.BROWN, 20, 20);
 
         card.add(infoLabel, BorderLayout.CENTER);
         card.add(detailsButton, BorderLayout.EAST);
 
         return card;
     }
+
+
+
+    private void returnToLogin() {
+        dispose();
+        SwingUtilities.invokeLater(() -> new BookItLogin().setVisible(true));
+    }
+
+    private void refreshRoomUI() {
+        roomsPanel.revalidate();
+        roomsPanel.repaint();
+    }
+
+
+    private void showAddRoomDialog() {
+        addRoomDialog = new JDialog(this, "Add New Room", true);
+        addRoomDialog.setSize(400, 250);
+        addRoomDialog.setLocationRelativeTo(this);
+        addRoomDialog.getContentPane().setBackground(Utils.OFF_WHITE);
+
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        mainPanel.setBackground(Utils.OFF_WHITE);
+
+        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        formPanel.setBackground(Utils.OFF_WHITE);
+
+        roomNumberField = new JTextField();
+        Utils.addFormField(formPanel, "Room Number:", roomNumberField);
+
+        roomTypes = new JComboBox<>(RoomType.values());
+        Utils.addFormField(formPanel, "Room Type:", roomTypes);
+
+        bookedCheckbox = new JCheckBox();
+        Utils.addFormField(formPanel, "Initially Booked:", bookedCheckbox);
+
+        mainPanel.add(formPanel, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBackground(Utils.OFF_WHITE);
+
+        JButton submitButton = Utils.createActionButton("Add Room", e -> {addRoomAction();});
+        JButton cancelButton = Utils.createActionButton("Cancel",e -> addRoomDialog.dispose());
+
+        buttonPanel.add(submitButton);
+        buttonPanel.add(cancelButton);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        roomNumberField.addActionListener(e -> submitButton.doClick());
+
+        addRoomDialog.add(mainPanel);
+        addRoomDialog.setVisible(true);
+    }
+
+    private void addRoomAction() {
+        if (roomNumberField.getText().trim().isEmpty()) {
+            Utils.showError(addRoomDialog, "Room number cannot be empty");
+        }
+
+        try {
+            int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
+            RoomType roomType = (RoomType) roomTypes.getSelectedItem();
+            boolean isBooked = bookedCheckbox.isSelected();
+
+            activeRooms.add(new Room(roomNumber, roomType, isBooked));
+            JOptionPane.showMessageDialog(addRoomDialog,
+                    "Room #" + roomNumber + " added successfully! (Mock implementation)",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            addRoomDialog.dispose();
+            loadRooms();
+        } catch (NumberFormatException ex) {
+            Utils.showError(addRoomDialog, "Please enter a valid room number");
+        }
+    }
+
+
+    private JPanel createAccountsPanel() {
+        accountsPanel = new JPanel(new GridLayout(1, 3, 10, 0));
+        accountsPanel.setBackground(Utils.OFF_WHITE);
+
+        accountsPanel.add(createAccountScrollPane("Admins", activeAdminAccounts));
+        accountsPanel.add(createAccountScrollPane("Receptionists", activeRecepAccounts));
+        accountsPanel.add(createAccountScrollPane("Customers", activeCustAccounts));
+        accountsPanel.revalidate();
+        accountsPanel.repaint();
+        return accountsPanel;
+    }
+
+
+
 
     private void showUserDetails(User user) {
         JDialog detailsDialog = new JDialog(this, "User Details", true);
@@ -388,11 +601,35 @@ public class RoomManagement extends JFrame {
 
     private void refreshAccounts() {
         accountsPanel.removeAll();
-        accountsPanel.add(createAccountSection("Admins", activeAdminAccounts));
-        accountsPanel.add(createAccountSection("Receptionists", activeRecepAccounts));
-        accountsPanel.add(createAccountSection("Customers", activeCustAccounts));
+        accountsPanel.add(createAccountScrollPane("Admins", activeAdminAccounts));
+        accountsPanel.add(createAccountScrollPane("Receptionists", activeRecepAccounts));
+        accountsPanel.add(createAccountScrollPane("Customers", activeCustAccounts));
         accountsPanel.revalidate();
         accountsPanel.repaint();
+    }
+
+    private JLabel createStatusLabel(boolean isBooked) {
+        JLabel label = new JLabel("Status: " + (isBooked ? "Booked" : "Available"));
+        label.setForeground(isBooked ? Color.RED : new Color(0, 128, 0));
+        return label;
+    }
+
+    private JPanel createActionButtons(Room room) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        panel.setBackground(Utils.OFF_WHITE);
+
+        if (room.getStatus()) {
+            panel.add(Utils.createActionButton("Check Out", e -> Utils.showError(panel,"hi")));//showCheckoutMessage(room)));
+            if ("Admin".equals(currentUserRole)) {
+                panel.add(Utils.createActionButton("Set Open", e -> Utils.showError(panel,"hi")));//showSetAvailableMessage(room)));
+            }
+        } else {
+            panel.add(Utils.createActionButton("Check In", e -> showCheckInDialog(room.getNum())));
+            if ("Admin".equals(currentUserRole)) {
+                panel.add(Utils.createActionButton("Set Closed", e -> Utils.showError(panel,"hi")));//showSetUnavailableMessage(room)));
+            }
+        }
+        return panel;
     }
 
 
@@ -424,231 +661,6 @@ public class RoomManagement extends JFrame {
             }
         } catch (NumberFormatException ex) {
             Utils.showError(removeDialog, "Please enter a valid numeric ID");
-        }
-    }
-
-
-
-
-    private void SearchButton(){
-        try {
-            int searchNumber = Integer.parseInt(searchField.getText().trim());
-            if (tabbedPane.getSelectedIndex() == 0) {
-                activeRooms = new ArrayList<>();
-                if (searchNumber == 0 || searchNumber > allRooms.size()) {
-                    activeRooms.addAll(allRooms);
-                } else if (searchNumber < 0) {
-                    Utils.showError(this, "Invalid Number!");
-                } else {
-                    activeRooms.add(allRooms.get(searchNumber - 1));
-                }
-            } else if (tabbedPane.getSelectedIndex() == 1) {
-                activeAdminAccounts = new ArrayList<>();
-                if (searchNumber == 0 || searchNumber > allAdminAccounts.size()) {
-                    activeAdminAccounts.addAll(allAdminAccounts);
-                } else if (searchNumber < 0) {
-                    Utils.showError(this, "Invalid Number!");
-                } else {
-                    activeAdminAccounts.add(allAdminAccounts.get(searchNumber - 1));
-                }
-                activeRecepAccounts = new ArrayList<>();
-                if (searchNumber == 0 || searchNumber > allRecepAccounts.size()) {
-                    activeRecepAccounts.addAll(allRecepAccounts);
-                } else if (searchNumber < 0) {
-                    Utils.showError(this, "Invalid Number!");
-                } else {
-                    activeRecepAccounts.add(allRecepAccounts.get(searchNumber - 1));
-                }
-                activeCustAccounts = new ArrayList<>();
-                if (searchNumber == 0 || searchNumber > allCustAccounts.size()) {
-                    activeCustAccounts.addAll(allCustAccounts);
-                } else if (searchNumber < 0) {
-                    Utils.showError(this, "Invalid Number!");
-                } else {
-                    activeCustAccounts.add(allCustAccounts.get(searchNumber - 1));
-                }
-            }
-            else if (tabbedPane.getSelectedIndex() == 2) {
-                activeLogs = new ArrayList<>();
-                if (searchNumber == 0 || searchNumber > allLogs.size()) {
-                    activeLogs.addAll(allLogs);
-                } else if (searchNumber < 0) {
-                    Utils.showError(this, "Invalid Number!");
-                } else {
-                    activeLogs.add(allLogs.get(searchNumber - 1));
-                }
-            }
-        } catch (NumberFormatException a){
-            activeRooms = Db.select.getRooms();
-            activeAdminAccounts = Db.select.getAllUsers("admin");
-            activeRecepAccounts = Db.select.getAllUsers("receptionist");
-            activeCustAccounts = Db.select.getAllUsers("customer");
-            // do same for accounts and logs
-        }
-    }
-
-    private JPanel createAdminControls(boolean switcher) {
-        JPanel adminPanel = new JPanel(new GridLayout(1, 2,10,0));
-        adminPanel.setBackground(Utils.OFF_WHITE);
-        if(!switcher) {
-            addButton = Utils.createActionButton("Room +", e -> showAddRoomDialog());
-            removeButton= Utils.createActionButton("Room -", e -> showRemoveRoomDialog());
-        }else{
-            addButton = Utils.createActionButton("Account +", e -> showAddAccountDialog());
-            removeButton = Utils.createActionButton("Account -", e -> showRemoveAccountDialog());
-        }
-        adminPanel.add(addButton);
-        adminPanel.add(removeButton);
-        return adminPanel;
-    }
-
-
-
-    private JScrollPane createRoomsScrollPane() {
-        roomsPanel = new JPanel(new WrapLayout(WrapLayout.LEADING, 20, 20));
-        roomsPanel.setBackground(Utils.OFF_WHITE);
-        roomsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        JScrollPane scrollPane = new JScrollPane(roomsPanel);
-        scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
-        scrollPane.setBorder(null);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        return scrollPane;
-    }
-
-    private void loadRooms() {
-        loadingBar.setVisible(true);
-        roomsPanel.removeAll();
-        roomsPanel.add(new JLabel("Loading rooms..."));
-        refreshUI();
-
-        // Simulated loading
-        new Timer(1000, e -> {
-            roomsPanel.removeAll();
-            if (activeRooms.isEmpty()) {
-                roomsPanel.add(new JLabel("No rooms found"));
-            } else {
-                activeRooms.forEach(this::addRoomCard);
-            }
-            loadingBar.setVisible(false);
-            refreshUI();
-        }).start();
-    }
-
-    private void addRoomCard(Room room) {
-        JPanel card = Utils.createStyledPanel(15, Utils.BROWN, true);
-        card.setPreferredSize(new Dimension(300, 200));
-
-        // Room Info
-        JPanel infoPanel = new JPanel(new GridLayout(0, 1, 5, 5));
-        infoPanel.setBackground(Utils.OFF_WHITE);
-
-        JLabel numberLabel = new JLabel("Room #" + room.getNum());
-        numberLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        numberLabel.setForeground(Utils.BROWN);
-
-        infoPanel.add(numberLabel);
-        infoPanel.add(new JLabel("Floor: " + ((room.getNum()-1)/100 +1)));
-        infoPanel.add(new JLabel("Type: " + room.getRoomType()));
-        infoPanel.add(createStatusLabel(room.getStatus()));
-
-        card.add(infoPanel, BorderLayout.CENTER);
-        card.add(createActionButtons(room), BorderLayout.SOUTH);
-        roomsPanel.add(card);
-    }
-
-    private JLabel createStatusLabel(boolean isBooked) {
-        JLabel label = new JLabel("Status: " + (isBooked ? "Booked" : "Available"));
-        label.setForeground(isBooked ? Color.RED : new Color(0, 128, 0));
-        return label;
-    }
-
-    private JPanel createActionButtons(Room room) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        panel.setBackground(Utils.OFF_WHITE);
-
-        if (room.getStatus()) {
-            panel.add(Utils.createActionButton("Check Out", e -> Utils.showError(panel,"hi")));//showCheckoutMessage(room)));
-            if ("Admin".equals(currentUserRole)) {
-                panel.add(Utils.createActionButton("Set Open", e -> Utils.showError(panel,"hi")));//showSetAvailableMessage(room)));
-            }
-        } else {
-            panel.add(Utils.createActionButton("Check In", e -> showCheckInDialog(room.getNum())));
-            if ("Admin".equals(currentUserRole)) {
-                panel.add(Utils.createActionButton("Set Closed", e -> Utils.showError(panel,"hi")));//showSetUnavailableMessage(room)));
-            }
-        }
-        return panel;
-    }
-
-    private void returnToLogin() {
-        dispose();
-        SwingUtilities.invokeLater(() -> new BookItLogin().setVisible(true));
-    }
-
-    private void refreshUI() {
-        roomsPanel.revalidate();
-        roomsPanel.repaint();
-    }
-
-    private void showAddRoomDialog() {
-        addRoomDialog = new JDialog(this, "Add New Room", true);
-        addRoomDialog.setSize(400, 250);
-        addRoomDialog.setLocationRelativeTo(this);
-        addRoomDialog.getContentPane().setBackground(Utils.OFF_WHITE);
-
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        mainPanel.setBackground(Utils.OFF_WHITE);
-
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.setBackground(Utils.OFF_WHITE);
-
-        roomNumberField = new JTextField();
-        Utils.addFormField(formPanel, "Room Number:", roomNumberField);
-
-        roomTypes = new JComboBox<>(RoomType.values());
-        Utils.addFormField(formPanel, "Room Type:", roomTypes);
-
-        bookedCheckbox = new JCheckBox();
-        Utils.addFormField(formPanel, "Initially Booked:", bookedCheckbox);
-
-        mainPanel.add(formPanel, BorderLayout.CENTER);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.setBackground(Utils.OFF_WHITE);
-
-        JButton submitButton = Utils.createActionButton("Add Room", e -> {addRoomAction();});
-        JButton cancelButton = Utils.createActionButton("Cancel",e -> addRoomDialog.dispose());
-
-        buttonPanel.add(submitButton);
-        buttonPanel.add(cancelButton);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-
-        roomNumberField.addActionListener(e -> submitButton.doClick());
-
-        addRoomDialog.add(mainPanel);
-        addRoomDialog.setVisible(true);
-    }
-
-    private void addRoomAction() {
-        if (roomNumberField.getText().trim().isEmpty()) {
-            Utils.showError(addRoomDialog, "Room number cannot be empty");
-        }
-
-        try {
-            int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
-            RoomType roomType = (RoomType) roomTypes.getSelectedItem();
-            boolean isBooked = bookedCheckbox.isSelected();
-
-            activeRooms.add(new Room(roomNumber, roomType, isBooked));
-            JOptionPane.showMessageDialog(addRoomDialog,
-                    "Room #" + roomNumber + " added successfully! (Mock implementation)",
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
-            addRoomDialog.dispose();
-            loadRooms();
-        } catch (NumberFormatException ex) {
-            Utils.showError(addRoomDialog, "Please enter a valid room number");
         }
     }
 
