@@ -193,14 +193,11 @@ public class RoomManagement extends JFrame {
     }
 
     private void loadRooms() {
-        loadingBar.setVisible(true);
         roomsPanel.removeAll();
-        roomsPanel.add(new JLabel("Loading rooms..."));
         roomsPanel.revalidate();
         roomsPanel.repaint();
 
-        // Simulate loading delay
-        Timer timer = new Timer(1000, e -> {
+        SwingUtilities.invokeLater(() -> {
             roomsPanel.removeAll();
 
             if (allRooms.isEmpty()) {
@@ -209,31 +206,23 @@ public class RoomManagement extends JFrame {
                 allRooms.forEach(room -> addRoomCard(room));
             }
 
-            loadingBar.setVisible(false);
             roomsPanel.revalidate();
             roomsPanel.repaint();
         });
-        timer.setRepeats(false);
-        timer.start();
     }
 
     private void loadRoom(Room room) {
-        loadingBar.setVisible(true);
         roomsPanel.removeAll();
-        roomsPanel.add(new JLabel("Loading room..."));
         roomsPanel.revalidate();
         roomsPanel.repaint();
 
-        // Simulate loading delay
-        Timer timer = new Timer(1000, e -> {
+        SwingUtilities.invokeLater(() -> {
             roomsPanel.removeAll();
             addRoomCard(room);
-            loadingBar.setVisible(false);
             roomsPanel.revalidate();
             roomsPanel.repaint();
+
         });
-        timer.setRepeats(false);
-        timer.start();
     }
 
     private void loadAccounts(JPanel sectionPanel, ArrayList<User> users) {
@@ -925,7 +914,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "");
+        Db.connect("root", "yoyo8080");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);
