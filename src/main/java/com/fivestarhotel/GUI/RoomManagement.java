@@ -13,7 +13,7 @@ import java.util.*;
 
 
 public class RoomManagement extends JFrame {
-    private JTextField accountIdField, searchField, roomNumberField, customerIdField, firstNameField, lastNameField, emailField, phoneField;
+    private JTextField accountIdField, searchField, customerIdField, firstNameField, lastNameField, emailField, phoneField;
     private JDialog addRoomDialog, removeDialog, checkInDialog;
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, searchNumber;
@@ -347,7 +347,7 @@ public class RoomManagement extends JFrame {
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         formPanel.setBackground(Utils.OFF_WHITE);
 
-        roomNumberField = new JTextField();
+        JTextField roomNumberField = new JTextField();
         Utils.addFormField(formPanel, "Room Number:", roomNumberField);
 
         roomTypes = new JComboBox<>(RoomType.values());
@@ -361,7 +361,7 @@ public class RoomManagement extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton submitButton = Utils.createActionButton("Add Room", e -> {addRoomAction();});
+        JButton submitButton = Utils.createActionButton("Add Room", e -> {addRoomAction(roomNumberField);});
         JButton cancelButton = Utils.createActionButton("Cancel",e -> addRoomDialog.dispose());
 
         buttonPanel.add(submitButton);
@@ -374,7 +374,7 @@ public class RoomManagement extends JFrame {
         addRoomDialog.setVisible(true);
     }
 
-    private void addRoomAction() {
+    private void addRoomAction(JTextField roomNumberField) {
         if (roomNumberField.getText().trim().isEmpty()) {
             Utils.showError(addRoomDialog, "Room number cannot be empty");
         }
@@ -706,7 +706,7 @@ public class RoomManagement extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton removeButton = Utils.createActionButton("Remove", e -> removeButtonAction());
+        JButton removeButton = Utils.createActionButton("Remove", e -> removeButtonAction(roomNumberField));
         JButton cancelButton = Utils.createActionButton("Cancel", e -> removeDialog.dispose());
 
         buttonPanel.add(removeButton);
@@ -719,7 +719,7 @@ public class RoomManagement extends JFrame {
         removeDialog.setVisible(true);
     }
 
-    private void removeButtonAction(){
+    private void removeButtonAction(JTextField roomNumberField){
         try {
             String roomNumberText = roomNumberField.getText().trim();
             if (roomNumberText.isEmpty()) {
