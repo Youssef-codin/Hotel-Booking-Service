@@ -4,8 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import com.fivestarhotel.Billing;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
+import com.fivestarhotel.Database.Db.UserRoles;
+import com.fivestarhotel.users.User;
 
 public class Delete {
     public void all(String tableName) {
@@ -55,13 +58,10 @@ public class Delete {
             System.err.println(e.getErrorCode());
             e.printStackTrace();
         }
-
     }
 
+    // Booking delete method wa kda b2a
 
-    //Booking delete method wa kda b2a
-
-    
     public void booking(int bookingId) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("DELETE FROM booking WHERE booking_id = ?");
@@ -77,6 +77,67 @@ public class Delete {
         } catch (SQLException e) {
             e.printStackTrace();
             System.err.println(e.getErrorCode());
+        }
+    }
+
+    // billing delete method wa kda b2a
+
+    public void bill(int billId) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE bill_id = ?");
+            ps.setInt(1, billId);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Bill ID not found, didn't delete anything");
+            } else {
+                System.out.println("deleted " + rows + " rows.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
+        }
+    }
+
+    public void bill(Billing bill) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE bill_id = ?");
+            ps.setInt(1, bill.getBillId());
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Bill ID not found, didn't delete anything");
+            } else {
+                System.out.println("deleted " + rows + " rows.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
+        }
+    }
+
+    public void deleteUser(int userID, UserRoles userRole) throws SQLException {
+        String tableName;
+
+        switch (userRole) {
+            case CUSTOMER -> tableName = "customer";
+            case RECEPTIONIST -> tableName = "receptionist";
+            case ADMIN -> tableName = "admin";
+            default -> throw new IllegalArgumentException("Unknown user role: " + userRole);
+        }
+
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn
+                    .prepareStatement("DELETE FROM " + tableName + " WHERE " + tableName + "_id = ?");
+            ps.setInt(1, userID);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0) {
+                System.out.println("User deleted successfully from " + tableName + " table.");
+            } else {
+                System.out.println("No user found with ID: " + userID);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -4,8 +4,10 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
+import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Room;
@@ -40,7 +42,6 @@ public class Update {
 
         }
     }
-    
 
     public void rooms(ArrayList<Room> newRooms) {
 
@@ -79,55 +80,56 @@ public class Update {
         }
     }
 
+    // Booking update method b2a wa kda
 
-
-    //Booking update method b2a wa kda
-
-
-    
-
-
-    // if a customer wants to extend their stay, they can use this method to update the check out date
-    public void bookingCheckoutdate(Booking booking){
+    // if a customer wants to extend their stay, they can use this method to update
+    // the check out date
+    public void bookingCheckoutdate(Booking booking) {
         BookingManager bm = new BookingManager();
         Room room = booking.getRoom();
         bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
 
-        if (Db.select.IsRoomAvailable(room,booking,booking.getBooking_id())){
+        if (Db.select.IsRoomAvailable(room, booking, booking.getBooking_id())) {
             System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
             try (Connection conn = Db.connect()) {
                 PreparedStatement ps = conn.prepareStatement(
                         "UPDATE booking SET check_out_date = ? WHERE booking_id = ?");
                 ps.setDate(1, Date.valueOf(booking.getCheckOutDate()));
                 ps.setInt(2, booking.getBooking_id());
-    
+
                 int rows = ps.executeUpdate();
                 if (rows == 0) {
                     System.err.println("Booking ID not found.");
                 } else {
                     System.out.println("updated " + rows + " rows!");
                 }
-    
+
+                Billing bill = Db.select.getBillBooking(booking.getBooking_id());
+                if (bill != null) {
+                    double newAmount = Billing.calculateAmount(booking);
+                    bill.setAmount(newAmount);
+                    Db.update.updateBillAmount(bill);
+                }
+
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }else{
+        } else {
             System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
         }
-        
+
     }
 
-
-    public void booking(Booking booking ) {
+    public void booking(Booking booking) {
         BookingManager bm = new BookingManager();
         Room room = booking.getRoom();
         bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
         try (Connection conn = Db.connect()) {
-           
-            if (Db.select.IsRoomAvailable(room,booking)){
+
+            if (Db.select.IsRoomAvailable(room, booking)) {
                 System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
                 PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
+                        "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
                 ps.setInt(1, booking.getRoom().getNum());
                 ps.setInt(2, booking.getCustomer_id());
                 ps.setInt(3, booking.getReceptionist_id());
@@ -142,15 +144,157 @@ public class Update {
                 } else {
                     System.out.println("updated " + rows + " rows!");
                 }
-            }else{
-            System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
-        
-    }
 
+                // Handle billing
+                Billing existingBill = Db.select.getBillBooking(booking.getBooking_id());
+                double newAmount = Billing.calculateAmount(booking);
+                if (existingBill != null) {
+                    // Update existing bill
+                    existingBill.setAmount(newAmount);
+                    updateBillAmount(existingBill);
+                    if (existingBill.getStatus() == Billing.BillingStatus.PAID) {
+                        existingBill.setStatus(Billing.BillingStatus.PENDING);
+                        updateBillStatus(existingBill);
+                    }
+                    System.out.println(
+                            "Updated bill amount to: " + newAmount + " for bill ID: " + existingBill.getBillId());
+                } else {
+                    // Create new bill
+                    Billing newBill = new Billing(
+                            booking.getBooking_id(),
+                            booking.getCustomer_id(),
+                            newAmount,
+                            Billing.BillingStatus.PENDING,
+                            LocalDate.now());
+                    Db.create.addBill(newBill);
+                    System.out.println("Created new bill with amount: " + newAmount);
+                }
+
+            } else {
+                System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
+    public void updateCustomerBalance(int customerId, double newBalance) {
+        if (newBalance < 0) {
+            System.err.println("Balance cannot be negative.");
+            return;
+        }
 
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE customer SET customer_balance = ? WHERE customer_id = ?");
+            ps.setDouble(1, newBalance);
+            ps.setInt(2, customerId);
+
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected == 0) {
+                System.err.println("Customer ID not found: " + customerId);
+            } else {
+                System.out.println("Updated balance for customer ID: " + customerId);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error during balance update: " + e.getMessage());
+        }
+    }
+
+    // billing
+
+    public void updateBillStatus(int billId, Billing.BillingStatus status) {
+        if (status != Billing.BillingStatus.PAID && status != Billing.BillingStatus.PENDING) {
+            System.err.println("Invalid status: " + status);
+            return;
+        }
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE billing SET status = ? WHERE bill_id = ?");
+            ps.setString(1, Billing.convertBill(status));
+            ps.setInt(2, billId);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Bill not found for ID: " + billId);
+            } else {
+                System.out.println("Updated bill status for ID: " + billId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error: " + e.getMessage());
+        }
+    }
+
+    public void updateBillStatus(Billing billing) {
+        if (billing.getStatus() != Billing.BillingStatus.PAID && billing.getStatus() != Billing.BillingStatus.PENDING) {
+            System.err.println("Invalid status: " + billing.getStatus());
+            return;
+        }
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE billing SET status = ? WHERE bill_id = ?");
+            ps.setString(1, Billing.convertBill(billing.getStatus()));
+            ps.setInt(2, billing.getBillId());
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Bill not found for ID: " + billing.getBillId());
+            } else {
+                System.out.println("Updated bill status for ID: " + billing.getBillId());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error: " + e.getMessage());
+        }
+    }
+
+    public void updateBillAmount(int billId, double amount) {
+        if (amount < 0) {
+            System.err.println("Amount cannot be negative.");
+            return;
+        }
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE billing SET amount = ? WHERE bill_id = ?");
+            ps.setDouble(1, amount);
+            ps.setInt(2, billId);
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Bill not found for ID: " + billId);
+            } else {
+                System.out.println("Updated bill amount for ID: " + billId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error: " + e.getMessage());
+        }
+    }
+
+    public void updateBillAmount(Billing billing) {
+        if (billing.getAmount() < 0) {
+            System.err.println("Amount cannot be negative.");
+            return;
+        }
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE billing SET amount = ? WHERE bill_id = ?");
+            ps.setDouble(1, billing.getAmount());
+            ps.setInt(2, billing.getBillId());
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Bill not found for ID: " + billing.getBillId());
+            } else {
+                System.out.println("Updated bill amount for ID: " + billing.getBillId());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error: " + e.getMessage());
+        }
+    }
+
+    public void updateBill(Billing billing) {
+        updateBillStatus(billing);
+        updateBillAmount(billing);
+    }
 }
