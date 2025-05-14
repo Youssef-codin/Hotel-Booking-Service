@@ -30,9 +30,8 @@ public class App {
         // TODO: After successful login, transition to:
         // Simplified authentication to use hardcoded credentials:
         // Admin: admin@bookit.com / Admin_123
-        Db.connect("root", "");
+        Db.connect("root", "yoyo8080");
         Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Admin_123"));
-        // make sure to run this ^ if u dont already have an admin account
 
         // Start the application
         SwingUtilities.invokeLater(() -> {

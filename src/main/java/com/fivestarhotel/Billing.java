@@ -6,8 +6,6 @@ import java.time.temporal.ChronoUnit;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Database.Db;
 
-
-
 public class Billing {
     private int billId;
     private int bookingId;
@@ -21,8 +19,8 @@ public class Billing {
         PAID
     }
 
-
-    public Billing(int billId, int bookingId, int customerId, double amount, BillingStatus status, LocalDate createdDate) {
+    public Billing(int billId, int bookingId, int customerId, double amount, BillingStatus status,
+            LocalDate createdDate) {
         // validateIds(bookingId, customerId);
         this.billId = billId;
         this.bookingId = bookingId;
@@ -41,8 +39,6 @@ public class Billing {
         this.createdDate = createdDate;
     }
 
-
-
     public static Billing.BillingStatus convertStr(String status) {
         switch (status.toLowerCase()) {
             case "pending" -> {
@@ -56,8 +52,6 @@ public class Billing {
             }
         }
     }
-
-
 
     public static String convertBill(BillingStatus status) {
         switch (status) {
@@ -73,9 +67,6 @@ public class Billing {
         }
     }
 
-
-
-
     public static double calculateAmount(Booking booking) {
         Room room = booking.getRoom();
         if (room == null) {
@@ -85,7 +76,7 @@ public class Billing {
         LocalDate checkOut = booking.getCheckOutDate();
 
         long days = ChronoUnit.DAYS.between(checkIn, checkOut);
-        
+
         if (days <= 0) {
             System.out.print("Stay duration must be at least one day.");
         }
@@ -97,19 +88,18 @@ public class Billing {
     }
 
     // private void validateIds(int bookingId, int customerId) {
-    //     if (bookingId <= 0) {
-    //         throw new IllegalArgumentException("Booking ID must be positive.");
-    //     }
-    //     if (customerId <= 0) {
-    //         throw new IllegalArgumentException("Customer ID must be positive.");
-    //     }
+    // if (bookingId <= 0) {
+    // throw new IllegalArgumentException("Booking ID must be positive.");
+    // }
+    // if (customerId <= 0) {
+    // throw new IllegalArgumentException("Customer ID must be positive.");
+    // }
     // }
 
     public Booking getBooking() {
         return Db.select.getbooking(bookingId);
     }
 
-    
     public int getBillId() {
         return billId;
     }
@@ -151,7 +141,7 @@ public class Billing {
     public BillingStatus getStatus() {
         return status;
     }
-     
+
     public void setStatus(BillingStatus status) {
         if (!status.equals(Billing.BillingStatus.PENDING) && !status.equals(Billing.BillingStatus.PAID)) {
             throw new IllegalArgumentException("Status must be PENDING or PAID.");
