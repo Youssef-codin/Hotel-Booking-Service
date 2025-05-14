@@ -136,9 +136,21 @@ public class RoomManagement extends JFrame {
             if (tabbedPane.getSelectedIndex() == 0) {
                 loadRoom(allRooms.get(searchNumber - 1));
             } else if (tabbedPane.getSelectedIndex() == 1) {
-                loadAccount(allAdminAccounts.get(searchNumber), adminSection);
-                loadAccount(allRecepAccounts.get(searchNumber), recepSection);
-                loadAccount(allCustAccounts.get(searchNumber), custSection);
+                try{
+                    loadAccount(allAdminAccounts.get(searchNumber), adminSection);
+                    loadAccountSections();
+                } catch (Exception e){
+                }
+                try{
+                    loadAccount(allRecepAccounts.get(searchNumber), recepSection);
+                    loadAccountSections();
+                } catch (Exception e){
+                }
+                try{
+                    loadAccount(allCustAccounts.get(searchNumber), custSection);
+                    loadAccountSections();
+                } catch (Exception e){
+                }
                 loadAccountSections();
             }
         } catch (NumberFormatException a) {
@@ -175,16 +187,14 @@ public class RoomManagement extends JFrame {
         return scrollPane;
     }
 
-    private JScrollPane createAccountScrollPane(String title) {
+    private JScrollPane createAccountScrollPane(String title, ArrayList<User> users) {
         JPanel sectionPanel = new JPanel();
         sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
         sectionPanel.setBackground(Utils.OFF_WHITE);
         sectionPanel.setBorder(BorderFactory.createTitledBorder(title));
 
         // Add spacing between components
-        loadAccounts(sectionPanel, allAdminAccounts);
-        loadAccounts(sectionPanel, allRecepAccounts);
-        loadAccounts(sectionPanel, allCustAccounts);
+        loadAccounts(sectionPanel, users);
 
         JScrollPane scrollPane = new JScrollPane(sectionPanel);
         scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
@@ -394,10 +404,9 @@ public class RoomManagement extends JFrame {
     private JPanel createAccountsPanel() {
         accountsPanel = new JPanel(new GridLayout(1, 3, 10, 0));
         accountsPanel.setBackground(Utils.OFF_WHITE);
-        adminSection = createAccountScrollPane("Admins");
-        recepSection = createAccountScrollPane("Receptionists");
-        custSection = createAccountScrollPane("Customers"
-        );
+        adminSection = createAccountScrollPane("Admins", allAdminAccounts);
+        recepSection = createAccountScrollPane("Receptionists", allRecepAccounts);
+        custSection = createAccountScrollPane("Customers", allCustAccounts);
         accountsPanel.add(adminSection);
         accountsPanel.add(recepSection);
         accountsPanel.add(custSection);
@@ -412,6 +421,7 @@ public class RoomManagement extends JFrame {
     private void showUserDetails(User user) {
         JDialog detailsDialog = new JDialog(this, "User Details", true);
         detailsDialog.setSize(300, 250);
+        detailsDialog.setBackground(Utils.BROWN);
 
         JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
