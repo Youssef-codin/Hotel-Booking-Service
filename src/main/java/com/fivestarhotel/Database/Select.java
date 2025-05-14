@@ -279,16 +279,19 @@ public class Select {
                 "AND check_out_date > ? " + // Existing booking ends after new checkin
                 "AND booking_id <> ?"; // Exclude the current booking being updated
 
+
         try (Connection conn = Db.connect();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, room.getNum());
             ps.setDate(2, Date.valueOf(booking.getCheckOutDate()));
             ps.setDate(3, Date.valueOf(booking.getCheckInDate()));
+
             ps.setInt(4, excludeBookingId); // Exclude this booking ID
 
             ResultSet rs = ps.executeQuery();
             return rs.next() && rs.getInt(1) == 0; // True if no overlaps (other than current booking)
+
 
         } catch (SQLException e) {
             e.printStackTrace();
