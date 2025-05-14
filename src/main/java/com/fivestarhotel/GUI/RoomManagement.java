@@ -20,7 +20,7 @@ public class RoomManagement extends JFrame {
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, searchNumber;
     private String currentUserRole;
-    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel,custPanel;
+    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel;
     private JProgressBar loadingBar;
     private JCheckBox bookedCheckbox;
     private JComboBox<RoomType> roomTypes;
@@ -132,23 +132,26 @@ public class RoomManagement extends JFrame {
                         loadRoom(allRooms.get(searchNumber));
                     }
                 }
+
                 case 1 -> {
-                    if (!allAdminAccounts.isEmpty()){
+                    if (!allAdminAccounts.isEmpty()) {
                         loadAccount(allAdminAccounts.get(searchNumber), adminPanel);
                         loadAccountSections();
-                    }else{
+                    } else {
                         loadAccounts(adminPanel, allAdminAccounts);
                     }
-                    if(!allRecepAccounts.isEmpty()){
+
+                    if (!allRecepAccounts.isEmpty()) {
                         loadAccount(allRecepAccounts.get(searchNumber), recepPanel);
                         loadAccountSections();
-                    }else {
+                    } else {
                         loadAccounts(recepPanel, allRecepAccounts);
                     }
-                    if(!allCustAccounts.isEmpty()){
+
+                    if (!allCustAccounts.isEmpty()) {
                         loadAccount(allCustAccounts.get(searchNumber), custPanel);
                         loadAccountSections();
-                    }else{
+                    } else {
                         loadAccounts(custPanel, allCustAccounts);
                     }
                 }
@@ -412,8 +415,10 @@ public class RoomManagement extends JFrame {
     private void refreshAccounts() {
         accountsPanel.removeAll();
         accountsPanel.add(createAccountScrollPane("Admins", Db.select.getAllUsers(Db.UserRoles.ADMIN), adminPanel));
-        accountsPanel.add(createAccountScrollPane("Receptionists", Db.select.getAllUsers(Db.UserRoles.RECEPTIONIST), recepPanel));
-        accountsPanel.add(createAccountScrollPane("Customers", Db.select.getAllUsers(Db.UserRoles.CUSTOMER), custPanel));
+        accountsPanel.add(
+                createAccountScrollPane("Receptionists", Db.select.getAllUsers(Db.UserRoles.RECEPTIONIST), recepPanel));
+        accountsPanel
+                .add(createAccountScrollPane("Customers", Db.select.getAllUsers(Db.UserRoles.CUSTOMER), custPanel));
         accountsPanel.revalidate();
         accountsPanel.repaint();
     }
