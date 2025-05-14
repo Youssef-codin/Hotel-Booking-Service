@@ -6,6 +6,7 @@ import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
+import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
 
 import javax.swing.*;
@@ -508,6 +509,8 @@ public class RoomManagement extends JFrame {
 
             String email = emailField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
+            String phone = null;
+            String address = null;
 
             if (fullName.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Utils.showError(addAccountDialog, "Full Name, Email, and Password are required.");
@@ -518,8 +521,8 @@ public class RoomManagement extends JFrame {
                     "\nName: " + fullName + "\nEmail: " + email;
 
             if ("Customer".equals(accountType)) {
-                String phone = phoneFieldLocal.getText().trim();
-                String address = addressFieldLocal.getText().trim();
+                phone = phoneFieldLocal.getText().trim();
+                address = addressFieldLocal.getText().trim();
                 if (phone.isEmpty() || address.isEmpty()) {
                     Utils.showError(addAccountDialog, "Phone and Address are required for Customer accounts.");
                     return;
@@ -527,11 +530,13 @@ public class RoomManagement extends JFrame {
                 message += "\nPhone: " + phone + "\nAddress: " + address;
             }
             if (accountType.equals("Admin")) {
-                // Db.create.signUpUser(new Admin(, admin_lname, admin_email, admin_password));
+                Db.create.signUpUser(new Admin(fName, lName, email, password));
 
             } else if (accountType.equals("Receptionist")) {
+                Db.create.signUpUser(new Receptionist(fName, lName, email, password));
 
             } else {
+                Db.create.signUpUser(new Customer(fName, lName, email, password, phone, address, 0));
 
             }
 
@@ -543,7 +548,7 @@ public class RoomManagement extends JFrame {
         });
 
         JButton cancelButton = Utils.createActionButton("Cancel", e -> {
-            addAccountDialog.dispose(); // Close the dialog
+            addAccountDialog.dispose();
         });
 
         buttonPanel.add(submitButton);
@@ -914,7 +919,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "");
+        Db.connect("root", "yoyo8080");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);

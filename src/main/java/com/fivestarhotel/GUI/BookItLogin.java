@@ -51,7 +51,6 @@ public class BookItLogin extends JFrame {
         mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
         mainPanel.add(createLoginPanel(), BorderLayout.CENTER);
 
-        // Loading indicator
         loadingBar = Utils.createLoadingBar();
         add(mainPanel);
     }
@@ -219,7 +218,7 @@ public class BookItLogin extends JFrame {
 
     // TODO: the remember me shit
     public static void main(String[] args) {
-        Db.connect("root", "");
+        Db.connect("root", "yoyo8080");
         SwingUtilities.invokeLater(() -> {
             if (!new File(
                     "C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt")
