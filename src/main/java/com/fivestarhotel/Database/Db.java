@@ -17,6 +17,12 @@ public class Db {
 
     protected static String tables = "admin|customer|receptionist|room|booking|billing|room_log";
 
+    public enum UserRoles {
+        ADMIN,
+        RECEPTIONIST,
+        CUSTOMER
+    }
+
     public static void connect(String newUser, String newPassword) {
 
         user = newUser;
