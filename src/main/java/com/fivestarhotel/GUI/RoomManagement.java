@@ -126,7 +126,7 @@ public class RoomManagement extends JFrame {
         try {
             searchNumber = Integer.parseInt(searchField.getText().trim()) - 1;
             if (tabbedPane.getSelectedIndex() == 0) {
-                loadRoom(allRooms.get(searchNumber - 1));
+                loadRoom(allRooms.get(searchNumber));
             } else if (tabbedPane.getSelectedIndex() == 1) {
                 try {
                     loadAccount(allAdminAccounts.get(searchNumber), adminSection);
@@ -375,6 +375,11 @@ public class RoomManagement extends JFrame {
             RoomType roomType = (RoomType) roomTypes.getSelectedItem();
             boolean isBooked = bookedCheckbox.isSelected();
 
+            Db.create.addRoom(roomNumber, roomType);
+            if (isBooked) {
+                Db.update.roomStatus(roomNumber, true);
+            }
+
             allRooms.add(new Room(roomNumber, roomType, isBooked));
             JOptionPane.showMessageDialog(addRoomDialog,
                     "Room #" + roomNumber + " added successfully! (Mock implementation)",
@@ -427,7 +432,6 @@ public class RoomManagement extends JFrame {
         return label;
     }
 
-    // Modified header button management
     private void updateHeaderButtons() {
         Component[] components = headerPanel.getComponents();
         headerPanel.remove(components[components.length - 1]);
@@ -743,8 +747,10 @@ public class RoomManagement extends JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 boolean removed = allRooms.removeIf(room -> room.getNum() == roomNumber);
                 if (removed) {
+                    Db.delete.room(roomNumber);
+
                     JOptionPane.showMessageDialog(removeDialog,
-                            "Room #" + roomNumber + " was successfully removed (Mock implementation)",
+                            "Room #" + roomNumber + " was successfully removed",
                             "Success", JOptionPane.INFORMATION_MESSAGE);
                     removeDialog.dispose();
                     loadRooms();
@@ -919,7 +925,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);

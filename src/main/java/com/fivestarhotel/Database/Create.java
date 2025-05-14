@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
+import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 import static com.fivestarhotel.security.Crypto.makeSalt;
@@ -38,7 +39,7 @@ public class Create {
                 updates = ps.executeUpdate();
 
             } else if (lastRoomNum == 0) {
-                Db.update.resetIncrement();
+                Db.update.resetIncrementRooms();
                 PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO room(room_number, room_floor, room_type, room_status) Values(?,?,?,?)");
                 ps.setInt(1, 1);
@@ -116,7 +117,7 @@ public class Create {
                     updates += ps.executeUpdate();
 
                 } else if (lastRoomNum == 0) {
-                    Db.update.resetIncrement();
+                    Db.update.resetIncrementRooms();
                     PreparedStatement ps = conn.prepareStatement(
                             "INSERT INTO room(room_number, room_floor, room_type, room_status) Values(?,?,?,?)");
                     ps.setInt(1, 1);
@@ -152,7 +153,7 @@ public class Create {
                     updates += ps.executeUpdate();
 
                 } else if (lastRoomNum == 0) {
-                    Db.update.resetIncrement();
+                    Db.update.resetIncrementRooms();
                     PreparedStatement ps = conn.prepareStatement(
                             "INSERT INTO room(room_number, room_floor, room_type, room_status) Values(?,?,?,?)");
                     ps.setInt(1, 1);
@@ -252,6 +253,11 @@ public class Create {
             String hashedPassword = stringToHash(user.getPassword(), salt);
 
             if (user instanceof Customer customer) {
+                int lastnum = Db.select.lastUserNum(UserRoles.CUSTOMER);
+                if (lastnum == 0) {
+                    Db.update.resetIncrementUsers(UserRoles.CUSTOMER);
+                }
+
                 PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO customer (customer_fname, customer_lname, customer_email, customer_password, customer_salt, customer_phone, customer_address, customer_balance) "
                                 +
@@ -275,6 +281,12 @@ public class Create {
                 }
 
             } else if (user instanceof Receptionist receptionist) {
+
+                int lastnum = Db.select.lastUserNum(UserRoles.RECEPTIONIST);
+                if (lastnum == 0) {
+                    Db.update.resetIncrementUsers(UserRoles.RECEPTIONIST);
+                }
+
                 PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO receptionist (receptionist_fname, receptionist_lname, receptionist_email, receptionist_password, receptionist_salt) "
                                 +
@@ -294,6 +306,11 @@ public class Create {
                             receptionist.getEmail(), hashedPassword);
                 }
             } else if (user instanceof Admin admin) {
+                int lastnum = Db.select.lastUserNum(UserRoles.ADMIN);
+                if (lastnum == 0) {
+                    Db.update.resetIncrementUsers(UserRoles.ADMIN);
+                }
+
                 PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO admin (admin_fname, admin_lname, admin_email, admin_password, admin_salt) "
                                 +

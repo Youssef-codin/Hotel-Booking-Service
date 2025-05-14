@@ -218,7 +218,7 @@ public class BookItLogin extends JFrame {
 
     // TODO: the remember me shit
     public static void main(String[] args) {
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "");
         SwingUtilities.invokeLater(() -> {
             if (!new File(
                     "C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt")

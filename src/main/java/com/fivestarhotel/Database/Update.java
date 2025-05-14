@@ -10,14 +10,28 @@ import java.util.ArrayList;
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
+import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType; // Ensure this is the correct package for the Booking class
 
 public class Update {
 
-    public void resetIncrement() {
+    public void resetIncrementRooms() {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("ALTER TABLE room AUTO_INCREMENT = 1;");
+            int rows = ps.executeUpdate();
+            System.out.println("updated " + rows + " rows.");
+
+        } catch (SQLException e) {
+            System.err.println("Connection error: Can't connect to server");
+
+        }
+    }
+
+    public void resetIncrementUsers(UserRoles role) {
+        String table = role.toString().toLowerCase();
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("ALTER TABLE " + table + " AUTO_INCREMENT = 1;");
             int rows = ps.executeUpdate();
             System.out.println("updated " + rows + " rows.");
 

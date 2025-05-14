@@ -30,7 +30,7 @@ public class App {
         // TODO: After successful login, transition to:
         // Simplified authentication to use hardcoded credentials:
         // Admin: admin@bookit.com / Admin_123
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "");
         Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Admin_123"));
 
         // Start the application
