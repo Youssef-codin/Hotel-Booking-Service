@@ -14,8 +14,7 @@ import java.awt.*;
 import java.util.*;
 
 public class RoomManagement extends JFrame {
-    private JTextField accountIdField, searchField, roomNumberField, customerIdField, firstNameField, lastNameField,
-            emailField, phoneField;
+    private JTextField accountIdField, searchField, customerIdField, firstNameField, lastNameField, emailField, phoneField;
     private JDialog addRoomDialog, removeDialog, checkInDialog;
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, searchNumber;
@@ -28,18 +27,15 @@ public class RoomManagement extends JFrame {
     private JLabel customerInfoLabel;
     private JTabbedPane tabbedPane;
     private JButton addButton, removeButton;
+    private JScrollPane adminSection, recepSection, custSection;
 
     // Lists
     private ArrayList<Room> allRooms = Db.select.getRooms();
     private ArrayList<Room> allLogs;
     private ArrayList<Room> activeLogs;
     private ArrayList<User> allAdminAccounts = Db.select.getAllUsers(Db.UserRoles.ADMIN);
-    private ArrayList<User> activeAdminAccounts = Db.select.getAllUsers(Db.UserRoles.ADMIN);;
     private ArrayList<User> allRecepAccounts = Db.select.getAllUsers(Db.UserRoles.RECEPTIONIST);
-    private ArrayList<User> activeRecepAccounts = Db.select.getAllUsers(Db.UserRoles.RECEPTIONIST);
     private ArrayList<User> allCustAccounts = Db.select.getAllUsers(Db.UserRoles.CUSTOMER);
-    private ArrayList<User> activeCustAccounts = Db.select.getAllUsers(Db.UserRoles.CUSTOMER);
-
     public RoomManagement(String userRole, int userId) {
         this.currentUserRole = userRole;
         this.currentUserId = userId;
@@ -124,34 +120,19 @@ public class RoomManagement extends JFrame {
         return tabbedPane;
     }
 
-    private void filter(ArrayList from, ArrayList to) {
-        to.clear(); // Clear existing entries
-        if (searchNumber == 0 || searchNumber > from.size()) {
-            to.addAll(from);
-        } else if (searchNumber < 0) {
-            Utils.showError(this, "Invalid Number!");
-        } else {
-            to.add(from.get(searchNumber - 1));
-        }
-    }
-
     private void SearchButton() {
         try {
-            searchNumber = Integer.parseInt(searchField.getText().trim());
+            searchNumber = Integer.parseInt(searchField.getText().trim()) - 1;
             if (tabbedPane.getSelectedIndex() == 0) {
-                roomsPanel.removeAll();
                 loadRoom(allRooms.get(searchNumber - 1));
             } else if (tabbedPane.getSelectedIndex() == 1) {
-                filter(allAdminAccounts, activeAdminAccounts);
-                filter(allRecepAccounts, activeRecepAccounts);
-                filter(allCustAccounts, activeCustAccounts);
-                refreshAccounts();
+                loadAccount(allAdminAccounts.get(searchNumber), adminSection);
+                loadAccount(allRecepAccounts.get(searchNumber), recepSection);
+                loadAccount(allCustAccounts.get(searchNumber), custSection);
+                loadAccountSections();
             }
         } catch (NumberFormatException a) {
-            activeAdminAccounts = new ArrayList<>(allAdminAccounts);
-            activeRecepAccounts = new ArrayList<>(allRecepAccounts);
-            activeCustAccounts = new ArrayList<>(allCustAccounts);
-            refreshAccounts();
+            loadAccountSections();
             loadRooms();
         }
     }
@@ -190,7 +171,7 @@ public class RoomManagement extends JFrame {
         sectionPanel.setBorder(BorderFactory.createTitledBorder(title));
 
         // Add spacing between components
-        loadAccounts(users, sectionPanel);
+        loadAccounts(sectionPanel);
 
         JScrollPane scrollPane = new JScrollPane(sectionPanel);
         scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
@@ -241,21 +222,37 @@ public class RoomManagement extends JFrame {
         timer.start();
     }
 
-    private void loadAccounts(ArrayList<User> users, JPanel sectionPanel) {
+    private void loadAccounts(JPanel sectionPanel) {
         sectionPanel.removeAll();
         sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
         sectionPanel.add(new JLabel("Loading Accounts..."));
 
         Timer timer = new Timer(1000, e -> {
             sectionPanel.removeAll();
-            if (users.isEmpty()) {
+            if (allAdminAccounts.isEmpty()) {
                 sectionPanel.add(new JLabel("No account found"));
             } else {
-                users.forEach(user -> {
+                allAdminAccounts.forEach(user -> {
                     sectionPanel.add(addAccountCard(user));
                     sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
                 });
             }
+            sectionPanel.revalidate();
+            sectionPanel.repaint();
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+    private void loadAccount(User user, JScrollPane sectionPanel) {
+        sectionPanel.removeAll();
+        sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
+        sectionPanel.add(new JLabel("Loading Account..."));
+
+        Timer timer = new Timer(1000, e -> {
+            sectionPanel.removeAll();
+            sectionPanel.add(addAccountCard(user));
+            sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
             sectionPanel.revalidate();
             sectionPanel.repaint();
         });
@@ -313,11 +310,6 @@ public class RoomManagement extends JFrame {
         SwingUtilities.invokeLater(() -> new BookItLogin().setVisible(true));
     }
 
-    private void refreshRoomUI() {
-        roomsPanel.revalidate();
-        roomsPanel.repaint();
-    }
-
     private void showAddRoomDialog() {
         addRoomDialog = new JDialog(this, "Add New Room", true);
         addRoomDialog.setSize(400, 250);
@@ -331,7 +323,7 @@ public class RoomManagement extends JFrame {
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         formPanel.setBackground(Utils.OFF_WHITE);
 
-        roomNumberField = new JTextField();
+        JTextField roomNumberField = new JTextField();
         Utils.addFormField(formPanel, "Room Number:", roomNumberField);
 
         roomTypes = new JComboBox<>(RoomType.values());
@@ -345,10 +337,8 @@ public class RoomManagement extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton submitButton = Utils.createActionButton("Add Room", e -> {
-            addRoomAction();
-        });
-        JButton cancelButton = Utils.createActionButton("Cancel", e -> addRoomDialog.dispose());
+        JButton submitButton = Utils.createActionButton("Add Room", e -> {addRoomAction(roomNumberField);});
+        JButton cancelButton = Utils.createActionButton("Cancel",e -> addRoomDialog.dispose());
 
         buttonPanel.add(submitButton);
         buttonPanel.add(cancelButton);
@@ -360,7 +350,7 @@ public class RoomManagement extends JFrame {
         addRoomDialog.setVisible(true);
     }
 
-    private void addRoomAction() {
+    private void addRoomAction(JTextField roomNumberField) {
         if (roomNumberField.getText().trim().isEmpty()) {
             Utils.showError(addRoomDialog, "Room number cannot be empty");
         }
@@ -384,10 +374,12 @@ public class RoomManagement extends JFrame {
     private JPanel createAccountsPanel() {
         accountsPanel = new JPanel(new GridLayout(1, 3, 10, 0));
         accountsPanel.setBackground(Utils.OFF_WHITE);
-
-        accountsPanel.add(createAccountScrollPane("Admins", activeAdminAccounts));
-        accountsPanel.add(createAccountScrollPane("Receptionists", activeRecepAccounts));
-        accountsPanel.add(createAccountScrollPane("Customers", activeCustAccounts));
+        adminSection = createAccountScrollPane("Admins", allAdminAccounts);
+        recepSection = createAccountScrollPane("Receptionists", allRecepAccounts);
+        custSection = createAccountScrollPane("Customers", allCustAccounts);
+        accountsPanel.add(adminSection);
+        accountsPanel.add(recepSection);
+        accountsPanel.add(custSection);
         accountsPanel.revalidate();
         accountsPanel.repaint();
         return accountsPanel;
@@ -550,7 +542,7 @@ public class RoomManagement extends JFrame {
                     message, "Account Action (GUI Only)", JOptionPane.INFORMATION_MESSAGE);
 
             addAccountDialog.dispose();
-            refreshAccounts();
+            loadAccountSections();
         });
 
         JButton cancelButton = Utils.createActionButton("Cancel", e -> {
@@ -613,11 +605,11 @@ public class RoomManagement extends JFrame {
         removeDialog.setVisible(true);
     }
 
-    private void refreshAccounts() {
+    private void loadAccountSections() {
         accountsPanel.removeAll();
-        accountsPanel.add(createAccountScrollPane("Admins", activeAdminAccounts));
-        accountsPanel.add(createAccountScrollPane("Receptionists", activeRecepAccounts));
-        accountsPanel.add(createAccountScrollPane("Customers", activeCustAccounts));
+        accountsPanel.add(adminSection);
+        accountsPanel.add(recepSection);
+        accountsPanel.add(custSection);
         accountsPanel.revalidate();
         accountsPanel.repaint();
     }
@@ -670,7 +662,7 @@ public class RoomManagement extends JFrame {
                         accountType + " account #" + accountId + " removed (Mock implementation)",
                         "Success", JOptionPane.INFORMATION_MESSAGE);
                 removeDialog.dispose();
-                refreshAccounts(); // Refresh the accounts display
+                loadAccountSections(); // Refresh the accounts display
             }
         } catch (NumberFormatException ex) {
             Utils.showError(removeDialog, "Please enter a valid numeric ID");
@@ -703,7 +695,7 @@ public class RoomManagement extends JFrame {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.OFF_WHITE);
 
-        JButton removeButton = Utils.createActionButton("Remove", e -> removeButtonAction());
+        JButton removeButton = Utils.createActionButton("Remove", e -> removeButtonAction(roomNumberField));
         JButton cancelButton = Utils.createActionButton("Cancel", e -> removeDialog.dispose());
 
         buttonPanel.add(removeButton);
@@ -716,7 +708,7 @@ public class RoomManagement extends JFrame {
         removeDialog.setVisible(true);
     }
 
-    private void removeButtonAction() {
+    private void removeButtonAction(JTextField roomNumberField){
         try {
             String roomNumberText = roomNumberField.getText().trim();
             if (roomNumberText.isEmpty()) {
