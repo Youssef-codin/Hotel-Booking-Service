@@ -175,14 +175,16 @@ public class RoomManagement extends JFrame {
         return scrollPane;
     }
 
-    private JScrollPane createAccountScrollPane(String title, ArrayList<User> users) {
+    private JScrollPane createAccountScrollPane(String title) {
         JPanel sectionPanel = new JPanel();
         sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
         sectionPanel.setBackground(Utils.OFF_WHITE);
         sectionPanel.setBorder(BorderFactory.createTitledBorder(title));
 
         // Add spacing between components
-        loadAccounts(sectionPanel);
+        loadAccounts(sectionPanel, allAdminAccounts);
+        loadAccounts(sectionPanel, allRecepAccounts);
+        loadAccounts(sectionPanel, allCustAccounts);
 
         JScrollPane scrollPane = new JScrollPane(sectionPanel);
         scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
@@ -235,17 +237,17 @@ public class RoomManagement extends JFrame {
 
 
 
-    private void loadAccounts(JPanel sectionPanel) {
+    private void loadAccounts(JPanel sectionPanel, ArrayList<User> users) {
         sectionPanel.removeAll();
         sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
         sectionPanel.add(new JLabel("Loading Accounts..."));
 
         Timer timer = new Timer(1000, e -> {
             sectionPanel.removeAll();
-            if (allAdminAccounts.isEmpty()) {
+            if (users.isEmpty()) {
                 sectionPanel.add(new JLabel("No account found"));
             } else {
-                allAdminAccounts.forEach(user -> {
+                users.forEach(user -> {
                     sectionPanel.add(addAccountCard(user));
                     sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
                 });
@@ -392,9 +394,10 @@ public class RoomManagement extends JFrame {
     private JPanel createAccountsPanel() {
         accountsPanel = new JPanel(new GridLayout(1, 3, 10, 0));
         accountsPanel.setBackground(Utils.OFF_WHITE);
-        adminSection = createAccountScrollPane("Admins", allAdminAccounts);
-        recepSection = createAccountScrollPane("Receptionists", allRecepAccounts);
-        custSection = createAccountScrollPane("Customers", allCustAccounts);
+        adminSection = createAccountScrollPane("Admins");
+        recepSection = createAccountScrollPane("Receptionists");
+        custSection = createAccountScrollPane("Customers"
+        );
         accountsPanel.add(adminSection);
         accountsPanel.add(recepSection);
         accountsPanel.add(custSection);
