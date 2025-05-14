@@ -125,7 +125,7 @@ public class RoomManagement extends JFrame {
     private void SearchButton() {
         try {
             searchNumber = Integer.parseInt(searchField.getText().trim()) - 1;
-            if (tabbedPane.getSelectedIndex() == 0) {
+            if (tabbedPane.getSelectedIndex() == 0 && allRooms.size() >= searchNumber) {
                 loadRoom(allRooms.get(searchNumber));
             } else if (tabbedPane.getSelectedIndex() == 1) {
                 try {
