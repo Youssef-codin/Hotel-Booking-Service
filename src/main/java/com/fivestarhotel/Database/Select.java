@@ -209,6 +209,26 @@ public class Select {
         }
     }
 
+    public int lastUserNum(UserRoles role) {
+        String table = role.toString().toLowerCase();
+
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn
+                    .prepareStatement("SELECT * from " + table + " ORDER BY" + table + "_id DESC LIMIT 1");
+            ResultSet result = ps.executeQuery();
+            if (result.next()) {
+                return result.getInt(table + "_id");
+            } else {
+                System.err.println("Last id not found.");
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return 0;
+        }
+    }
+
     public int getRate(RoomType type) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM rates WHERE room_type = ?");
@@ -279,7 +299,6 @@ public class Select {
                 "AND check_out_date > ? " + // Existing booking ends after new checkin
                 "AND booking_id <> ?"; // Exclude the current booking being updated
 
-
         try (Connection conn = Db.connect();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -291,7 +310,6 @@ public class Select {
 
             ResultSet rs = ps.executeQuery();
             return rs.next() && rs.getInt(1) == 0; // True if no overlaps (other than current booking)
-
 
         } catch (SQLException e) {
             e.printStackTrace();

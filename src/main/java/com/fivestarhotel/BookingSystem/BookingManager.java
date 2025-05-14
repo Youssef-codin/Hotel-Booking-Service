@@ -6,12 +6,9 @@ public class BookingManager {
 
     public BookingManager() {
 
-        
     }
 
-
-
-    public void validateBookingDates(LocalDate checkInDate, LocalDate checkOutDate)  {
+    public void validateBookingDates(LocalDate checkInDate, LocalDate checkOutDate) {
         LocalDate today = LocalDate.now();
 
         if (checkInDate == null || checkOutDate == null) {
@@ -26,13 +23,9 @@ public class BookingManager {
         // Check if check-out date is not before check-in date
         // Also implies a minimum stay of one night
         if (checkOutDate.isBefore(checkInDate) || checkOutDate.isEqual(checkInDate)) {
-            System.out.println("Check-out date (" + checkOutDate + ") must be after the check-in date (" + checkInDate + "). Minimum stay is one night.");
+            System.out.println("Check-out date (" + checkOutDate + ") must be after the check-in date (" + checkInDate
+                    + "). Minimum stay is one night.");
         }
 
     }
-
-
-
-
-
 }

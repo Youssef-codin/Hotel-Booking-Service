@@ -51,7 +51,6 @@ public class BookItLogin extends JFrame {
         mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
         mainPanel.add(createLoginPanel(), BorderLayout.CENTER);
 
-        // Loading indicator
         loadingBar = Utils.createLoadingBar();
         add(mainPanel);
     }

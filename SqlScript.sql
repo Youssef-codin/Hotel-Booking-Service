@@ -38,8 +38,6 @@ CREATE TABLE IF NOT EXISTS HMSDB.customer (
   customer_fname VARCHAR(45) NULL,
   customer_lname VARCHAR(45) NULL,
   customer_email VARCHAR(255) NULL,
-  customer_password VARCHAR(255) NULL,
-  customer_salt VARCHAR(255) NULL,
   customer_phone VARCHAR(45) NULL,
   customer_balance INT NULL,
   customer_address VARCHAR(255),  
