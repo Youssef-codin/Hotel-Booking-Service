@@ -20,7 +20,7 @@ public class RoomManagement extends JFrame {
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, searchNumber;
     private String currentUserRole;
-    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel,custPanel;
+    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel;
     private JProgressBar loadingBar;
     private JCheckBox bookedCheckbox;
     private JComboBox<RoomType> roomTypes;
@@ -124,31 +124,36 @@ public class RoomManagement extends JFrame {
 
     private void SearchButton() {
         try {
-            searchNumber = Integer.parseInt(searchField.getText().trim()) - 1;
+            searchNumber = Integer.parseInt(searchField.getText().trim());
 
             switch (tabbedPane.getSelectedIndex()) {
                 case 0 -> {
-                    if (allRooms.size() > searchNumber && searchNumber > 0) {
-                        loadRoom(allRooms.get(searchNumber));
+                    if (!allRooms.isEmpty() && allRooms.size() > searchNumber && searchNumber > 0) {
+                        loadRoom(allRooms.get(searchNumber - 1));
+                    }else{
+                        loadRooms();
                     }
                 }
+
                 case 1 -> {
-                    if (!allAdminAccounts.isEmpty()){
-                        loadAccount(allAdminAccounts.get(searchNumber), adminPanel);
+                    if (!allAdminAccounts.isEmpty() && allAdminAccounts.size() > searchNumber && searchNumber > 0) {
+                        loadAccount(allAdminAccounts.get(searchNumber - 1), adminPanel);
                         loadAccountSections();
-                    }else{
+                    } else {
                         loadAccounts(adminPanel, allAdminAccounts);
                     }
-                    if(!allRecepAccounts.isEmpty()){
-                        loadAccount(allRecepAccounts.get(searchNumber), recepPanel);
+
+                    if (!allRecepAccounts.isEmpty() && allRecepAccounts.size() > searchNumber && searchNumber > 0) {
+                        loadAccount(allRecepAccounts.get(searchNumber - 1), recepPanel);
                         loadAccountSections();
-                    }else {
+                    } else {
                         loadAccounts(recepPanel, allRecepAccounts);
                     }
-                    if(!allCustAccounts.isEmpty()){
-                        loadAccount(allCustAccounts.get(searchNumber), custPanel);
+
+                    if (!allCustAccounts.isEmpty() && allCustAccounts.size() > searchNumber && searchNumber > 0) {
+                        loadAccount(allCustAccounts.get(searchNumber - 1), custPanel);
                         loadAccountSections();
-                    }else{
+                    } else {
                         loadAccounts(custPanel, allCustAccounts);
                     }
                 }
@@ -259,6 +264,7 @@ public class RoomManagement extends JFrame {
         sectionPanel.add(new JLabel("Loading Account..."));
 
         Timer timer = new Timer(1000, e -> {
+            sectionPanel.removeAll();
             sectionPanel.add(addAccountCard(user));
             sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
             sectionPanel.revalidate();
@@ -402,9 +408,9 @@ public class RoomManagement extends JFrame {
         recepSection = createAccountScrollPane("Receptionists", allRecepAccounts, recepPanel);
         custSection = createAccountScrollPane("Customers", allCustAccounts, custPanel);
 
-        accountsPanel.add(adminPanel);
-        accountsPanel.add(recepPanel);
-        accountsPanel.add(custPanel);
+        accountsPanel.add(adminSection);
+        accountsPanel.add(recepSection);
+        accountsPanel.add(custSection);
 
         return accountsPanel;
     }
@@ -412,8 +418,10 @@ public class RoomManagement extends JFrame {
     private void refreshAccounts() {
         accountsPanel.removeAll();
         accountsPanel.add(createAccountScrollPane("Admins", Db.select.getAllUsers(Db.UserRoles.ADMIN), adminPanel));
-        accountsPanel.add(createAccountScrollPane("Receptionists", Db.select.getAllUsers(Db.UserRoles.RECEPTIONIST), recepPanel));
-        accountsPanel.add(createAccountScrollPane("Customers", Db.select.getAllUsers(Db.UserRoles.CUSTOMER), custPanel));
+        accountsPanel.add(
+                createAccountScrollPane("Receptionists", Db.select.getAllUsers(Db.UserRoles.RECEPTIONIST), recepPanel));
+        accountsPanel
+                .add(createAccountScrollPane("Customers", Db.select.getAllUsers(Db.UserRoles.CUSTOMER), custPanel));
         accountsPanel.revalidate();
         accountsPanel.repaint();
     }
