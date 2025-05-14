@@ -16,10 +16,11 @@ import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 import static com.fivestarhotel.security.Crypto.makeSalt;
 import static com.fivestarhotel.security.Crypto.stringToHash;
+
+import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
-
 
 public class Create {
 
@@ -57,7 +58,7 @@ public class Create {
         }
     }
 
-    public void addRoom(int roomNumber, RoomType roomType) {
+    public boolean addRoom(int roomNumber, RoomType roomType) {
 
         int updates = 0;
         try (Connection conn = Db.connect()) {
@@ -69,11 +70,13 @@ public class Create {
             ps.setBoolean(4, false);
             updates = ps.executeUpdate();
             System.out.println("Inserted " + updates + " rows");
+            return true;
 
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062) {
                 System.err.println("Duplicate primary key detected: use override or empty index.");
             }
+            return false;
         }
     }
 
@@ -192,23 +195,23 @@ public class Create {
         }
     }
 
-    // Booking stuff wa kda b2a 
-
+    // Booking stuff wa kda b2a
 
     public void addBooking(Booking booking) {
         BookingManager bm = new BookingManager();
         Room room = booking.getRoom();
         bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
 
-        if (Db.select.IsRoomAvailable(room,booking)) {
+        if (Db.select.IsRoomAvailable(room, booking)) {
             // Throw custom exception if room is not available
             System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
-            
-            try(Connection conn = Db.connect()) {
+
+            try (Connection conn = Db.connect()) {
                 PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) " +
-                        "VALUES (?, ?, ?, ?, ?,?)");
-    
+                        "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) "
+                                +
+                                "VALUES (?, ?, ?, ?, ?,?)");
+
                 ps.setInt(1, booking.getBooking_id());
                 ps.setInt(2, booking.getRoom().getNum());
                 ps.setInt(3, booking.getCustomer_id());
@@ -224,29 +227,25 @@ public class Create {
 
                 // Create bill
                 Billing bill = new Billing(
-                    booking.getBooking_id(),
-                    booking.getCustomer_id(),
-                    amount,
-                    Billing.BillingStatus.PENDING,
-                    LocalDate.now()
-                );
+                        booking.getBooking_id(),
+                        booking.getCustomer_id(),
+                        amount,
+                        Billing.BillingStatus.PENDING,
+                        LocalDate.now());
                 addBill(bill);
                 System.out.println("Added bill for booking ID: " + booking.getBooking_id() + ", Amount: $" + amount);
-                
+
             } catch (SQLException e) {
                 System.err.println("Booking failed due to a SQL error. Rolling back transaction.");
                 e.printStackTrace();
-                
+
             }
-        }
-        else{
+        } else {
             System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
-            }
+        }
 
     }
 
-
-    
     public User signUpUser(User user) {
         try (Connection conn = Db.connect()) {
             String salt = makeSalt();
@@ -254,9 +253,10 @@ public class Create {
 
             if (user instanceof Customer customer) {
                 PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO customer (customer_fname, customer_lname, customer_email, customer_password, customer_salt, customer_phone, customer_address, customer_balance) " +
-                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS
-                );
+                        "INSERT INTO customer (customer_fname, customer_lname, customer_email, customer_password, customer_salt, customer_phone, customer_address, customer_balance) "
+                                +
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS);
                 ps.setString(1, customer.getFname());
                 ps.setString(2, customer.getLname());
                 ps.setString(3, customer.getEmail());
@@ -276,9 +276,10 @@ public class Create {
 
             } else if (user instanceof Receptionist receptionist) {
                 PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO receptionist (receptionist_fname, receptionist_lname, receptionist_email, receptionist_password, receptionist_salt) " +
-                                "VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS
-                );
+                        "INSERT INTO receptionist (receptionist_fname, receptionist_lname, receptionist_email, receptionist_password, receptionist_salt) "
+                                +
+                                "VALUES (?, ?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS);
                 ps.setString(1, receptionist.getFname());
                 ps.setString(2, receptionist.getLname());
                 ps.setString(3, receptionist.getEmail());
@@ -292,6 +293,26 @@ public class Create {
                     return new Receptionist(id, receptionist.getFname(), receptionist.getLname(),
                             receptionist.getEmail(), hashedPassword);
                 }
+            } else if (user instanceof Admin admin) {
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO admin (admin_fname, admin_lname, admin_email, admin_password, admin_salt) "
+                                +
+                                "VALUES (?, ?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, admin.getFname());
+                ps.setString(2, admin.getLname());
+                ps.setString(3, admin.getEmail());
+                ps.setString(4, hashedPassword);
+                ps.setString(5, salt);
+                ps.executeUpdate();
+
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    return new Receptionist(id, admin.getFname(), admin.getLname(),
+                            admin.getEmail(), hashedPassword);
+                }
+
             }
 
             System.err.println("Unsupported user type or insertion failed.");
@@ -307,9 +328,7 @@ public class Create {
 
     }
 
-
-
-    //billing stuff
+    // billing stuff
 
     public void addBill(Billing bill) {
         if (Db.select.getbooking(bill.getBookingId()) == null) {
@@ -335,17 +354,4 @@ public class Create {
             e.printStackTrace();
         }
     }
-
-
-
-
-
-
 }
-
-
-
-
-
-    
-

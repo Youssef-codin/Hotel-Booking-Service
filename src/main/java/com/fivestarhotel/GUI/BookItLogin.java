@@ -1,10 +1,17 @@
 package com.fivestarhotel.GUI;
 
 import com.fivestarhotel.Database.Db;
+import com.fivestarhotel.Database.Db.UserRoles;
+import com.fivestarhotel.security.Crypto;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.util.ArrayList;
+
+import com.fivestarhotel.users.Admin;
+import com.fivestarhotel.users.Receptionist;
+import com.fivestarhotel.users.User;
 
 public class BookItLogin extends JFrame {
     private JTextField emailField = new JTextField();
@@ -16,9 +23,10 @@ public class BookItLogin extends JFrame {
     public BookItLogin() {
         initializeUI();
     }
+
     public BookItLogin(String email, String password) {
         try {
-            if(directAuthenticate(email, password)){
+            if (directAuthenticate(email, password)) {
                 emailField.setText(email);
                 passwordField.setText(password);
             }
@@ -66,8 +74,7 @@ public class BookItLogin extends JFrame {
             loginPanel.setBackground(Utils.OFF_WHITE);
             loginPanel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Utils.BROWN, 1),
-                    BorderFactory.createEmptyBorder(20, 20, 20, 20)
-            ));
+                    BorderFactory.createEmptyBorder(20, 20, 20, 20)));
 
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(10, 10, 10, 10);
@@ -83,8 +90,7 @@ public class BookItLogin extends JFrame {
             emailField.setFont(Utils.LABEL_FONT);
             emailField.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Utils.BROWN, 1),
-                    BorderFactory.createEmptyBorder(5, 5, 5, 5)
-            ));
+                    BorderFactory.createEmptyBorder(5, 5, 5, 5)));
             loginPanel.add(emailField, gbc);
 
             // Password field
@@ -96,8 +102,7 @@ public class BookItLogin extends JFrame {
             passwordField.setFont(Utils.LABEL_FONT);
             passwordField.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Utils.BROWN, 1),
-                    BorderFactory.createEmptyBorder(5, 5, 5, 5)
-            ));
+                    BorderFactory.createEmptyBorder(5, 5, 5, 5)));
             passwordField.addActionListener(e -> authenticateUser());
             loginPanel.add(passwordField, gbc);
             // Store original echo character
@@ -133,37 +138,39 @@ public class BookItLogin extends JFrame {
         }
     }
 
-
     private void authenticateUser() {
         try {
             String email = emailField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
 
-            if (!Utils.validateInputs(email, password, this)) return;
+            if (!Utils.validateInputs(email, password, this))
+                return;
 
             loadingBar.setVisible(true);
-            setEnabled(false); // Disable UI during authentication
+            setEnabled(false);
 
             // Simulate authentication delay
             Timer timer = new Timer(1500, e -> {
-                if (email.equals("admin@bookit.com") && password.equals("Admin_123")) {
+                User user = Db.select.signInUser(email, password);
+                if (user instanceof Admin) {
                     System.out.println("Admin login successful");
-                    openRoomManagement("Admin", 1);
-                } else if (email.equals("reception@bookit.com") && password.equals("reception123")) {
+                    openRoomManagement("Admin", user.getId());
+
+                } else if (user instanceof Receptionist) {
                     System.out.println("Receptionist login successful");
-                    openRoomManagement("Receptionist", 2);
+                    openRoomManagement("Receptionist", user.getId());
+
                 } else {
-                    Utils.showError(this,"User doesn't exist");
+                    Utils.showError(this, "User doesn't exist or incorrect password");
                 }
-
-
 
                 loadingBar.setVisible(false);
                 setEnabled(true);
             });
-            if (rememberMe.isSelected()){
+            if (rememberMe.isSelected()) {
                 try {
-                    FileWriter writer = new FileWriter(new File("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt"));
+                    FileWriter writer = new FileWriter(new File(
+                            "C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt"));
                     writer.write(emailField.getText() + "\n");
                     writer.write(passwordField.getText());
                     writer.close();
@@ -171,7 +178,8 @@ public class BookItLogin extends JFrame {
                     throw new RuntimeException(e);
                 }
             } else {
-                new File("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt").delete();
+                new File("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt")
+                        .delete();
             }
             timer.setRepeats(false);
             timer.start();
@@ -191,8 +199,6 @@ public class BookItLogin extends JFrame {
         return false;
     }
 
-
-
     private void togglePasswordVisibility(JButton togglePasswordButton) {
         if (passwordField.getEchoChar() == originalEchoChar) {
             passwordField.setEchoChar((char) 0);
@@ -211,16 +217,19 @@ public class BookItLogin extends JFrame {
         });
     }
 
-
+    // TODO: the remember me shit
     public static void main(String[] args) {
-        Db.connect("root", "mimimi45");
+        Db.connect("root", "");
         SwingUtilities.invokeLater(() -> {
-            if(!new File("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt").exists()){
+            if (!new File(
+                    "C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt")
+                    .exists()) {
                 BookItLogin loginSystem = new BookItLogin();
                 loginSystem.setVisible(true);
-            }else {
+            } else {
                 try {
-                    BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt"));
+                    BufferedReader reader = new BufferedReader(new FileReader(
+                            "C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt"));
                     String email = reader.readLine();
                     String password = reader.readLine();
                     new BookItLogin(email, password);

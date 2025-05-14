@@ -6,7 +6,6 @@ import com.fivestarhotel.Database.Db;
 
 public class BillingSystem {
 
-
     public static void viewAllBills() {
         ArrayList<Billing> bills = Db.select.getAllBills();
         if (bills == null || bills.isEmpty()) {
@@ -40,7 +39,6 @@ public class BillingSystem {
         }
     }
 
-
     public static void viewCusBills(Billing bill) {
         ArrayList<Billing> bills = Db.select.getBillsByCustomer(bill.getCustomerId());
         if (bills == null || bills.isEmpty()) {
@@ -55,11 +53,5 @@ public class BillingSystem {
                         ", Created: " + b.getCreatedDate());
             }
         }
-    }       
-
-
-    
-
-
-
+    }
 }

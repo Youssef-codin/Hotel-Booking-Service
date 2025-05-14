@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
+import com.fivestarhotel.Database.Db.UserRoles;
+import com.fivestarhotel.users.User;
 
 public class Delete {
     public void all(String tableName) {
@@ -56,13 +58,10 @@ public class Delete {
             System.err.println(e.getErrorCode());
             e.printStackTrace();
         }
-
     }
 
+    // Booking delete method wa kda b2a
 
-    //Booking delete method wa kda b2a
-
-    
     public void booking(int bookingId) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("DELETE FROM booking WHERE booking_id = ?");
@@ -81,10 +80,7 @@ public class Delete {
         }
     }
 
-
-
-
-    //billing delete method wa kda b2a
+    // billing delete method wa kda b2a
 
     public void bill(int billId) {
         try (Connection conn = Db.connect()) {
@@ -102,7 +98,6 @@ public class Delete {
         }
     }
 
-
     public void bill(Billing bill) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE bill_id = ?");
@@ -119,9 +114,30 @@ public class Delete {
         }
     }
 
+    public void deleteUser(int userID, UserRoles userRole) throws SQLException {
+        String tableName;
 
+        switch (userRole) {
+            case CUSTOMER -> tableName = "customer";
+            case RECEPTIONIST -> tableName = "receptionist";
+            case ADMIN -> tableName = "admin";
+            default -> throw new IllegalArgumentException("Unknown user role: " + userRole);
+        }
 
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn
+                    .prepareStatement("DELETE FROM " + tableName + " WHERE " + tableName + "_id = ?");
+            ps.setInt(1, userID);
 
+            int rows = ps.executeUpdate();
 
-
+            if (rows > 0) {
+                System.out.println("User deleted successfully from " + tableName + " table.");
+            } else {
+                System.out.println("No user found with ID: " + userID);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

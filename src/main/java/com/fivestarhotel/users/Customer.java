@@ -5,19 +5,20 @@ public class Customer extends User {
     private String address;
     private double balance;
 
+    public Customer(String customer_fname, String customer_lname, String customer_email,
+            String password, String phone, String address, double balance) {
+        super(customer_fname, customer_lname, customer_email, password);
+        this.phone = phone;
+        this.address = address;
+        this.balance = balance;
+    }
+
     public Customer(int customer_id, String customer_fname, String customer_lname, String customer_email,
             String password, String phone, String address, double balance) {
         super(customer_id, customer_fname, customer_lname, customer_email, password);
         this.phone = phone;
         this.address = address;
         this.balance = balance;
-    }
-
-
-
-    @Override
-    public void showDashboard() {
-        System.out.println("Customer Dashboard Loaded.");
     }
 
     public String getPhone() {
@@ -44,14 +45,4 @@ public class Customer extends User {
         balance = bal;
 
     }
-
-    public void bookRoom() {
-    }
-
-    public void makePayment() {
-    }
-
-    public void viewBilling() {
-    }
-
 }

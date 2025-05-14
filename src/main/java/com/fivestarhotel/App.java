@@ -3,8 +3,6 @@ package com.fivestarhotel;
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.GUI.BookItLogin;
 import com.fivestarhotel.users.Admin;
-import com.fivestarhotel.users.Customer;
-import com.fivestarhotel.users.Receptionist;
 
 import javax.swing.*;
 
@@ -24,17 +22,18 @@ public class App {
          * Use Db.select.loadRates(); to load the latest rates from the DB to the
          * program
          *
-         * NEW GUI INTERFACE ADDED, Make sure to add an admin/receptionist account before running the program
+         * NEW GUI INTERFACE ADDED, Make sure to add an admin/receptionist account
+         * before running the program
          *
          * Make sure to set the proper DB username and password in the GUI main methods
          */
         // TODO: After successful login, transition to:
         // Simplified authentication to use hardcoded credentials:
-        //  Admin: admin@bookit.com / admin123
-        //  Receptionist: reception@bookit.com / reception123
-        // new RoomManagement(userRole, userId).setVisible(true);
-        Db.connect("root", "mimimi45");
-        Db.create.addRooms(Room.RoomType.SINGLE, 200);
+        // Admin: admin@bookit.com / Admin_123
+        Db.connect("root", "");
+        Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Admin_123"));
+        // make sure to run this ^ if u dont already have an admin account
+
         // Start the application
         SwingUtilities.invokeLater(() -> {
             BookItLogin loginSystem = new BookItLogin();

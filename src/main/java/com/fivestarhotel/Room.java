@@ -8,9 +8,24 @@ package com.fivestarhotel;
 public class Room {
 
     public enum RoomType {
-        SINGLE,
-        DOUBLE,
-        SUITE
+        SINGLE {
+            @Override
+            public String toString() {
+                return "Single";
+            }
+        },
+        DOUBLE {
+            @Override
+            public String toString() {
+                return "Double";
+            }
+        },
+        SUITE {
+            @Override
+            public String toString() {
+                return "Suite";
+            }
+        }
     }
 
     private int number;

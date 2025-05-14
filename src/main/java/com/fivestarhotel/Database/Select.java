@@ -7,8 +7,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import javax.management.relation.Role;
+
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
+import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 import static com.fivestarhotel.security.Crypto.stringToHash;
@@ -19,6 +22,7 @@ import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
 
 public class Select {
+
     public Room getRoom(int roomNumber) {
 
         try (Connection conn = Db.connect()) {
@@ -242,9 +246,7 @@ public class Select {
         }
     }
 
-
-    //m4 booking awy bs ahoo
-
+    // m4 booking awy bs ahoo
 
     public boolean IsRoomAvailable(Room room, Booking booking) {
         String sql = "SELECT COUNT(*) FROM booking WHERE room_number = ? AND check_in_date < ? AND check_out_date > ?";
@@ -273,17 +275,17 @@ public class Select {
     public boolean IsRoomAvailable(Room room, Booking booking, int excludeBookingId) {
         String sql = "SELECT COUNT(*) FROM booking " +
                 "WHERE room_number = ? " +
-                "AND check_in_date < ? " +     // Existing booking starts before new checkout
-                "AND check_out_date > ? " +    // Existing booking ends after new checkin
-                "AND booking_id <> ?";         // Exclude the current booking being updated
+                "AND check_in_date < ? " + // Existing booking starts before new checkout
+                "AND check_out_date > ? " + // Existing booking ends after new checkin
+                "AND booking_id <> ?"; // Exclude the current booking being updated
 
         try (Connection conn = Db.connect();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, room.getNum());
             ps.setDate(2, Date.valueOf(booking.getCheckOutDate()));
             ps.setDate(3, Date.valueOf(booking.getCheckInDate()));
-            ps.setInt(4, excludeBookingId);  // Exclude this booking ID
+            ps.setInt(4, excludeBookingId); // Exclude this booking ID
 
             ResultSet rs = ps.executeQuery();
             return rs.next() && rs.getInt(1) == 0; // True if no overlaps (other than current booking)
@@ -294,9 +296,7 @@ public class Select {
         }
     }
 
-
-    //Booking System wa kda b2a
-
+    // Booking System wa kda b2a
 
     public Booking getbooking(int booking_id) {
         try (Connection conn = Db.connect()) {
@@ -312,10 +312,12 @@ public class Select {
                 Room room = getRoom(roomNumber); // Using your getRoom method
 
                 if (room != null) {
-                    return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                    return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                            rs.getInt("receptionist_id"),
                             rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
                 } else {
-                    System.err.println("Error: Room with number " + roomNumber + " not found for booking " + booking_id);
+                    System.err
+                            .println("Error: Room with number " + roomNumber + " not found for booking " + booking_id);
                     return null;
                 }
             } else {
@@ -339,7 +341,8 @@ public class Select {
             if (rs.next()) {
                 int roomNumber = rs.getInt("room_number");
                 Room room = getRoom(roomNumber); // Using your getRoom method
-                return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                        rs.getInt("receptionist_id"),
                         rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
             } else {
                 System.err.println("Query-Error: Booking Not Found");
@@ -354,7 +357,6 @@ public class Select {
         }
     }
 
-
     public ArrayList<Booking> getBookings() {
         ArrayList<Booking> bookings = new ArrayList<>();
         try (Connection conn = Db.connect()) {
@@ -366,7 +368,8 @@ public class Select {
                 Room room = getRoom(roomNumber); // Fetch Room *inside* the loop
 
                 if (room != null) {
-                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                            rs.getInt("receptionist_id"),
                             rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
@@ -380,7 +383,6 @@ public class Select {
             return null;
         }
     }
-
 
     public ArrayList<Booking> getBookings(int from, int to) {
         ArrayList<Booking> bookings = new ArrayList<>();
@@ -394,7 +396,8 @@ public class Select {
                 Room room = getRoom(roomNumber); // Fetch Room *inside* the loop
 
                 if (room != null) {
-                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"), rs.getInt("receptionist_id"),
+                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                            rs.getInt("receptionist_id"),
                             rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
@@ -408,7 +411,6 @@ public class Select {
             return null;
         }
     }
-
 
     public int countBookings() {
         try (Connection conn = Db.connect()) {
@@ -449,14 +451,11 @@ public class Select {
         }
     }
 
-    
-
     public User signInUser(String email, String password) {
         try (Connection conn = Db.connect()) {
 
             PreparedStatement customerPs = conn.prepareStatement(
-                    "SELECT * FROM customer WHERE customer_email = ?"
-            );
+                    "SELECT * FROM customer WHERE customer_email = ?");
             customerPs.setString(1, email);
             ResultSet customerRs = customerPs.executeQuery();
 
@@ -473,34 +472,31 @@ public class Select {
                             storedPassword,
                             customerRs.getString("customer_phone"),
                             customerRs.getString("customer_address"),
-                            customerRs.getDouble("customer_balance")
-                    );
+                            customerRs.getDouble("customer_balance"));
                 } else {
                     System.err.println("Incorrect password for customer: " + email);
                     return null;
                 }
             }
 
-            PreparedStatement receptionistPs = conn.prepareStatement(
-                    "SELECT * FROM receptionist WHERE receptionist_email = ?"
-            );
-            receptionistPs.setString(1, email);
-            ResultSet receptionistRs = receptionistPs.executeQuery();
+            PreparedStatement adminPs = conn.prepareStatement(
+                    "SELECT * FROM admin WHERE admin_email = ?");
+            adminPs.setString(1, email);
+            ResultSet adminRs = adminPs.executeQuery();
 
-            if (receptionistRs.next()) {
-                String salt = receptionistRs.getString("receptionist_salt");
-                String storedPassword = receptionistRs.getString("receptionist_password");
+            if (adminRs.next()) {
+                String salt = adminRs.getString("admin_salt");
+                String storedPassword = adminRs.getString("admin_password");
 
                 if (storedPassword.equals(stringToHash(password, salt))) {
-                    return new Receptionist(
-                            receptionistRs.getInt("receptionist_id"),
-                            receptionistRs.getString("receptionist_fname"),
-                            receptionistRs.getString("receptionist_lname"),
-                            receptionistRs.getString("receptionist_email"),
-                            storedPassword
-                    );
+                    return new Admin(
+                            adminRs.getInt("admin_id"),
+                            adminRs.getString("admin_fname"),
+                            adminRs.getString("admin_lname"),
+                            adminRs.getString("admin_email"),
+                            storedPassword);
                 } else {
-                    System.err.println("Incorrect password for receptionist: " + email);
+                    System.err.println("Incorrect password for admin: " + email);
                     return null;
                 }
             }
@@ -518,13 +514,9 @@ public class Select {
             return null;
         }
 
-
     }
 
-
-
-
-    //Billing wa kda
+    // Billing wa kda
 
     public Billing getBill(int billId) {
         try (Connection conn = Db.connect()) {
@@ -538,8 +530,7 @@ public class Select {
                         rs.getInt("customer_id"),
                         rs.getDouble("amount"),
                         Billing.convertStr(rs.getString("status")),
-                        rs.getDate("created_date").toLocalDate()
-                );
+                        rs.getDate("created_date").toLocalDate());
             } else {
                 System.err.println("Bill not found for ID: " + billId);
                 return null;
@@ -550,8 +541,6 @@ public class Select {
             return null;
         }
     }
-
-
 
     public Billing getBillCustomer(int customerId) {
         try (Connection conn = Db.connect()) {
@@ -565,8 +554,7 @@ public class Select {
                         rs.getInt("customer_id"),
                         rs.getDouble("amount"),
                         Billing.convertStr(rs.getString("status")),
-                        rs.getDate("created_date").toLocalDate()
-                );
+                        rs.getDate("created_date").toLocalDate());
             } else {
                 System.err.println("Bill not found for customer ID: " + customerId);
                 return null;
@@ -590,8 +578,7 @@ public class Select {
                         rs.getInt("customer_id"),
                         rs.getDouble("amount"),
                         Billing.convertStr(rs.getString("status")),
-                        rs.getDate("created_date").toLocalDate()
-                );
+                        rs.getDate("created_date").toLocalDate());
             } else {
                 System.err.println("Bill not found for booking ID: " + bookingId);
                 return null;
@@ -602,7 +589,6 @@ public class Select {
             return null;
         }
     }
-
 
     public ArrayList<Billing> getBillsByCustomer(int customerId) {
         ArrayList<Billing> bills = new ArrayList<>();
@@ -617,8 +603,7 @@ public class Select {
                         rs.getInt("customer_id"),
                         rs.getDouble("amount"),
                         Billing.convertStr(rs.getString("status")),
-                        rs.getDate("created_date").toLocalDate()
-                ));
+                        rs.getDate("created_date").toLocalDate()));
             }
             return bills;
         } catch (SQLException e) {
@@ -627,7 +612,6 @@ public class Select {
             return null;
         }
     }
-    
 
     public ArrayList<Billing> getAllBills() {
         ArrayList<Billing> bills = new ArrayList<>();
@@ -641,8 +625,7 @@ public class Select {
                         rs.getInt("customer_id"),
                         rs.getDouble("amount"),
                         Billing.convertStr(rs.getString("status")),
-                        rs.getDate("created_date").toLocalDate()
-                ));
+                        rs.getDate("created_date").toLocalDate()));
             }
             return bills;
         } catch (SQLException e) {
@@ -651,11 +634,12 @@ public class Select {
             return null;
         }
     }
-    public User getUserById(String role, int userId) {
-        String sql = switch (role.toLowerCase()) {
-            case "admin" -> "SELECT * FROM admin WHERE admin_id = ?";
-            case "receptionist" -> "SELECT * FROM receptionist WHERE receptionist_id = ?";
-            case "customer" -> "SELECT * FROM customer WHERE customer_id = ?";
+
+    public User getUserById(UserRoles role, int userId) {
+        String sql = switch (role) {
+            case ADMIN -> "SELECT * FROM admin WHERE admin_id = ?";
+            case RECEPTIONIST -> "SELECT * FROM receptionist WHERE receptionist_id = ?";
+            case CUSTOMER -> "SELECT * FROM customer WHERE customer_id = ?";
             default -> throw new IllegalArgumentException("Invalid role: " + role);
         };
 
@@ -664,15 +648,15 @@ public class Select {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                if (role.equals("admin")) {
+                if (role.equals(UserRoles.ADMIN)) {
                     return new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
                             rs.getString("admin_lname"), rs.getString("admin_email"),
                             rs.getString("admin_password"));
-                } else if (role.equals("receptionist")) {
+                } else if (role.equals(UserRoles.RECEPTIONIST)) {
                     return new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
                             rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
                             rs.getString("receptionist_password"));
-                } else if (role.equals("customer")) {
+                } else if (role.equals(UserRoles.CUSTOMER)) {
                     return new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
                             rs.getString("customer_lname"), rs.getString("customer_email"),
                             rs.getString("customer_password"), rs.getString("customer_phone"),
@@ -688,12 +672,13 @@ public class Select {
             return null;
         }
     }
-    public ArrayList<User> getUsersByName(String role, String name) {
+
+    public ArrayList<User> getUsersByName(UserRoles role, String name) {
         ArrayList<User> users = new ArrayList<>();
-        String sql = switch (role.toLowerCase()) {
-            case "admin" -> "SELECT * FROM admin WHERE admin_fname LIKE ?";
-            case "receptionist" -> "SELECT * FROM receptionist WHERE receptionist_fname LIKE ?";
-            case "customer" -> "SELECT * FROM customer WHERE customer_fname LIKE ?";
+        String sql = switch (role) {
+            case ADMIN -> "SELECT * FROM admin WHERE admin_fname LIKE ?";
+            case RECEPTIONIST -> "SELECT * FROM receptionist WHERE receptionist_fname LIKE ?";
+            case CUSTOMER -> "SELECT * FROM customer WHERE customer_fname LIKE ?";
             default -> throw new IllegalArgumentException("Invalid role: " + role);
         };
 
@@ -702,15 +687,15 @@ public class Select {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                if (role.equals("admin")) {
+                if (role.equals(UserRoles.ADMIN)) {
                     users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
                             rs.getString("admin_lname"), rs.getString("admin_email"),
                             rs.getString("admin_password")));
-                } else if (role.equals("receptionist")) {
+                } else if (role.equals(UserRoles.RECEPTIONIST)) {
                     users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
                             rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
                             rs.getString("receptionist_password")));
-                } else if (role.equals("customer")) {
+                } else if (role.equals(UserRoles.CUSTOMER)) {
                     users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
                             rs.getString("customer_lname"), rs.getString("customer_email"),
                             rs.getString("customer_password"), rs.getString("customer_phone"),
@@ -725,8 +710,6 @@ public class Select {
             return null;
         }
     }
-
-
 
     public ArrayList<String> getRoomsByCustomer(int customerId) {
         ArrayList<String> rooms = new ArrayList<>();
@@ -751,29 +734,68 @@ public class Select {
             return null;
         }
     }
-    public ArrayList<User> getUsersByEmail(String role, String email) {
-        ArrayList<User> users = new ArrayList<>();
-        String sql = switch (role.toLowerCase()) {
-            case "admin" -> "SELECT * FROM admin WHERE admin_email LIKE ?";
-            case "receptionist" -> "SELECT * FROM receptionist WHERE receptionist_email LIKE ?";
-            case "customer" -> "SELECT * FROM customer WHERE customer_email LIKE ?";
+
+    public User getUsersByEmail(UserRoles role, String email) {
+        User user = null;
+
+        String sql = switch (role) {
+            case ADMIN -> "SELECT * FROM admin WHERE admin_email = ?";
+            case RECEPTIONIST -> "SELECT * FROM receptionist WHERE receptionist_email = ?";
+            case CUSTOMER -> "SELECT * FROM customer WHERE customer_email = ?";
             default -> throw new IllegalArgumentException("Invalid role: " + role);
         };
 
         try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, "%" + email + "%");
+            ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                if (role.equals("admin")) {
+                if (role.equals(UserRoles.ADMIN)) {
+                    user = new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
+                            rs.getString("admin_lname"), rs.getString("admin_email"),
+                            rs.getString("admin_password"));
+                } else if (role.equals(UserRoles.RECEPTIONIST)) {
+                    user = new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
+                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
+                            rs.getString("receptionist_password"));
+                } else if (role.equals(UserRoles.CUSTOMER)) {
+                    user = new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
+                            rs.getString("customer_lname"), rs.getString("customer_email"),
+                            rs.getString("customer_password"), rs.getString("customer_phone"),
+                            rs.getString("customer_address"), rs.getDouble("customer_balance"));
+                }
+            }
+
+            return user;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public ArrayList<User> getAllUsers(UserRoles role) {
+        ArrayList<User> users = new ArrayList<>();
+        String sql = switch (role) {
+            case ADMIN -> "SELECT * FROM admin";
+            case RECEPTIONIST -> "SELECT * FROM receptionist";
+            case CUSTOMER -> "SELECT * FROM customer";
+            default -> throw new IllegalArgumentException("Invalid role: " + role);
+        };
+
+        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                if (role.equals(UserRoles.ADMIN)) {
                     users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
                             rs.getString("admin_lname"), rs.getString("admin_email"),
                             rs.getString("admin_password")));
-                } else if (role.equals("receptionist")) {
+                } else if (role.equals(UserRoles.RECEPTIONIST)) {
                     users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
                             rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
                             rs.getString("receptionist_password")));
-                } else if (role.equals("customer")) {
+                } else if (role.equals(UserRoles.CUSTOMER)) {
                     users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
                             rs.getString("customer_lname"), rs.getString("customer_email"),
                             rs.getString("customer_password"), rs.getString("customer_phone"),
@@ -788,43 +810,6 @@ public class Select {
             return null;
         }
     }
-    public ArrayList<User> getAllUsers(String role) {
-        ArrayList<User> users = new ArrayList<>();
-        String sql = switch (role.toLowerCase()) {
-            case "admin" -> "SELECT * FROM admin";
-            case "receptionist" -> "SELECT * FROM receptionist";
-            case "customer" -> "SELECT * FROM customer";
-            default -> throw new IllegalArgumentException("Invalid role: " + role);
-        };
-
-        try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                if (role.equals("admin")) {
-                    users.add(new Admin(rs.getInt("admin_id"), rs.getString("admin_fname"),
-                            rs.getString("admin_lname"), rs.getString("admin_email"),
-                            rs.getString("admin_password")));
-                } else if (role.equals("receptionist")) {
-                    users.add(new Receptionist(rs.getInt("receptionist_id"), rs.getString("receptionist_fname"),
-                            rs.getString("receptionist_lname"), rs.getString("receptionist_email"),
-                            rs.getString("receptionist_password")));
-                } else if (role.equals("customer")) {
-                    users.add(new Customer(rs.getInt("customer_id"), rs.getString("customer_fname"),
-                            rs.getString("customer_lname"), rs.getString("customer_email"),
-                            rs.getString("customer_password"), rs.getString("customer_phone"),
-                            rs.getString("customer_address"), rs.getDouble("customer_balance")));
-                }
-            }
-
-            return users;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
 
     public Customer getCustomerByRoom(int roomNumber) {
         String sql = "SELECT c.* FROM customer c " +

@@ -42,7 +42,6 @@ public class Update {
 
         }
     }
-    
 
     public void rooms(ArrayList<Room> newRooms) {
 
@@ -81,28 +80,23 @@ public class Update {
         }
     }
 
+    // Booking update method b2a wa kda
 
-
-    //Booking update method b2a wa kda
-
-
-    
-
-
-    // if a customer wants to extend their stay, they can use this method to update the check out date
-    public void bookingCheckoutdate(Booking booking){
+    // if a customer wants to extend their stay, they can use this method to update
+    // the check out date
+    public void bookingCheckoutdate(Booking booking) {
         BookingManager bm = new BookingManager();
         Room room = booking.getRoom();
         bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
 
-        if (Db.select.IsRoomAvailable(room,booking,booking.getBooking_id())){
+        if (Db.select.IsRoomAvailable(room, booking, booking.getBooking_id())) {
             System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
             try (Connection conn = Db.connect()) {
                 PreparedStatement ps = conn.prepareStatement(
                         "UPDATE booking SET check_out_date = ? WHERE booking_id = ?");
                 ps.setDate(1, Date.valueOf(booking.getCheckOutDate()));
                 ps.setInt(2, booking.getBooking_id());
-    
+
                 int rows = ps.executeUpdate();
                 if (rows == 0) {
                     System.err.println("Booking ID not found.");
@@ -116,27 +110,26 @@ public class Update {
                     bill.setAmount(newAmount);
                     Db.update.updateBillAmount(bill);
                 }
-    
+
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        }else{
+        } else {
             System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
         }
-        
+
     }
 
-
-    public void booking(Booking booking ) {
+    public void booking(Booking booking) {
         BookingManager bm = new BookingManager();
         Room room = booking.getRoom();
         bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
         try (Connection conn = Db.connect()) {
-           
-            if (Db.select.IsRoomAvailable(room,booking)){
+
+            if (Db.select.IsRoomAvailable(room, booking)) {
                 System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
                 PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
+                        "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
                 ps.setInt(1, booking.getRoom().getNum());
                 ps.setInt(2, booking.getCustomer_id());
                 ps.setInt(3, booking.getReceptionist_id());
@@ -152,7 +145,6 @@ public class Update {
                     System.out.println("updated " + rows + " rows!");
                 }
 
-
                 // Handle billing
                 Billing existingBill = Db.select.getBillBooking(booking.getBooking_id());
                 double newAmount = Billing.calculateAmount(booking);
@@ -164,29 +156,27 @@ public class Update {
                         existingBill.setStatus(Billing.BillingStatus.PENDING);
                         updateBillStatus(existingBill);
                     }
-                    System.out.println("Updated bill amount to: " + newAmount + " for bill ID: " + existingBill.getBillId());
-                }else {
+                    System.out.println(
+                            "Updated bill amount to: " + newAmount + " for bill ID: " + existingBill.getBillId());
+                } else {
                     // Create new bill
                     Billing newBill = new Billing(
-                        booking.getBooking_id(),
-                        booking.getCustomer_id(),
-                        newAmount,
-                        Billing.BillingStatus.PENDING,
-                        LocalDate.now()
-                    );
+                            booking.getBooking_id(),
+                            booking.getCustomer_id(),
+                            newAmount,
+                            Billing.BillingStatus.PENDING,
+                            LocalDate.now());
                     Db.create.addBill(newBill);
                     System.out.println("Created new bill with amount: " + newAmount);
                 }
 
-            }else{
-            System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
+            } else {
+                System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
-
 
     public void updateCustomerBalance(int customerId, double newBalance) {
         if (newBalance < 0) {
@@ -196,8 +186,7 @@ public class Update {
 
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE customer SET customer_balance = ? WHERE customer_id = ?"
-            );
+                    "UPDATE customer SET customer_balance = ? WHERE customer_id = ?");
             ps.setDouble(1, newBalance);
             ps.setInt(2, customerId);
 
@@ -214,11 +203,7 @@ public class Update {
         }
     }
 
-
-
-    //billing 
-
-
+    // billing
 
     public void updateBillStatus(int billId, Billing.BillingStatus status) {
         if (status != Billing.BillingStatus.PAID && status != Billing.BillingStatus.PENDING) {
@@ -241,7 +226,6 @@ public class Update {
             System.err.println("Database error: " + e.getMessage());
         }
     }
-
 
     public void updateBillStatus(Billing billing) {
         if (billing.getStatus() != Billing.BillingStatus.PAID && billing.getStatus() != Billing.BillingStatus.PENDING) {
@@ -313,7 +297,4 @@ public class Update {
         updateBillStatus(billing);
         updateBillAmount(billing);
     }
-
-
-
 }
