@@ -14,12 +14,11 @@ public class Utils {
     protected static final Font BUTTON_FONT = new Font("Arial", Font.BOLD, 14);
     protected static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);
 
-    //Sizes
+    // Sizes
     protected static final int buttonWidth = 120;
     protected static final int buttonHeight = 40;
     protected static final int toggleButtonWidth = 30;
     protected static final int toggleButtonHeight = 30;
-
 
     // UI Components
     public static JProgressBar createLoadingBar() {
@@ -58,16 +57,14 @@ public class Utils {
     public static JPanel createStyledPanel(int padding, Color borderColor, boolean border) {
         JPanel panel = new JPanel();
         panel.setBackground(OFF_WHITE);
-        if(border){
+        if (border) {
             panel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(borderColor, 1),
-                    BorderFactory.createEmptyBorder(padding, padding, padding, padding)
-            ));
-        } else{
+                    BorderFactory.createEmptyBorder(padding, padding, padding, padding)));
+        } else {
             panel.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(borderColor, 0),
-                    BorderFactory.createEmptyBorder(padding, padding, padding, padding)
-            ));
+                    BorderFactory.createEmptyBorder(padding, padding, padding, padding)));
         }
 
         return panel;
@@ -83,14 +80,12 @@ public class Utils {
         if (field instanceof JTextField) {
             (field).setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(BROWN, 1),
-                    BorderFactory.createEmptyBorder(0, 5, 0, 5)
-            ));
+                    BorderFactory.createEmptyBorder(0, 5, 0, 5)));
         }
         panel.add(field);
     }
 
-
-    public static void UiStyleTabs(){
+    public static void UiStyleTabs() {
         UIManager.put("TabbedPane.selected", Utils.OFF_WHITE);
         UIManager.put("TabbedPane.contentAreaColor", Utils.OFF_WHITE);
         UIManager.put("TabbedPane.focus", Utils.BROWN);
@@ -119,23 +114,29 @@ public class Utils {
 
     public static boolean validateInputs(String email, String password, Component parent) {
         if (email.isEmpty() || password.isEmpty()) {
-            Utils.showError(parent,"Please enter both email and password");
+            Utils.showError(parent, "Please enter both email and password");
             return false;
         }
 
         if (!email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-            Utils.showError(parent,"Please enter a valid email address");
+            Utils.showError(parent, "Please enter a valid email address");
             return false;
         }
 
         if (!password.matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[-_+$#%&]).{6,20}$")) {
-            Utils.showError(parent,"Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
+            Utils.showError(parent,
+                    "Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
             return false;
         }
 
         return true;
     }
 
+    public static JLabel createDetailLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        return label;
+    }
 
     public static JButton createActionButton(String text, ActionListener action) {
         JButton button = new JButton(text);
