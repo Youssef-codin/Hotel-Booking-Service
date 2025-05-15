@@ -142,7 +142,7 @@ public class RoomManagement extends JFrame {
                             loadRooms();
                         }
                     }
-                    case 1 -> {
+                    case 1 ->{
                         if (allBookedRooms.size() >= searchNumber) {
                             Room room = Db.select.getRoom(searchNumber);
                             if (!(room == null)) {
@@ -374,10 +374,12 @@ public class RoomManagement extends JFrame {
         infoPanel.add(createStatusLabel(room.getStatus()));
 
         card.add(infoPanel, BorderLayout.CENTER);
-        card.add(createActionButtons(room), BorderLayout.SOUTH);
-        if (!switcher) {
+
+        if(!switcher){
+            card.add(createRoomButtons(room, !switcher), BorderLayout.SOUTH);
             bookedRoomsPanel.add(card);
-        } else {
+        } else{
+            card.add(createRoomButtons(room, !switcher), BorderLayout.SOUTH);
             roomsPanel.add(card);
         }
     }
@@ -536,7 +538,7 @@ public class RoomManagement extends JFrame {
     private void updateHeaderButtons() {
         Component[] components = headerPanel.getComponents();
         headerPanel.remove(components[components.length - 1]);
-        if (tabbedPane.getSelectedIndex() == 1) { // Accounts tab
+        if (tabbedPane.getSelectedIndex() == 2) { // Accounts tab
             headerPanel.add(createAdminControls(true), BorderLayout.EAST);
         } else {
             headerPanel.add(createAdminControls(false), BorderLayout.EAST);
@@ -742,14 +744,39 @@ public class RoomManagement extends JFrame {
         return label;
     }
 
-    private JPanel createActionButtons(Room room) {
+    private JPanel createRoomButtons(Room room, boolean switcher) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         panel.setBackground(Utils.secondaryColor);
-
-        panel.add(Utils.createActionButton("Book", e -> showCheckInDialog(room)));
-        panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(this, room.getNum())));
-
+        if(!switcher) {
+            panel.add(Utils.createActionButton("Book", e -> showCheckInDialog(room)));
+            panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(this, room.getNum())));
+        }else{
+            panel.add(Utils.createActionButton("Check Out", e -> showCheckOutDialoge(room)));
+        }
         return panel;
+    }
+
+    private JDialog showCheckOutDialoge(Room room){
+        JDialog checkOutPanel = new JDialog(this, "Room #" + room.getNum(), true);
+        checkOutPanel.setSize(600, 400);
+        checkOutPanel.setLocationRelativeTo(this);
+        checkOutPanel.getContentPane().setBackground(Utils.secondaryColor);
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        mainPanel.setBackground(Utils.secondaryColor);
+
+        JPanel roomInfoPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        roomInfoPanel.setBorder(BorderFactory.createTitledBorder("Room Information"));
+        roomInfoPanel.setBackground(Utils.secondaryColor);
+
+        Utils.addFormField(roomInfoPanel, "Room Number:", new JLabel(String.valueOf(room.getNum())));
+        Utils.addFormField(roomInfoPanel, "Room Type:", new JLabel(Room.convertRm(room.getRoomType())));
+        Utils.addFormField(roomInfoPanel, "Daily Rate:", new JLabel(String.valueOf(Room.getRate(room.getRoomType()))));
+
+        mainPanel.add(roomInfoPanel, BorderLayout.NORTH);
+        checkOutPanel.add(mainPanel);
+        checkOutPanel.setVisible(true);
+        return checkOutPanel;
     }
 
     private void removeAccountButton(JComboBox<String> accountTypeCombo) {
@@ -1069,7 +1096,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "mimimi45");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);
