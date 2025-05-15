@@ -1,6 +1,7 @@
 package com.fivestarhotel.GUI;
 
 import com.fivestarhotel.Database.Db;
+import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
@@ -29,9 +30,11 @@ public class RoomManagement extends JFrame {
     private JTabbedPane tabbedPane;
     private JButton addButton, removeButton;
     private JScrollPane adminSection, recepSection, custSection;
+    private BookingCalendar calendar = new BookingCalendar();
 
     // Lists
     private ArrayList<Room> allRooms = Db.select.getRooms();
+    private ArrayList<Room> allBookedRooms = Db.select.getRooms();
     private ArrayList<Room> allLogs;
     private ArrayList<Room> activeLogs;
     private ArrayList<User> allAdminAccounts = Db.select.getAllUsers(Db.UserRoles.ADMIN);
@@ -52,22 +55,21 @@ public class RoomManagement extends JFrame {
         setLocationRelativeTo(null);
         getContentPane().setBackground(Utils.OFF_WHITE);
 
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(Utils.OFF_WHITE);
+        JPanel anchorPanel = new JPanel(new BorderLayout(10, 10));
+        anchorPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        anchorPanel.setBackground(Utils.OFF_WHITE);
 
-        mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
+        anchorPanel.add(createHeaderPanel(), BorderLayout.NORTH);
         if (currentUserRole.matches("Admin")) {
-            mainPanel.add(tabbedInterface(), BorderLayout.CENTER);
+            anchorPanel.add(tabbedInterface(), BorderLayout.CENTER);
         } else {
-            mainPanel.add(createRoomsScrollPane(), BorderLayout.CENTER);
+            anchorPanel.add(createRoomsScrollPane(), BorderLayout.CENTER);
         }
 
         loadingBar = Utils.createLoadingBar();
-        mainPanel.add(loadingBar, BorderLayout.SOUTH);
+        anchorPanel.add(loadingBar, BorderLayout.SOUTH);
 
-        add(mainPanel);
-        loadRooms();
+        add(anchorPanel);
     }
 
     private JPanel createHeaderPanel() {
@@ -115,7 +117,7 @@ public class RoomManagement extends JFrame {
 
         tabbedPane.addChangeListener(e -> updateHeaderButtons());
 
-        tabbedPane.addTab("Available Rooms", createRoomsScrollPane());
+        tabbedPane.addTab("Rooms", createRoomsScrollPane());
         tabbedPane.addTab("Accounts", createAccountsPanel());
         tabbedPane.addTab("Room Logs", new JPanel());
 
@@ -128,7 +130,7 @@ public class RoomManagement extends JFrame {
 
             switch (tabbedPane.getSelectedIndex()) {
                 case 0 -> {
-                    if (allRooms.size() > searchNumber && searchNumber > 0) {
+                    if (allRooms.size() > searchNumber && searchNumber >= 0) {
                         loadRoom(allRooms.get(searchNumber));
                     }
                 }
@@ -186,6 +188,7 @@ public class RoomManagement extends JFrame {
         scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        loadRooms();
         return scrollPane;
     }
 
@@ -405,9 +408,9 @@ public class RoomManagement extends JFrame {
         recepSection = createAccountScrollPane("Receptionists", allRecepAccounts, recepPanel);
         custSection = createAccountScrollPane("Customers", allCustAccounts, custPanel);
 
-        accountsPanel.add(adminPanel);
-        accountsPanel.add(recepPanel);
-        accountsPanel.add(custPanel);
+        accountsPanel.add(adminSection);
+        accountsPanel.add(recepSection);
+        accountsPanel.add(custSection);
 
         return accountsPanel;
     }
@@ -662,17 +665,9 @@ public class RoomManagement extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         panel.setBackground(Utils.OFF_WHITE);
 
-        if (room.getStatus()) {
-            panel.add(Utils.createActionButton("Check Out", e -> Utils.showError(panel, "hi")));// showCheckoutMessage(room)));
-            if ("Admin".equals(currentUserRole)) {
-                panel.add(Utils.createActionButton("Set Open", e -> Utils.showError(panel, "hi")));// showSetAvailableMessage(room)));
-            }
-        } else {
-            panel.add(Utils.createActionButton("Check In", e -> showCheckInDialog(room)));
-            if ("Admin".equals(currentUserRole)) {
-                panel.add(Utils.createActionButton("Set Closed", e -> Utils.showError(panel, "hi")));// showSetUnavailableMessage(room)));
-            }
-        }
+        panel.add(Utils.createActionButton("Book", e -> showCheckInDialog(room)));
+        panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(room.getNum())));
+
         return panel;
     }
 
@@ -782,7 +777,7 @@ public class RoomManagement extends JFrame {
     };
 
     private void showCheckInDialog(Room room) {
-        checkInDialog = new JDialog(this, "Check In - Room #" + room.getNum(), true);
+        checkInDialog = new JDialog(this, "Book - Room #" + room.getNum(), true);
         checkInDialog.setSize(600, 600);
         checkInDialog.setLocationRelativeTo(this);
         checkInDialog.getContentPane().setBackground(Utils.OFF_WHITE);
@@ -859,12 +854,18 @@ public class RoomManagement extends JFrame {
         Utils.addFormField(datesPanel, "Check-out Date:", checkOutSpinner);
 
         if ("Admin".equals(currentUserRole)) {
-            JComboBox<String> receptionistCombo = new JComboBox<>(
-                    new String[] { "Receptionist 1 (ID: 1)", "Receptionist 2 (ID: 2)" });
+            ArrayList<User> receptionists = Db.select.getAllUsers(UserRoles.RECEPTIONIST);
+            String[] recepStrings = new String[receptionists.size()];
+
+            for (int i = 0; i < receptionists.size(); i++) {
+                recepStrings[i] = "Receptionist ID: " + receptionists.get(i).getId();
+            }
+
+            JComboBox<String> receptionistCombo = new JComboBox<>(recepStrings);
             Utils.addFormField(datesPanel, "Receptionist:", receptionistCombo);
         }
 
-        JButton submitButton = Utils.createActionButton("Complete Check In", e -> {
+        JButton submitButton = Utils.createActionButton("Finish Booking", e -> {
             completeCheckButtonAction(room);
         });
 
@@ -943,7 +944,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "mimimi45");
+        Db.connect("root", "yoyo8080");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);

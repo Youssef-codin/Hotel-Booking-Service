@@ -8,7 +8,6 @@ import com.fivestarhotel.Billing;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.Database.Db.UserRoles;
-import com.fivestarhotel.users.User;
 
 public class Delete {
     public void all(String tableName) {

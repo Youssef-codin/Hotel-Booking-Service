@@ -9,34 +9,22 @@ import com.fivestarhotel.Database.Db;
 public class Billing {
     private int billId;
     private int bookingId;
-    private int customerId;
-    private double amount;
     private BillingStatus status; // e.g., PENDING, PAID
-    private LocalDate createdDate;
 
     public enum BillingStatus {
         PENDING,
         PAID
     }
 
-    public Billing(int billId, int bookingId, int customerId, double amount, BillingStatus status,
-            LocalDate createdDate) {
-        // validateIds(bookingId, customerId);
+    public Billing(int billId, int bookingId, BillingStatus status) {
         this.billId = billId;
         this.bookingId = bookingId;
-        this.customerId = customerId;
-        this.amount = amount;
         this.status = status;
-        this.createdDate = createdDate;
     }
 
-    public Billing(int bookingId, int customerId, double amount, BillingStatus status, LocalDate createdDate) {
-        // validateIds(bookingId, customerId);
+    public Billing(int bookingId, BillingStatus status) {
         this.bookingId = bookingId;
-        this.customerId = customerId;
-        this.amount = amount;
         this.status = status;
-        this.createdDate = createdDate;
     }
 
     public static Billing.BillingStatus convertStr(String status) {
@@ -87,15 +75,6 @@ public class Billing {
         return days * rate;
     }
 
-    // private void validateIds(int bookingId, int customerId) {
-    // if (bookingId <= 0) {
-    // throw new IllegalArgumentException("Booking ID must be positive.");
-    // }
-    // if (customerId <= 0) {
-    // throw new IllegalArgumentException("Customer ID must be positive.");
-    // }
-    // }
-
     public Booking getBooking() {
         return Db.select.getbooking(bookingId);
     }
@@ -119,25 +98,6 @@ public class Billing {
         this.bookingId = bookingId;
     }
 
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        if (amount < 0) {
-            System.out.print("Amount cannot be negative.");
-        }
-        this.amount = amount;
-    }
-
     public BillingStatus getStatus() {
         return status;
     }
@@ -147,16 +107,5 @@ public class Billing {
             throw new IllegalArgumentException("Status must be PENDING or PAID.");
         }
         this.status = status;
-    }
-
-    public LocalDate getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(LocalDate createdDate) {
-        if (createdDate == null) {
-            System.out.print("Created date cannot be null.");
-        }
-        this.createdDate = createdDate;
     }
 }

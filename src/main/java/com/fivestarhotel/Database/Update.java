@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 
 import com.fivestarhotel.Billing;
@@ -19,8 +18,8 @@ public class Update {
     public void resetIncrementRooms() {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("ALTER TABLE room AUTO_INCREMENT = 1;");
-            int rows = ps.executeUpdate();
-            System.out.println("updated " + rows + " rows.");
+            ps.executeUpdate();
+            System.out.println("reset booking auto-increment");
 
         } catch (SQLException e) {
             System.err.println("Connection error: Can't connect to server");
@@ -32,8 +31,20 @@ public class Update {
         String table = role.toString().toLowerCase();
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("ALTER TABLE " + table + " AUTO_INCREMENT = 1;");
-            int rows = ps.executeUpdate();
-            System.out.println("updated " + rows + " rows.");
+            ps.executeUpdate();
+            System.out.println("reset users auto-increment");
+
+        } catch (SQLException e) {
+            System.err.println("Connection error: Can't connect to server");
+
+        }
+    }
+
+    public void resetIncrementBooking() {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("ALTER TABLE booking AUTO_INCREMENT = 1;");
+            ps.executeUpdate();
+            System.out.println("reset booking auto-increment");
 
         } catch (SQLException e) {
             System.err.println("Connection error: Can't connect to server");
@@ -117,14 +128,6 @@ public class Update {
                 } else {
                     System.out.println("updated " + rows + " rows!");
                 }
-
-                Billing bill = Db.select.getBillBooking(booking.getBooking_id());
-                if (bill != null) {
-                    double newAmount = Billing.calculateAmount(booking);
-                    bill.setAmount(newAmount);
-                    Db.update.updateBillAmount(bill);
-                }
-
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -136,11 +139,10 @@ public class Update {
 
     public void booking(Booking booking) {
         BookingManager bm = new BookingManager();
-        Room room = booking.getRoom();
         bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
         try (Connection conn = Db.connect()) {
 
-            if (Db.select.IsRoomAvailable(room, booking)) {
+            if (Db.select.IsRoomAvailable(booking)) {
                 System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
                 PreparedStatement ps = conn.prepareStatement(
                         "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
@@ -161,27 +163,18 @@ public class Update {
 
                 // Handle billing
                 Billing existingBill = Db.select.getBillBooking(booking.getBooking_id());
-                double newAmount = Billing.calculateAmount(booking);
                 if (existingBill != null) {
                     // Update existing bill
-                    existingBill.setAmount(newAmount);
-                    updateBillAmount(existingBill);
                     if (existingBill.getStatus() == Billing.BillingStatus.PAID) {
                         existingBill.setStatus(Billing.BillingStatus.PENDING);
                         updateBillStatus(existingBill);
                     }
-                    System.out.println(
-                            "Updated bill amount to: " + newAmount + " for bill ID: " + existingBill.getBillId());
+
                 } else {
                     // Create new bill
-                    Billing newBill = new Billing(
-                            booking.getBooking_id(),
-                            booking.getCustomer_id(),
-                            newAmount,
-                            Billing.BillingStatus.PENDING,
-                            LocalDate.now());
+                    Billing newBill = new Billing(booking.getBooking_id(), Billing.BillingStatus.PENDING);
                     Db.create.addBill(newBill);
-                    System.out.println("Created new bill with amount: " + newAmount);
+                    System.out.println("Created new bill with amount");
                 }
 
             } else {
@@ -226,7 +219,7 @@ public class Update {
         }
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE billing SET status = ? WHERE bill_id = ?");
+                    "UPDATE billing SET billing_status = ? WHERE bill_id = ?");
             ps.setString(1, Billing.convertBill(status));
             ps.setInt(2, billId);
             int rows = ps.executeUpdate();
@@ -248,7 +241,7 @@ public class Update {
         }
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE billing SET status = ? WHERE bill_id = ?");
+                    "UPDATE billing SET billing_status = ? WHERE bill_id = ?");
             ps.setString(1, Billing.convertBill(billing.getStatus()));
             ps.setInt(2, billing.getBillId());
             int rows = ps.executeUpdate();
@@ -263,52 +256,7 @@ public class Update {
         }
     }
 
-    public void updateBillAmount(int billId, double amount) {
-        if (amount < 0) {
-            System.err.println("Amount cannot be negative.");
-            return;
-        }
-        try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE billing SET amount = ? WHERE bill_id = ?");
-            ps.setDouble(1, amount);
-            ps.setInt(2, billId);
-            int rows = ps.executeUpdate();
-            if (rows == 0) {
-                System.err.println("Bill not found for ID: " + billId);
-            } else {
-                System.out.println("Updated bill amount for ID: " + billId);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Database error: " + e.getMessage());
-        }
-    }
-
-    public void updateBillAmount(Billing billing) {
-        if (billing.getAmount() < 0) {
-            System.err.println("Amount cannot be negative.");
-            return;
-        }
-        try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE billing SET amount = ? WHERE bill_id = ?");
-            ps.setDouble(1, billing.getAmount());
-            ps.setInt(2, billing.getBillId());
-            int rows = ps.executeUpdate();
-            if (rows == 0) {
-                System.err.println("Bill not found for ID: " + billing.getBillId());
-            } else {
-                System.out.println("Updated bill amount for ID: " + billing.getBillId());
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Database error: " + e.getMessage());
-        }
-    }
-
     public void updateBill(Billing billing) {
         updateBillStatus(billing);
-        updateBillAmount(billing);
     }
 }

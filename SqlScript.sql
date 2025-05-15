@@ -38,6 +38,8 @@ CREATE TABLE IF NOT EXISTS HMSDB.customer (
   customer_fname VARCHAR(45) NULL,
   customer_lname VARCHAR(45) NULL,
   customer_email VARCHAR(255) NULL,
+  customer_password VARCHAR(255) NULL,
+  customer_salt VARCHAR(255) NULL,
   customer_phone VARCHAR(45) NULL,
   customer_balance INT NULL,
   customer_address VARCHAR(255),  
@@ -111,7 +113,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS HMSDB.billing (
   billing_id INT NOT NULL auto_increment,
   booking_id INT NOT NULL,
-  billing_status boolean NULL,
+  billing_status VARCHAR(45) NULL,
   PRIMARY KEY (billing_id),
   INDEX fk_billing_booking1_idx (booking_id ASC) VISIBLE,
   CONSTRAINT fk_billing_booking1
