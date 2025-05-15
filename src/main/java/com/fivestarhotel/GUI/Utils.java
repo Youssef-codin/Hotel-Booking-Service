@@ -134,7 +134,8 @@ public class Utils {
 
     public static JLabel createDetailLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        label.setForeground(BROWN);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         return label;
     }
 
