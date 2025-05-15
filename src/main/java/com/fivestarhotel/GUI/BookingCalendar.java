@@ -121,7 +121,7 @@ public class BookingCalendar {
     public void showBookingDetails(LocalDate date, Booking booking, int roomNum) {
         JDialog detailsDialog = new JDialog(frame, "Bookings for Room " + roomNum + " on " + date, true);
         detailsDialog.setSize(400, 300);
-        detailsDialog.setBackground(Utils.BROWN);
+        detailsDialog.setBackground(Utils.primaryColor);
 
         JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
