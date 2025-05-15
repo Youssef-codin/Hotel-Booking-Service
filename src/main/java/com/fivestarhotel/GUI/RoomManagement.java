@@ -142,7 +142,7 @@ public class RoomManagement extends JFrame {
                             loadRooms();
                         }
                     }
-                    case 1 ->{
+                    case 1 -> {
                         if (allBookedRooms.size() >= searchNumber) {
                             Room room = Db.select.getRoom(searchNumber);
                             if (!(room == null)) {
@@ -375,9 +375,9 @@ public class RoomManagement extends JFrame {
 
         card.add(infoPanel, BorderLayout.CENTER);
         card.add(createActionButtons(room), BorderLayout.SOUTH);
-        if(!switcher){
+        if (!switcher) {
             bookedRoomsPanel.add(card);
-        } else{
+        } else {
             roomsPanel.add(card);
         }
     }
