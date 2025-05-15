@@ -142,7 +142,7 @@ public class RoomManagement extends JFrame {
                             loadRooms();
                         }
                     }
-                    case 1 ->{
+                    case 1 -> {
                         if (allBookedRooms.size() >= searchNumber) {
                             Room room = Db.select.getRoom(searchNumber);
                             if (!(room == null)) {
@@ -375,10 +375,10 @@ public class RoomManagement extends JFrame {
 
         card.add(infoPanel, BorderLayout.CENTER);
 
-        if(!switcher){
+        if (!switcher) {
             card.add(createRoomButtons(room, !switcher), BorderLayout.SOUTH);
             bookedRoomsPanel.add(card);
-        } else{
+        } else {
             card.add(createRoomButtons(room, !switcher), BorderLayout.SOUTH);
             roomsPanel.add(card);
         }
@@ -471,7 +471,7 @@ public class RoomManagement extends JFrame {
 
             allRooms.add(new Room(roomNumber, roomType, isBooked));
             JOptionPane.showMessageDialog(addRoomDialog,
-                    "Room #" + roomNumber + " added successfully! (Mock implementation)",
+                    "Room #" + roomNumber + " added successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
             addRoomDialog.dispose();
             loadRooms();
@@ -747,16 +747,16 @@ public class RoomManagement extends JFrame {
     private JPanel createRoomButtons(Room room, boolean switcher) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         panel.setBackground(Utils.secondaryColor);
-        if(!switcher) {
+        if (!switcher) {
             panel.add(Utils.createActionButton("Book", e -> showCheckInDialog(room)));
             panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(this, room.getNum())));
-        }else{
+        } else {
             panel.add(Utils.createActionButton("Check Out", e -> showCheckOutDialoge(room)));
         }
         return panel;
     }
 
-    private JDialog showCheckOutDialoge(Room room){
+    private JDialog showCheckOutDialoge(Room room) {
         JDialog checkOutPanel = new JDialog(this, "Room #" + room.getNum(), true);
         checkOutPanel.setSize(600, 400);
         checkOutPanel.setLocationRelativeTo(this);
@@ -1096,7 +1096,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "mimimi45");
+        Db.connect("root", "yoyo8080");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);
