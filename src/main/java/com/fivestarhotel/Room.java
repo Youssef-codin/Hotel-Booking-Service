@@ -149,5 +149,4 @@ public class Room {
         System.out.println("booked: " + this.isBooked);
 
     }
-
 }

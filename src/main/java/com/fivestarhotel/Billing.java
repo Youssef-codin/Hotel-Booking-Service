@@ -41,16 +41,16 @@ public class Billing {
         }
     }
 
-    public static String convertBill(BillingStatus status) {
+    public static boolean convertBill(BillingStatus status) {
         switch (status) {
             case PENDING -> {
-                return "pending";
+                return false;
             }
             case PAID -> {
-                return "paid";
+                return true;
             }
             default -> {
-                return null;
+                return false;
             }
         }
     }

@@ -220,7 +220,7 @@ public class Update {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
                     "UPDATE billing SET billing_status = ? WHERE bill_id = ?");
-            ps.setString(1, Billing.convertBill(status));
+            ps.setBoolean(1, Billing.convertBill(status));
             ps.setInt(2, billId);
             int rows = ps.executeUpdate();
             if (rows == 0) {
@@ -242,7 +242,7 @@ public class Update {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
                     "UPDATE billing SET billing_status = ? WHERE bill_id = ?");
-            ps.setString(1, Billing.convertBill(billing.getStatus()));
+            ps.setBoolean(1, Billing.convertBill(billing.getStatus()));
             ps.setInt(2, billing.getBillId());
             int rows = ps.executeUpdate();
             if (rows == 0) {
