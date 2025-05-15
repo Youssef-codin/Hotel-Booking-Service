@@ -359,15 +359,17 @@ public class Create {
             System.err.println("Invalid booking ID: " + bill.getBookingId());
             return;
         }
+
         if (Db.select.getBillBooking(bill.getBookingId()) != null) {
             System.err.println("A bill already exists for booking ID: " + bill.getBookingId());
             return;
         }
+
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
                     "INSERT INTO billing(booking_id, billing_status) VALUES (?, ?)");
             ps.setInt(1, bill.getBookingId());
-            ps.setString(2, Billing.convertBill(bill.getStatus()));
+            ps.setBoolean(2, Billing.convertBill(bill.getStatus()));
             int rows = ps.executeUpdate();
             System.out.println("Added " + rows + " bill row(s).");
 

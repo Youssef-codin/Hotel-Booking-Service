@@ -24,7 +24,8 @@ public class RoomManagement extends JFrame {
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, searchNumber;
     private String currentUserRole;
-    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel, bookedRoomsPanel;
+    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel,
+            bookedRoomsPanel;
     private JProgressBar loadingBar;
     private JCheckBox bookedCheckbox;
     private JComboBox<RoomType> roomTypes;
@@ -37,7 +38,7 @@ public class RoomManagement extends JFrame {
     JComboBox<String> receptionistCombo;
 
     // Lists
-    private ArrayList<Room> allRooms = Db.select.getRooms();
+    private ArrayList<Room> allRooms;
     private ArrayList<Room> allBookedRooms = Db.select.getRooms(true);
     private ArrayList<User> allAdminAccounts = Db.select.getAllUsers(Db.UserRoles.ADMIN);
     private ArrayList<User> allRecepAccounts = Db.select.getAllUsers(Db.UserRoles.RECEPTIONIST);
@@ -163,9 +164,11 @@ public class RoomManagement extends JFrame {
                             loadAccounts(recepPanel, allRecepAccounts);
                         }
 
-                        if (!allCustAccounts.isEmpty() && allCustAccounts.get(allCustAccounts.size() - 1).getId() >= searchNumber && allCustAccounts.get(0).getId() <= searchNumber) {
+                        if (!allCustAccounts.isEmpty()
+                                && allCustAccounts.get(allCustAccounts.size() - 1).getId() >= searchNumber
+                                && allCustAccounts.get(0).getId() <= searchNumber) {
                             User cust = Db.select.getUserById(UserRoles.CUSTOMER, searchNumber);
-                            if(!(cust == null)) {
+                            if (!(cust == null)) {
                                 loadAccount(cust, custPanel);
                                 loadAccountSections();
                             }
@@ -174,13 +177,13 @@ public class RoomManagement extends JFrame {
                         }
                     }
                 }
-            } else{
+            } else {
                 loadAccountSections();
                 loadRooms();
             }
-        } catch(NumberFormatException a){
-                loadAccountSections();
-                loadRooms();
+        } catch (NumberFormatException a) {
+            loadAccountSections();
+            loadRooms();
         }
     }
 
@@ -791,6 +794,9 @@ public class RoomManagement extends JFrame {
         removeDialog.setVisible(true);
     }
 
+    // 0 done
+    // -1 room not found
+    // -2 SQLError: make sure you remove all bookings before removing the room
     private void removeButtonAction(JTextField roomNumberField) {
         try {
             String roomNumberText = roomNumberField.getText().trim();
@@ -808,19 +814,25 @@ public class RoomManagement extends JFrame {
                     JOptionPane.WARNING_MESSAGE);
 
             if (confirm == JOptionPane.YES_OPTION) {
+
+                int dbRemoved = Db.delete.room(roomNumber);
                 boolean removed = allRooms.removeIf(room -> room.getNum() == roomNumber);
-                if (removed) {
-                    Db.delete.room(roomNumber);
+                if (removed && dbRemoved == 0) {
 
                     JOptionPane.showMessageDialog(removeDialog,
                             "Room #" + roomNumber + " was successfully removed",
                             "Success", JOptionPane.INFORMATION_MESSAGE);
                     removeDialog.dispose();
                     loadRooms();
-                } else {
+                } else if (dbRemoved == -1) {
                     Utils.showError(removeDialog, "Room #" + roomNumber + " not found");
+                } else {
+                    Utils.showError(removeDialog, "SQLError Room#" + roomNumber
+                            + "make sure you remove all bookings before removing the room");
+
                 }
             }
+
         } catch (NumberFormatException ex) {
             Utils.showError(removeDialog, "Please enter a valid room number");
         }
@@ -1029,7 +1041,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "mimimi45");
+        Db.connect("root", "yoyo8080");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);

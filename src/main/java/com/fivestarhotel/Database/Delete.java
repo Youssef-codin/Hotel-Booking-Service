@@ -26,7 +26,10 @@ public class Delete {
         }
     }
 
-    public void room(int roomNum) {
+    // 0 done
+    // -1 room not found
+    // -2 SQLError: make sure you remove all bookings before removing the room
+    public int room(int roomNum) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("DELETE FROM room WHERE room_number = ?");
             ps.setInt(1, roomNum);
@@ -34,14 +37,17 @@ public class Delete {
             int rows = ps.executeUpdate();
             if (rows == 0) {
                 System.err.println("Room number not found, didn't delete anything");
+                return -1;
             } else {
                 System.out.println("deleted " + rows + " rows.");
+                return 0;
 
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
             System.err.println(e.getErrorCode());
+            return -2;
         }
     }
 
