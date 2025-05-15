@@ -130,32 +130,39 @@ public class RoomManagement extends JFrame {
 
     private void SearchButton() {
         try {
-            searchNumber = Integer.parseInt(searchField.getText().trim()) - 1;
+            searchNumber = Integer.parseInt(searchField.getText().trim());
 
             switch (tabbedPane.getSelectedIndex()) {
                 case 0 -> {
+
                     if (allRooms.size() > searchNumber && searchNumber >= 0) {
                         loadRoom(allRooms.get(searchNumber));
                     }
                 }
 
                 case 1 -> {
+
                     if (!allAdminAccounts.isEmpty()) {
                         loadAccount(allAdminAccounts.get(searchNumber), adminPanel);
+
                         loadAccountSections();
                     } else {
                         loadAccounts(adminPanel, allAdminAccounts);
                     }
 
+
                     if (!allRecepAccounts.isEmpty()) {
                         loadAccount(allRecepAccounts.get(searchNumber), recepPanel);
+
                         loadAccountSections();
                     } else {
                         loadAccounts(recepPanel, allRecepAccounts);
                     }
 
+
                     if (!allCustAccounts.isEmpty()) {
                         loadAccount(allCustAccounts.get(searchNumber), custPanel);
+
                         loadAccountSections();
                     } else {
                         loadAccounts(custPanel, allCustAccounts);
@@ -269,6 +276,7 @@ public class RoomManagement extends JFrame {
         sectionPanel.add(new JLabel("Loading Account..."));
 
         Timer timer = new Timer(1000, e -> {
+            sectionPanel.removeAll();
             sectionPanel.add(addAccountCard(user));
             sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
             sectionPanel.revalidate();
