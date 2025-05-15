@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
-import java.time.LocalDate;
 
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
@@ -198,20 +197,31 @@ public class Create {
 
     // Booking stuff wa kda b2a
 
-    public void addBooking(Booking booking) {
+    // -3 sql error
+    // -2 invalid input
+    // -1 room not avaliable at requested dates
+    // 0 successful
+    public int addBooking(Booking booking) {
         BookingManager bm = new BookingManager();
-        Room room = booking.getRoom();
-        bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
+        boolean valid = bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
 
-        if (Db.select.IsRoomAvailable(room, booking)) {
-            // Throw custom exception if room is not available
+        if (!valid) {
+            System.err.println("invalid input");
+            return -2;
+        }
+
+        int lastnum = Db.select.lastBookingId();
+
+        if (lastnum == 0) {
+            Db.update.resetIncrementBooking();
+        }
+
+        if (Db.select.IsRoomAvailable(booking)) {
             System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
 
             try (Connection conn = Db.connect()) {
                 PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) "
-                                +
-                                "VALUES (?, ?, ?, ?, ?,?)");
+                        "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)");
 
                 ps.setInt(1, booking.getBooking_id());
                 ps.setInt(2, booking.getRoom().getNum());
@@ -221,28 +231,29 @@ public class Create {
                 ps.setDate(6, Date.valueOf(booking.getCheckOutDate()));
                 int bookingRows = ps.executeUpdate();
                 System.out.println("Added " + bookingRows + " booking row(s).");
-                Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
+                Db.update.roomStatus(booking.getRoom().getNum(), true);
 
                 // Calculate bill amount
                 double amount = Billing.calculateAmount(booking);
 
                 // Create bill
                 Billing bill = new Billing(
-                        booking.getBooking_id(),
+                        Db.select.lastBookingId(),
                         booking.getCustomer_id(),
-                        amount,
-                        Billing.BillingStatus.PENDING,
-                        LocalDate.now());
+                        Billing.BillingStatus.PENDING);
                 addBill(bill);
                 System.out.println("Added bill for booking ID: " + booking.getBooking_id() + ", Amount: $" + amount);
+                return 0;
 
             } catch (SQLException e) {
                 System.err.println("Booking failed due to a SQL error. Rolling back transaction.");
                 e.printStackTrace();
+                return -3;
 
             }
         } else {
             System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
+            return -1;
         }
 
     }
@@ -358,17 +369,16 @@ public class Create {
         }
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO billing(booking_id, customer_id, amount, status, created_date) VALUES (?, ?, ?, ?, ?)");
+                    "INSERT INTO billing(booking_id, billing_status) VALUES (?, ?)");
             ps.setInt(1, bill.getBookingId());
-            ps.setInt(2, bill.getCustomerId());
-            ps.setDouble(3, bill.getAmount());
-            ps.setString(4, Billing.convertBill(bill.getStatus()));
-            ps.setDate(5, Date.valueOf(bill.getCreatedDate()));
+            ps.setString(2, Billing.convertBill(bill.getStatus()));
             int rows = ps.executeUpdate();
             System.out.println("Added " + rows + " bill row(s).");
+
         } catch (SQLException e) {
             System.err.println("Failed to create bill: " + e.getMessage());
             e.printStackTrace();
+
         }
     }
 }
