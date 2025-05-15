@@ -944,13 +944,35 @@ public class RoomManagement extends JFrame {
         int receptionist_id = Integer.parseInt(parts[1]);
 
         Booking booking = new Booking(room, customerId, receptionist_id, checkInLocalDate, checkOutLocalDate);
-        Db.create.addBooking(booking);
-        JOptionPane.showMessageDialog(checkInDialog,
-                "Room #" + room.getNum() + " checked in successfully!",
-                "Success", JOptionPane.INFORMATION_MESSAGE);
+        int successfullBooking = Db.create.addBooking(booking);
 
-        checkInDialog.dispose();
-        loadRooms();
+        // -3 sql error
+        // -2 invalid input
+        // -1 room not avaliable at requested dates
+        // 0 successful
+        if (successfullBooking == 0) {
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Room #" + room.getNum() + " checked in successfully!",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+
+            checkInDialog.dispose();
+            loadRooms();
+
+        } else if (successfullBooking == -1) {
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Booking failed: room not available at requested dates.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        } else if (successfullBooking == -2) {
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Booking failed: Invalid date inputs.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } else if (successfullBooking == -3) {
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Booking failed: SQLError",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        }
     }
 
     public static void main(String[] args) {

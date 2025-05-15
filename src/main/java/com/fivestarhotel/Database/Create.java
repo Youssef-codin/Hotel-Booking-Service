@@ -197,9 +197,18 @@ public class Create {
 
     // Booking stuff wa kda b2a
 
-    public void addBooking(Booking booking) {
+    // -3 sql error
+    // -2 invalid input
+    // -1 room not avaliable at requested dates
+    // 0 successful
+    public int addBooking(Booking booking) {
         BookingManager bm = new BookingManager();
-        bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
+        boolean valid = bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
+
+        if (!valid) {
+            System.err.println("invalid input");
+            return -2;
+        }
 
         int lastnum = Db.select.lastBookingId();
 
@@ -234,14 +243,17 @@ public class Create {
                         Billing.BillingStatus.PENDING);
                 addBill(bill);
                 System.out.println("Added bill for booking ID: " + booking.getBooking_id() + ", Amount: $" + amount);
+                return 0;
 
             } catch (SQLException e) {
                 System.err.println("Booking failed due to a SQL error. Rolling back transaction.");
                 e.printStackTrace();
+                return -3;
 
             }
         } else {
             System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
+            return -1;
         }
 
     }
