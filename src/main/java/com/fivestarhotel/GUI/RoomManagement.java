@@ -50,16 +50,16 @@ public class RoomManagement extends JFrame {
     }
 
     private void initializeUI() {
-        Utils.UiStyleTabs();
+        Utils.setUIStyles();
         setTitle("BookIt - Room Management (" + currentUserRole + ")");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        getContentPane().setBackground(Utils.OFF_WHITE);
+        getContentPane().setBackground(Utils.secondaryColor);
 
         anchorPanel = new JPanel(new BorderLayout(10, 10));
         anchorPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        anchorPanel.setBackground(Utils.OFF_WHITE);
+        anchorPanel.setBackground(Utils.secondaryColor);
 
         anchorPanel.add(createHeaderPanel(), BorderLayout.NORTH);
         if (currentUserRole.matches("Admin")) {
@@ -76,13 +76,13 @@ public class RoomManagement extends JFrame {
 
     private JPanel createHeaderPanel() {
         headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(Utils.OFF_WHITE);
+        headerPanel.setBackground(Utils.secondaryColor);
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(5, 10, 5, 0),
-                BorderFactory.createLineBorder(Utils.BROWN, 0)));
+                BorderFactory.createLineBorder(Utils.primaryColor, 0)));
 
         JButton logoutButton = Utils.createActionButton("<-", e -> returnToLogin());
-        Utils.styleButton(logoutButton, Utils.BROWN, 50, 40);
+        Utils.styleButton(logoutButton, Utils.primaryColor, 50, 40);
         JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         leftPanel.setOpaque(false);
         leftPanel.add(logoutButton);
@@ -90,12 +90,12 @@ public class RoomManagement extends JFrame {
 
         searchField = new JTextField(15);
         searchField.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Utils.BROWN, 1),
+                BorderFactory.createLineBorder(Utils.primaryColor, 1),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         searchField.setPreferredSize(new Dimension(120, 40)); // match height
 
         JButton searchButton = Utils.createActionButton("Search", e -> SearchButton());
-        Utils.styleButton(searchButton, Utils.BROWN, 85, 40);
+        Utils.styleButton(searchButton, Utils.primaryColor, 85, 40);
         searchField.addActionListener(e -> searchButton.doClick());
 
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -115,12 +115,12 @@ public class RoomManagement extends JFrame {
         tabbedPane = new JTabbedPane();
 
         tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        tabbedPane.setBackground(Utils.OFF_WHITE);
+        tabbedPane.setBackground(Utils.secondaryColor);
         tabbedPane.addChangeListener(e -> updateHeaderButtons());
 
         tabbedPane.addTab("Rooms", createRoomsScrollPane());
-        tabbedPane.addTab("Accounts", createAccountsPanel());
         tabbedPane.addTab("Bookings", createBookedRoomsScrollPane());
+        tabbedPane.addTab("Accounts", createAccountsPanel());
 
         return tabbedPane;
     }
@@ -141,8 +141,19 @@ public class RoomManagement extends JFrame {
                             loadRooms();
                         }
                     }
+                    case 1 ->{
+                        if (allBookedRooms.size() >= searchNumber) {
+                            Room room = Db.select.getRoom(searchNumber);
+                            if (!(room == null)) {
+                                loadBookedRoom(room);
+                            }
 
-                    case 1 -> {
+                        } else {
+                            loadBookedRooms();
+                        }
+                    }
+
+                    case 2 -> {
                         if (!allAdminAccounts.isEmpty() && allAdminAccounts.size() >= searchNumber) {
                             User admin = Db.select.getUserById(UserRoles.ADMIN, searchNumber);
                             if (!(admin == null)) {
@@ -186,7 +197,7 @@ public class RoomManagement extends JFrame {
 
     private JPanel createAdminControls(boolean switcher) {
         JPanel adminPanel = new JPanel(new GridLayout(1, 2, 10, 0));
-        adminPanel.setBackground(Utils.OFF_WHITE);
+        adminPanel.setBackground(Utils.secondaryColor);
         if (!switcher) {
             addButton = Utils.createActionButton("Room +", e -> showAddRoomDialog());
             removeButton = Utils.createActionButton("Room -", e -> showRemoveRoomDialog());
@@ -202,11 +213,11 @@ public class RoomManagement extends JFrame {
 
     private JScrollPane createRoomsScrollPane() {
         roomsPanel = new JPanel(new WrapLayout(WrapLayout.LEADING, 20, 20));
-        roomsPanel.setBackground(Utils.OFF_WHITE);
+        roomsPanel.setBackground(Utils.secondaryColor);
         roomsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JScrollPane scrollPane = new JScrollPane(roomsPanel);
-        scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
+        scrollPane.getViewport().setBackground(Utils.secondaryColor);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         loadRooms();
@@ -215,11 +226,11 @@ public class RoomManagement extends JFrame {
 
     private JScrollPane createBookedRoomsScrollPane() {
         bookedRoomsPanel = new JPanel(new WrapLayout(WrapLayout.LEADING, 20, 20));
-        bookedRoomsPanel.setBackground(Utils.OFF_WHITE);
+        bookedRoomsPanel.setBackground(Utils.secondaryColor);
         bookedRoomsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JScrollPane scrollPane = new JScrollPane(bookedRoomsPanel);
-        scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
+        scrollPane.getViewport().setBackground(Utils.secondaryColor);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         loadBookedRooms();
@@ -228,14 +239,14 @@ public class RoomManagement extends JFrame {
 
     private JScrollPane createAccountScrollPane(String title, ArrayList<User> users, JPanel sectionPanel) {
         sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
-        sectionPanel.setBackground(Utils.OFF_WHITE);
+        sectionPanel.setBackground(Utils.secondaryColor);
         sectionPanel.setBorder(BorderFactory.createTitledBorder(title));
 
         // Add spacing between components
         loadAccounts(sectionPanel, users);
 
         JScrollPane scrollPane = new JScrollPane(sectionPanel);
-        scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
+        scrollPane.getViewport().setBackground(Utils.secondaryColor);
         return scrollPane;
     }
 
@@ -251,7 +262,7 @@ public class RoomManagement extends JFrame {
             if (allRooms.isEmpty()) {
                 roomsPanel.add(new JLabel("No rooms found"));
             } else {
-                allRooms.forEach(room -> addRoomCard(room));
+                allRooms.forEach(room -> addRoomCard(room, true));
             }
 
             roomsPanel.revalidate();
@@ -270,9 +281,22 @@ public class RoomManagement extends JFrame {
             if (allBookedRooms.isEmpty()) {
                 bookedRoomsPanel.add(new JLabel("No rooms found"));
             } else {
-                allBookedRooms.forEach(room -> addRoomCard(room));
+                allBookedRooms.forEach(room -> addRoomCard(room, false));
             }
 
+            bookedRoomsPanel.revalidate();
+            bookedRoomsPanel.repaint();
+        });
+    }
+
+    private void loadBookedRoom(Room room) {
+        bookedRoomsPanel.removeAll();
+        bookedRoomsPanel.revalidate();
+        bookedRoomsPanel.repaint();
+
+        SwingUtilities.invokeLater(() -> {
+            bookedRoomsPanel.removeAll();
+            addRoomCard(room, true);
             bookedRoomsPanel.revalidate();
             bookedRoomsPanel.repaint();
         });
@@ -285,7 +309,7 @@ public class RoomManagement extends JFrame {
 
         SwingUtilities.invokeLater(() -> {
             roomsPanel.removeAll();
-            addRoomCard(room);
+            addRoomCard(room, true);
             roomsPanel.revalidate();
             roomsPanel.repaint();
 
@@ -329,17 +353,17 @@ public class RoomManagement extends JFrame {
         timer.start();
     }
 
-    private void addRoomCard(Room room) {
-        JPanel card = Utils.createStyledPanel(15, Utils.BROWN, true);
+    private void addRoomCard(Room room, boolean switcher) {
+        JPanel card = Utils.createStyledPanel(15, Utils.primaryColor, true);
         card.setPreferredSize(new Dimension(300, 200));
 
         // Room Info
         JPanel infoPanel = new JPanel(new GridLayout(0, 1, 5, 5));
-        infoPanel.setBackground(Utils.OFF_WHITE);
+        infoPanel.setBackground(Utils.secondaryColor);
 
         JLabel numberLabel = new JLabel("Room #" + room.getNum());
         numberLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        numberLabel.setForeground(Utils.BROWN);
+        numberLabel.setForeground(Utils.primaryColor);
 
         infoPanel.add(numberLabel);
         infoPanel.add(new JLabel("Floor: " + ((room.getNum() - 1) / 100 + 1)));
@@ -348,11 +372,15 @@ public class RoomManagement extends JFrame {
 
         card.add(infoPanel, BorderLayout.CENTER);
         card.add(createActionButtons(room), BorderLayout.SOUTH);
-        roomsPanel.add(card);
+        if(!switcher){
+            bookedRoomsPanel.add(card);
+        } else{
+            roomsPanel.add(card);
+        }
     }
 
     private JPanel addAccountCard(User user) {
-        JPanel card = Utils.createStyledPanel(10, Utils.BROWN, true);
+        JPanel card = Utils.createStyledPanel(10, Utils.primaryColor, true);
         card.setLayout(new BorderLayout());
 
         // Make card fill available width
@@ -366,7 +394,7 @@ public class RoomManagement extends JFrame {
         infoLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
         JButton detailsButton = Utils.createActionButton("i", e -> showUserDetails(user));
-        Utils.styleButton(detailsButton, Utils.BROWN, 20, 20);
+        Utils.styleButton(detailsButton, Utils.primaryColor, 20, 20);
 
         card.add(infoLabel, BorderLayout.CENTER);
         card.add(detailsButton, BorderLayout.EAST);
@@ -383,14 +411,14 @@ public class RoomManagement extends JFrame {
         addRoomDialog = new JDialog(this, "Add New Room", true);
         addRoomDialog.setSize(400, 250);
         addRoomDialog.setLocationRelativeTo(this);
-        addRoomDialog.getContentPane().setBackground(Utils.OFF_WHITE);
+        addRoomDialog.getContentPane().setBackground(Utils.secondaryColor);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        mainPanel.setBackground(Utils.OFF_WHITE);
+        mainPanel.setBackground(Utils.secondaryColor);
 
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.setBackground(Utils.OFF_WHITE);
+        formPanel.setBackground(Utils.secondaryColor);
 
         JTextField roomNumberField = new JTextField();
         Utils.addFormField(formPanel, "Room Number:", roomNumberField);
@@ -404,7 +432,7 @@ public class RoomManagement extends JFrame {
         mainPanel.add(formPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.setBackground(Utils.OFF_WHITE);
+        buttonPanel.setBackground(Utils.secondaryColor);
 
         JButton submitButton = Utils.createActionButton("Add Room", e -> {
             addRoomAction(roomNumberField);
@@ -452,7 +480,7 @@ public class RoomManagement extends JFrame {
         adminPanel = new JPanel();
         recepPanel = new JPanel();
         custPanel = new JPanel();
-        accountsPanel.setBackground(Utils.OFF_WHITE);
+        accountsPanel.setBackground(Utils.secondaryColor);
 
         // Reload account lists from database
         allAdminAccounts = Db.select.getAllUsers(Db.UserRoles.ADMIN);
@@ -486,7 +514,7 @@ public class RoomManagement extends JFrame {
         detailsDialog.setSize(300, 250);
 
         JPanel panel = new JPanel(new GridLayout(0, 1, 0, 0));
-        panel.setBackground(Utils.OFF_WHITE);
+        panel.setBackground(Utils.secondaryColor);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         panel.add(Utils.createDetailLabel("ID: " + user.getId()));
@@ -518,16 +546,16 @@ public class RoomManagement extends JFrame {
     private void showAddAccountDialog() {
         JDialog addAccountDialog = new JDialog(this, "Add New Account", true);
         addAccountDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        addAccountDialog.getContentPane().setBackground(Utils.OFF_WHITE);
+        addAccountDialog.getContentPane().setBackground(Utils.secondaryColor);
         addAccountDialog.setSize(450, 380);
         addAccountDialog.setLocationRelativeTo(this);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBackground(Utils.OFF_WHITE);
+        mainPanel.setBackground(Utils.secondaryColor);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        formPanel.setBackground(Utils.OFF_WHITE);
+        formPanel.setBackground(Utils.secondaryColor);
 
         JTextField nameField = new JTextField();
         JTextField emailField = new JTextField();
@@ -545,17 +573,17 @@ public class RoomManagement extends JFrame {
         JTextField addressFieldLocal = new JTextField();
 
         phoneLabel.setFont(Utils.LABEL_FONT);
-        phoneLabel.setForeground(Utils.BROWN);
+        phoneLabel.setForeground(Utils.primaryColor);
         addressLabel.setFont(Utils.LABEL_FONT);
-        addressLabel.setForeground(Utils.BROWN);
+        addressLabel.setForeground(Utils.primaryColor);
 
         phoneFieldLocal.setFont(Utils.LABEL_FONT);
         phoneFieldLocal.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Utils.BROWN, 1),
+                BorderFactory.createLineBorder(Utils.primaryColor, 1),
                 BorderFactory.createEmptyBorder(0, 5, 0, 5)));
         addressFieldLocal.setFont(Utils.LABEL_FONT);
         addressFieldLocal.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Utils.BROWN, 1),
+                BorderFactory.createLineBorder(Utils.primaryColor, 1),
                 BorderFactory.createEmptyBorder(0, 5, 0, 5)));
 
         formPanel.add(phoneLabel);
@@ -585,7 +613,7 @@ public class RoomManagement extends JFrame {
         });
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.setBackground(Utils.OFF_WHITE);
+        buttonPanel.setBackground(Utils.secondaryColor);
 
         JButton submitButton = Utils.createActionButton("Add", e -> {
             String accountType = (String) accountTypeCombo.getSelectedItem();
@@ -657,14 +685,14 @@ public class RoomManagement extends JFrame {
         JDialog removeDialog = new JDialog(this, "Remove Account", true);
         removeDialog.setSize(400, 200);
         removeDialog.setLocationRelativeTo(this);
-        removeDialog.getContentPane().setBackground(Utils.OFF_WHITE);
+        removeDialog.getContentPane().setBackground(Utils.secondaryColor);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        mainPanel.setBackground(Utils.OFF_WHITE);
+        mainPanel.setBackground(Utils.secondaryColor);
 
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        inputPanel.setBackground(Utils.OFF_WHITE);
+        inputPanel.setBackground(Utils.secondaryColor);
         accountIdField = new JTextField();
 
         Utils.addFormField(inputPanel, "Account Type:", accountTypeCombo);
@@ -675,7 +703,7 @@ public class RoomManagement extends JFrame {
         warningLabel.setFont(new Font("Arial", Font.BOLD, 12));
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.setBackground(Utils.OFF_WHITE);
+        buttonPanel.setBackground(Utils.secondaryColor);
 
         JButton removeButton = Utils.createActionButton("Remove", e -> {
             removeAccountButton(accountTypeCombo);
@@ -713,7 +741,7 @@ public class RoomManagement extends JFrame {
 
     private JPanel createActionButtons(Room room) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        panel.setBackground(Utils.OFF_WHITE);
+        panel.setBackground(Utils.secondaryColor);
 
         panel.add(Utils.createActionButton("Book", e -> showCheckInDialog(room)));
         panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(this, room.getNum())));
@@ -756,14 +784,14 @@ public class RoomManagement extends JFrame {
         removeDialog = new JDialog(this, "Remove Room", true);
         removeDialog.setSize(400, 200);
         removeDialog.setLocationRelativeTo(this);
-        removeDialog.getContentPane().setBackground(Utils.OFF_WHITE);
+        removeDialog.getContentPane().setBackground(Utils.secondaryColor);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(Utils.OFF_WHITE);
+        mainPanel.setBackground(Utils.secondaryColor);
 
         JPanel inputPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        inputPanel.setBackground(Utils.OFF_WHITE);
+        inputPanel.setBackground(Utils.secondaryColor);
 
         JTextField roomNumberField = new JTextField();
         Utils.addFormField(inputPanel, "Room Number to Remove:", roomNumberField);
@@ -776,7 +804,7 @@ public class RoomManagement extends JFrame {
         mainPanel.add(warningLabel, BorderLayout.NORTH);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.setBackground(Utils.OFF_WHITE);
+        buttonPanel.setBackground(Utils.secondaryColor);
 
         JButton removeButton = Utils.createActionButton("Remove", e -> removeButtonAction(roomNumberField));
         JButton cancelButton = Utils.createActionButton("Cancel", e -> removeDialog.dispose());
@@ -830,15 +858,15 @@ public class RoomManagement extends JFrame {
         checkInDialog = new JDialog(this, "Book - Room #" + room.getNum(), true);
         checkInDialog.setSize(600, 600);
         checkInDialog.setLocationRelativeTo(this);
-        checkInDialog.getContentPane().setBackground(Utils.OFF_WHITE);
+        checkInDialog.getContentPane().setBackground(Utils.secondaryColor);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        mainPanel.setBackground(Utils.OFF_WHITE);
+        mainPanel.setBackground(Utils.secondaryColor);
 
         JPanel roomInfoPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         roomInfoPanel.setBorder(BorderFactory.createTitledBorder("Room Information"));
-        roomInfoPanel.setBackground(Utils.OFF_WHITE);
+        roomInfoPanel.setBackground(Utils.secondaryColor);
 
         Utils.addFormField(roomInfoPanel, "Room Number:", new JLabel(String.valueOf(room.getNum())));
         Utils.addFormField(roomInfoPanel, "Room Type:", new JLabel(Room.convertRm(room.getRoomType())));
@@ -847,18 +875,18 @@ public class RoomManagement extends JFrame {
         mainPanel.add(roomInfoPanel, BorderLayout.NORTH);
 
         JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setBackground(Utils.OFF_WHITE);
+        tabbedPane.setBackground(Utils.secondaryColor);
         tabbedPane.setFont(Utils.LABEL_FONT);
 
         JPanel existingCustomerPanel = new JPanel(new BorderLayout(10, 10));
-        existingCustomerPanel.setBackground(Utils.OFF_WHITE);
+        existingCustomerPanel.setBackground(Utils.secondaryColor);
 
         JPanel verifyPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        verifyPanel.setBackground(Utils.OFF_WHITE);
+        verifyPanel.setBackground(Utils.secondaryColor);
 
         customerIdField = new JTextField();
         JButton verifyButton = Utils.createActionButton("Verify Customer", e -> verifyCustomerAction());
-        Utils.styleButton(verifyButton, Utils.BROWN);
+        Utils.styleButton(verifyButton, Utils.primaryColor);
         customerIdField.addActionListener(e -> verifyButton.doClick());
         Utils.addFormField(verifyPanel, "Customer ID:", customerIdField);
         verifyPanel.add(new JLabel());
@@ -871,7 +899,7 @@ public class RoomManagement extends JFrame {
         existingCustomerPanel.add(customerInfoLabel, BorderLayout.CENTER);
 
         JPanel newCustomerPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        newCustomerPanel.setBackground(Utils.OFF_WHITE);
+        newCustomerPanel.setBackground(Utils.secondaryColor);
 
         firstNameField = new JTextField();
         lastNameField = new JTextField();
@@ -888,7 +916,7 @@ public class RoomManagement extends JFrame {
 
         JPanel datesPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         datesPanel.setBorder(BorderFactory.createTitledBorder("Booking Dates"));
-        datesPanel.setBackground(Utils.OFF_WHITE);
+        datesPanel.setBackground(Utils.secondaryColor);
 
         checkInSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor checkInEditor = new JSpinner.DateEditor(checkInSpinner, "yyyy-MM-dd");
@@ -920,7 +948,7 @@ public class RoomManagement extends JFrame {
         });
 
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
-        centerPanel.setBackground(Utils.OFF_WHITE);
+        centerPanel.setBackground(Utils.secondaryColor);
         centerPanel.add(tabbedPane, BorderLayout.CENTER);
         centerPanel.add(datesPanel, BorderLayout.SOUTH);
 

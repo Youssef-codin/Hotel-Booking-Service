@@ -42,11 +42,11 @@ public class BookItLogin extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-        getContentPane().setBackground(Utils.OFF_WHITE);
+        getContentPane().setBackground(Utils.secondaryColor);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(Utils.OFF_WHITE);
+        mainPanel.setBackground(Utils.secondaryColor);
 
         mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
         mainPanel.add(createLoginPanel(), BorderLayout.CENTER);
@@ -57,11 +57,11 @@ public class BookItLogin extends JFrame {
 
     private JPanel createHeaderPanel() {
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(Utils.OFF_WHITE);
+        headerPanel.setBackground(Utils.secondaryColor);
 
         JLabel titleLabel = new JLabel("BookIt Hotel Management", JLabel.CENTER);
         titleLabel.setFont(Utils.TITLE_FONT);
-        titleLabel.setForeground(Utils.BROWN);
+        titleLabel.setForeground(Utils.primaryColor);
         headerPanel.add(titleLabel);
 
         return headerPanel;
@@ -70,9 +70,9 @@ public class BookItLogin extends JFrame {
     private JPanel createLoginPanel() {
         try {
             JPanel loginPanel = new JPanel(new GridBagLayout());
-            loginPanel.setBackground(Utils.OFF_WHITE);
+            loginPanel.setBackground(Utils.secondaryColor);
             loginPanel.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Utils.BROWN, 1),
+                    BorderFactory.createLineBorder(Utils.primaryColor, 1),
                     BorderFactory.createEmptyBorder(20, 20, 20, 20)));
 
             GridBagConstraints gbc = new GridBagConstraints();
@@ -88,7 +88,7 @@ public class BookItLogin extends JFrame {
             emailField = new JTextField(20);
             emailField.setFont(Utils.LABEL_FONT);
             emailField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Utils.BROWN, 1),
+                    BorderFactory.createLineBorder(Utils.primaryColor, 1),
                     BorderFactory.createEmptyBorder(5, 5, 5, 5)));
             loginPanel.add(emailField, gbc);
 
@@ -100,7 +100,7 @@ public class BookItLogin extends JFrame {
             passwordField = new JPasswordField(20);
             passwordField.setFont(Utils.LABEL_FONT);
             passwordField.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Utils.BROWN, 1),
+                    BorderFactory.createLineBorder(Utils.primaryColor, 1),
                     BorderFactory.createEmptyBorder(5, 5, 5, 5)));
             passwordField.addActionListener(e -> authenticateUser());
             loginPanel.add(passwordField, gbc);
@@ -110,7 +110,7 @@ public class BookItLogin extends JFrame {
             // Toggle button
             gbc.gridx = 2;
             JButton togglePasswordButton = new JButton("( 0 )");
-            Utils.styleToggleButton(togglePasswordButton, Utils.BROWN);
+            Utils.styleToggleButton(togglePasswordButton, Utils.primaryColor);
             togglePasswordButton.addActionListener(e -> togglePasswordVisibility(togglePasswordButton));
             loginPanel.add(togglePasswordButton, gbc);
             // Remember me
@@ -119,7 +119,7 @@ public class BookItLogin extends JFrame {
             gbc.gridwidth = 2;
             gbc.fill = GridBagConstraints.CENTER;
             rememberMe = new JCheckBox("Remember Me");
-            rememberMe.setBackground(Utils.OFF_WHITE);
+            rememberMe.setBackground(Utils.secondaryColor);
             loginPanel.add(rememberMe, gbc);
             // Login button
             gbc.gridx = 0;
@@ -127,7 +127,7 @@ public class BookItLogin extends JFrame {
             gbc.gridwidth = 2;
             gbc.fill = GridBagConstraints.CENTER;
             JButton loginButton = new JButton("Login");
-            Utils.styleButton(loginButton, Utils.BROWN);
+            Utils.styleButton(loginButton, Utils.primaryColor);
             loginButton.addActionListener(e -> authenticateUser());
             loginPanel.add(loginButton, gbc);
 
@@ -218,7 +218,7 @@ public class BookItLogin extends JFrame {
 
     // TODO: the remember me shit
     public static void main(String[] args) {
-        Db.connect("root", "");
+        Db.connect("root", "mimimi45");
         SwingUtilities.invokeLater(() -> {
             if (!new File(
                     "C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt")

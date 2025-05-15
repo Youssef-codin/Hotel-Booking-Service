@@ -12,6 +12,7 @@ import com.fivestarhotel.users.Receptionist;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 import javax.swing.*;
 
@@ -62,8 +63,8 @@ public class App {
 
         // Start the application
         SwingUtilities.invokeLater(() -> {
-            BookItLogin loginSystem = new BookItLogin();
-            loginSystem.setVisible(true);
+           BookItLogin loginSystem = new BookItLogin();
+           loginSystem.setVisible(true);
         });
     }
 }
