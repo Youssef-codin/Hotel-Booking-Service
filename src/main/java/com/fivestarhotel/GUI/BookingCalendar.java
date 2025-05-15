@@ -23,7 +23,7 @@ public class BookingCalendar {
     private JFrame frame;
     private JPanel dayPanel;
 
-    public JCalendar showCalendar(RoomManagement rm, int roomNum) {
+    public JCalendar showCalendar(int roomNum) {
         ArrayList<Booking> bookings = Db.select.getBookings(roomNum);
 
         if (bookings == null || bookings.isEmpty()) {

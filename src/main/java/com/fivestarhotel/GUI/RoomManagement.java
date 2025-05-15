@@ -27,7 +27,6 @@ public class RoomManagement extends JFrame {
     private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel,
             bookedRoomsPanel;
     private JProgressBar loadingBar;
-    private JCheckBox bookedCheckbox;
     private JComboBox<RoomType> roomTypes;
     private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[] { "Admin", "Receptionist", "Customer" });
     private JLabel customerInfoLabel;
@@ -236,6 +235,7 @@ public class RoomManagement extends JFrame {
         scrollPane.getViewport().setBackground(Utils.secondaryColor);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
         loadBookedRooms();
         return scrollPane;
     }
@@ -371,7 +371,7 @@ public class RoomManagement extends JFrame {
         infoPanel.add(numberLabel);
         infoPanel.add(new JLabel("Floor: " + ((room.getNum() - 1) / 100 + 1)));
         infoPanel.add(new JLabel("Type: " + room.getRoomType()));
-        infoPanel.add(createStatusLabel(room.getStatus()));
+        infoPanel.add(createStatusLabel(room.isBooked()));
 
         card.add(infoPanel, BorderLayout.CENTER);
 
@@ -431,9 +431,6 @@ public class RoomManagement extends JFrame {
         roomTypes = new JComboBox<>(RoomType.values());
         Utils.addFormField(formPanel, "Room Type:", roomTypes);
 
-        bookedCheckbox = new JCheckBox();
-        Utils.addFormField(formPanel, "Initially Booked:", bookedCheckbox);
-
         mainPanel.add(formPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -462,14 +459,10 @@ public class RoomManagement extends JFrame {
         try {
             int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
             RoomType roomType = (RoomType) roomTypes.getSelectedItem();
-            boolean isBooked = bookedCheckbox.isSelected();
 
             Db.create.addRoom(roomNumber, roomType);
-            if (isBooked) {
-                Db.update.roomStatus(roomNumber, true);
-            }
 
-            allRooms.add(new Room(roomNumber, roomType, isBooked));
+            allRooms.add(new Room(roomNumber, roomType, false, false));
             JOptionPane.showMessageDialog(addRoomDialog,
                     "Room #" + roomNumber + " added successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -683,6 +676,7 @@ public class RoomManagement extends JFrame {
         addAccountDialog.setMinimumSize(new Dimension(400, 350));
         addAccountDialog.setLocationRelativeTo(this);
         addAccountDialog.setVisible(true);
+
         refreshAccounts();
     }
 
@@ -748,12 +742,48 @@ public class RoomManagement extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         panel.setBackground(Utils.secondaryColor);
         if (!switcher) {
-            panel.add(Utils.createActionButton("Book", e -> showCheckInDialog(room)));
-            panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(this, room.getNum())));
+            panel.add(Utils.createActionButton("Book", e -> showBookingDialog(room)));
+            panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(room.getNum())));
         } else {
-            panel.add(Utils.createActionButton("Check Out", e -> showCheckOutDialoge(room)));
+            if (!room.isCheckedIn()) {
+                panel.add(Utils.createActionButton("Check in", e -> showCheckinDialoge(room)));
+                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(room)));
+            } else {
+                panel.add(Utils.createActionButton("Check out", e -> showCheckOutDialoge(room)));
+                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(room)));
+            }
         }
         return panel;
+    }
+
+    private void cancelBookingDialoge(Room room) {
+
+    }
+
+    private JDialog showCheckinDialoge(Room room) {
+        JDialog checkInPanel = new JDialog(this, "Room #" + room.getNum(), true);
+        checkInPanel.setSize(600, 400);
+        checkInPanel.setLocationRelativeTo(this);
+        checkInPanel.getContentPane().setBackground(Utils.secondaryColor);
+
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        mainPanel.setBackground(Utils.secondaryColor);
+
+        JPanel roomInfoPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        roomInfoPanel.setBorder(BorderFactory.createTitledBorder("Room Information"));
+        roomInfoPanel.setBackground(Utils.secondaryColor);
+
+        Utils.addFormField(roomInfoPanel, "Room Number:", new JLabel(String.valueOf(room.getNum())));
+        Utils.addFormField(roomInfoPanel, "Room Type:", new JLabel(Room.convertRm(room.getRoomType())));
+        Utils.addFormField(roomInfoPanel, "Daily Rate:", new JLabel(String.valueOf(Room.getRate(room.getRoomType()))));
+
+        mainPanel.add(roomInfoPanel, BorderLayout.NORTH);
+        checkInPanel.add(mainPanel);
+        checkInPanel.setVisible(true);
+
+        return checkInPanel;
+
     }
 
     private JDialog showCheckOutDialoge(Room room) {
@@ -761,6 +791,7 @@ public class RoomManagement extends JFrame {
         checkOutPanel.setSize(600, 400);
         checkOutPanel.setLocationRelativeTo(this);
         checkOutPanel.getContentPane().setBackground(Utils.secondaryColor);
+
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         mainPanel.setBackground(Utils.secondaryColor);
@@ -776,6 +807,7 @@ public class RoomManagement extends JFrame {
         mainPanel.add(roomInfoPanel, BorderLayout.NORTH);
         checkOutPanel.add(mainPanel);
         checkOutPanel.setVisible(true);
+
         return checkOutPanel;
     }
 
@@ -893,7 +925,7 @@ public class RoomManagement extends JFrame {
         }
     }
 
-    private void showCheckInDialog(Room room) {
+    private void showBookingDialog(Room room) {
         checkInDialog = new JDialog(this, "Book - Room #" + room.getNum(), true);
         checkInDialog.setSize(600, 600);
         checkInDialog.setLocationRelativeTo(this);
@@ -983,7 +1015,7 @@ public class RoomManagement extends JFrame {
         }
 
         JButton submitButton = Utils.createActionButton("Finish Booking", e -> {
-            completeCheckButtonAction(room);
+            finishBookingAction(room);
         });
 
         JPanel centerPanel = new JPanel(new BorderLayout(10, 10));
@@ -1025,7 +1057,7 @@ public class RoomManagement extends JFrame {
         }
     }
 
-    private void completeCheckButtonAction(Room room) {
+    private void finishBookingAction(Room room) {
         int customerId = verifyCustomerAction();
 
         Date checkInDate = (Date) checkInSpinner.getValue();
@@ -1071,11 +1103,12 @@ public class RoomManagement extends JFrame {
         // 0 successful
         if (successfullBooking == 0) {
             JOptionPane.showMessageDialog(checkInDialog,
-                    "Room #" + room.getNum() + " checked in successfully!",
+                    "Room #" + room.getNum() + " booked successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
 
             checkInDialog.dispose();
             loadRooms();
+            loadBookedRooms();
 
         } else if (successfullBooking == -1) {
             JOptionPane.showMessageDialog(checkInDialog,

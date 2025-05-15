@@ -32,7 +32,8 @@ public class Select {
             if (result.next()) {
                 System.out.println("Room " + roomNumber + " Found.");
                 return new Room(result.getInt("room_number"),
-                        Room.convertStr(result.getString("room_type")), result.getBoolean("room_status"));
+                        Room.convertStr(result.getString("room_type")), result.getBoolean("room_status"),
+                        result.getBoolean("room_checkedin"));
 
             } else {
                 System.err.println("Query-Error: Room Not Found");
@@ -55,7 +56,7 @@ public class Select {
             ResultSet result = ps.executeQuery();
             while (result.next()) {
                 rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
-                        result.getBoolean("room_status")));
+                        result.getBoolean("room_status"), result.getBoolean("room_checkedin")));
             }
 
             return rooms;
@@ -76,7 +77,7 @@ public class Select {
 
             while (result.next()) {
                 rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
-                        result.getBoolean("room_status")));
+                        result.getBoolean("room_status"), result.getBoolean("room_checkedin")));
             }
 
             return rooms;
@@ -99,7 +100,7 @@ public class Select {
             ResultSet result = ps.executeQuery();
             while (result.next()) {
                 rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
-                        result.getBoolean("room_status")));
+                        result.getBoolean("room_status"), result.getBoolean("room_checkedin")));
             }
 
             return rooms;
@@ -124,7 +125,7 @@ public class Select {
 
             while (result.next()) {
                 rooms.add(new Room(result.getInt("room_number"), Room.convertStr(result.getString("room_type")),
-                        result.getBoolean("room_status")));
+                        result.getBoolean("room_status"), result.getBoolean("room_checkedin")));
             }
 
             return rooms;
@@ -146,7 +147,8 @@ public class Select {
             ResultSet result = ps.executeQuery();
             while (result.next()) {
                 rooms.add(new Room(result.getInt("room_number"),
-                        Room.convertStr(result.getString("room_type"))));
+                        Room.convertStr(result.getString("room_type")), result.getBoolean("room_status"),
+                        result.getBoolean("room_checkedin")));
             }
             return rooms;
         } catch (SQLException e) {

@@ -22,7 +22,7 @@ public class Payment {
         boolean success = applyPayment(amountPaid);
         if (success) {
             Db.update.updateCustomerBalance(customer.getId(), balance);
-            Db.update.updateBillStatus(billId, Billing.BillingStatus.PAID);
+            Db.update.updateBill(billId, Billing.BillingStatus.PAID);
         }
         return success;
     }

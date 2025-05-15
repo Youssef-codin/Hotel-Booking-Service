@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
@@ -68,29 +67,29 @@ public class Update {
         }
     }
 
-    public void rooms(ArrayList<Room> newRooms) {
-
-        int updates = 0;
-        try (Connection conn = Db.connect()) {
-            for (int i = 0; i < newRooms.size(); i++) {
-                PreparedStatement ps = conn
-                        .prepareStatement("UPDATE room SET room_type = ?, room_status = ? WHERE room_number = ?");
-                ps.setString(1, Room.convertRm(newRooms.get(i).getRoomType()));
-                ps.setBoolean(2, newRooms.get(i).getStatus());
-                ps.setInt(3, newRooms.get(i).getNum());
-                updates += ps.executeUpdate();
-            }
-            System.out.println("updated " + updates + " rows!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void roomStatus(int roomNum, boolean status) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("UPDATE room SET room_status = ? WHERE room_number = ?");
             ps.setBoolean(1, status);
             ps.setInt(2, roomNum);
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) {
+                System.err.println("Room not found.");
+            }
+
+            System.out.println("updated " + rows + " rows!");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(e.getErrorCode());
+        }
+    }
+
+    public void roomCheckIn(int roomNum) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("UPDATE room SET room_checkedin = true WHERE room_number = ?");
+            ps.setInt(1, roomNum);
 
             int rows = ps.executeUpdate();
             if (rows == 0) {
@@ -167,7 +166,7 @@ public class Update {
                     // Update existing bill
                     if (existingBill.getStatus() == Billing.BillingStatus.PAID) {
                         existingBill.setStatus(Billing.BillingStatus.PENDING);
-                        updateBillStatus(existingBill);
+                        updateBill(existingBill);
                     }
 
                 } else {
@@ -212,7 +211,7 @@ public class Update {
 
     // billing
 
-    public void updateBillStatus(int billId, Billing.BillingStatus status) {
+    public void updateBill(int billId, Billing.BillingStatus status) {
         if (status != Billing.BillingStatus.PAID && status != Billing.BillingStatus.PENDING) {
             System.err.println("Invalid status: " + status);
             return;
@@ -234,7 +233,7 @@ public class Update {
         }
     }
 
-    public void updateBillStatus(Billing billing) {
+    public void updateBill(Billing billing) {
         if (billing.getStatus() != Billing.BillingStatus.PAID && billing.getStatus() != Billing.BillingStatus.PENDING) {
             System.err.println("Invalid status: " + billing.getStatus());
             return;
@@ -254,9 +253,5 @@ public class Update {
             e.printStackTrace();
             System.err.println("Database error: " + e.getMessage());
         }
-    }
-
-    public void updateBill(Billing billing) {
-        updateBillStatus(billing);
     }
 }

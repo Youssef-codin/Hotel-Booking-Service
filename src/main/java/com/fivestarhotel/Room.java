@@ -28,26 +28,30 @@ public class Room {
         }
     }
 
+    // TODO: need to add checkedIn shit
     private int number;
     private int floor;
     private RoomType roomType;
     private static int srate = 750, drate = 1200, Srate = 2200; // you can load the rates from the Db.select.loadRates()
     private boolean isBooked;
+    private boolean checkedIn;
 
     public Room(int number, RoomType type) {
 
         this.number = number;
         this.floor = ((number - 1) / 100) + 1;
-        roomType = type;
+        this.roomType = type;
         this.isBooked = false;
+        this.checkedIn = false;
     }
 
-    public Room(int number, RoomType type, boolean isBooked) {
+    public Room(int number, RoomType type, boolean isBooked, boolean checkedIn) {
 
         this.number = number;
         this.floor = ((number - 1) / 100) + 1;
-        roomType = type;
+        this.roomType = type;
         this.isBooked = isBooked;
+        this.checkedIn = checkedIn;
     }
 
     public static Room.RoomType convertStr(String roomType) {
@@ -133,8 +137,12 @@ public class Room {
         }
     }
 
-    public boolean getStatus() {
+    public boolean isBooked() {
         return isBooked;
+    }
+
+    public boolean isCheckedIn() {
+        return checkedIn;
     }
 
     public void setStatus(boolean newStatus) {
@@ -149,4 +157,5 @@ public class Room {
         System.out.println("booked: " + this.isBooked);
 
     }
+
 }

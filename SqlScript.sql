@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS HMSDB.room (
   room_floor INT NOT NULL,
   room_type VARCHAR(45) NULL,
   room_status boolean NULL,
+  room_checkedin boolean NULL,
   PRIMARY KEY (room_number))
 ENGINE = InnoDB;
 
