@@ -3,6 +3,7 @@ package com.fivestarhotel.GUI;
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
+import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
@@ -12,6 +13,8 @@ import com.fivestarhotel.users.User;
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 public class RoomManagement extends JFrame {
@@ -31,6 +34,7 @@ public class RoomManagement extends JFrame {
     private JButton addButton, removeButton;
     private JScrollPane adminSection, recepSection, custSection;
     private BookingCalendar calendar = new BookingCalendar();
+    JComboBox<String> receptionistCombo;
 
     // Lists
     private ArrayList<Room> allRooms = Db.select.getRooms();
@@ -434,23 +438,17 @@ public class RoomManagement extends JFrame {
         JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        panel.add(createDetailLabel("ID: " + user.getId()));
-        panel.add(createDetailLabel("Name: " + user.getFullName()));
-        panel.add(createDetailLabel("Email: " + user.getEmail()));
+        panel.add(Utils.createDetailLabel("ID: " + user.getId()));
+        panel.add(Utils.createDetailLabel("Name: " + user.getFullName()));
+        panel.add(Utils.createDetailLabel("Email: " + user.getEmail()));
         if (user instanceof Customer) {
-            panel.add(createDetailLabel("Phone: " + ((Customer) user).getPhone()));
-            panel.add(createDetailLabel("Address: " + ((Customer) user).getAddress()));
-            panel.add(createDetailLabel("Balance: " + ((Customer) user).getBalance()));
+            panel.add(Utils.createDetailLabel("Phone: " + ((Customer) user).getPhone()));
+            panel.add(Utils.createDetailLabel("Address: " + ((Customer) user).getAddress()));
+            panel.add(Utils.createDetailLabel("Balance: " + ((Customer) user).getBalance()));
         }
         detailsDialog.add(panel);
         detailsDialog.setLocationRelativeTo(this);
         detailsDialog.setVisible(true);
-    }
-
-    private JLabel createDetailLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        return label;
     }
 
     private void updateHeaderButtons() {
@@ -666,7 +664,7 @@ public class RoomManagement extends JFrame {
         panel.setBackground(Utils.OFF_WHITE);
 
         panel.add(Utils.createActionButton("Book", e -> showCheckInDialog(room)));
-        panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(room.getNum())));
+        panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(this, room.getNum())));
 
         return panel;
     }
@@ -807,7 +805,7 @@ public class RoomManagement extends JFrame {
         verifyPanel.setBackground(Utils.OFF_WHITE);
 
         customerIdField = new JTextField();
-        JButton verifyButton = new JButton("Verify Customer");
+        JButton verifyButton = Utils.createActionButton("Verify Customer", e -> verifyCustomerAction());
         Utils.styleButton(verifyButton, Utils.BROWN);
 
         Utils.addFormField(verifyPanel, "Customer ID:", customerIdField);
@@ -861,7 +859,7 @@ public class RoomManagement extends JFrame {
                 recepStrings[i] = "Receptionist ID: " + receptionists.get(i).getId();
             }
 
-            JComboBox<String> receptionistCombo = new JComboBox<>(recepStrings);
+            receptionistCombo = new JComboBox<>(recepStrings);
             Utils.addFormField(datesPanel, "Receptionist:", receptionistCombo);
         }
 
@@ -881,65 +879,78 @@ public class RoomManagement extends JFrame {
         checkInDialog.setVisible(true);
     }
 
-    private void completeCheckButtonAction(Room room) {
-        try {
-            if (customerIdField.getText().isEmpty()) {
-                customerInfoLabel.setText("Please enter a customer ID");
-                return;
-            }
+    private int verifyCustomerAction() {
+        if (customerIdField.getText().isEmpty()) {
+            customerInfoLabel.setText("Please enter a customer ID");
+            customerInfoLabel.setForeground(Color.BLACK);
+            return -1;
+        }
 
-            int customerId = Integer.parseInt(customerIdField.getText());
-            if (customerId > 0) {
+        int customerId = Integer.parseInt(customerIdField.getText());
+
+        if (customerId <= 0) {
+            customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
+            customerInfoLabel.setForeground(Color.RED);
+            return -1;
+        } else {
+
+            User user = Db.select.getUserById(UserRoles.CUSTOMER, customerId);
+            if (user != null) {
                 customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
                 customerInfoLabel.setForeground(new Color(0, 128, 0));
-            } else {
-                customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
-                customerInfoLabel.setForeground(Color.RED);
-                tabbedPane.setSelectedIndex(1);
+
+                return customerId;
             }
-        } catch (NumberFormatException ex) {
-            customerInfoLabel.setText("Please enter a valid customer ID");
+            customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
             customerInfoLabel.setForeground(Color.RED);
+            return -1;
+        }
+    }
+
+    private void completeCheckButtonAction(Room room) {
+        int customerId = verifyCustomerAction();
+
+        Date checkInDate = (Date) checkInSpinner.getValue();
+        Date checkOutDate = (Date) checkOutSpinner.getValue();
+
+        LocalDate checkInLocalDate = checkInDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate checkOutLocalDate = checkOutDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        if (checkOutDate.before(checkInDate)) {
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Check-out date must be after check-in date",
+                    "Invalid Dates", JOptionPane.ERROR_MESSAGE);
+            return;
         }
 
-        try {
-            Date checkInDate = (Date) checkInSpinner.getValue();
-            Date checkOutDate = (Date) checkOutSpinner.getValue();
-
-            if (checkOutDate.before(checkInDate)) {
+        if (tabbedPane.getSelectedIndex() == 0) {
+            if (customerId == -1) {
                 JOptionPane.showMessageDialog(checkInDialog,
-                        "Check-out date must be after check-in date",
-                        "Invalid Dates", JOptionPane.ERROR_MESSAGE);
+                        "Please verify customer ID first",
+                        "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
-            if (tabbedPane.getSelectedIndex() == 0) {
-                if (customerIdField.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(checkInDialog,
-                            "Please verify customer ID first",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } else {
-                if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(checkInDialog,
-                            "First and last name are required",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
+        } else {
+            if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(checkInDialog,
+                        "First and last name are required",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-
-            JOptionPane.showMessageDialog(checkInDialog,
-                    "Room #" + room.getNum() + " checked in successfully! (Mock implementation)",
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
-
-            checkInDialog.dispose();
-            loadRooms();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(checkInDialog,
-                    "Error during check-in: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
         }
+
+        String selectedRecep = (String) receptionistCombo.getSelectedItem();
+        String[] parts = selectedRecep.split(": ");
+        int receptionist_id = Integer.parseInt(parts[1]);
+
+        Booking booking = new Booking(room, customerId, receptionist_id, checkInLocalDate, checkInLocalDate);
+        Db.create.addBooking(booking);
+        JOptionPane.showMessageDialog(checkInDialog,
+                "Room #" + room.getNum() + " checked in successfully!",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+
+        checkInDialog.dispose();
+        loadRooms();
     }
 
     public static void main(String[] args) {
