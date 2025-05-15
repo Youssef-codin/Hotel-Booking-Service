@@ -27,6 +27,7 @@ public class RoomManagement extends JFrame {
     private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel,
             bookedRoomsPanel;
     private JProgressBar loadingBar;
+    private JCheckBox bookedCheckbox;
     private JComboBox<RoomType> roomTypes;
     private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[] { "Admin", "Receptionist", "Customer" });
     private JLabel customerInfoLabel;
@@ -430,6 +431,9 @@ public class RoomManagement extends JFrame {
 
         roomTypes = new JComboBox<>(RoomType.values());
         Utils.addFormField(formPanel, "Room Type:", roomTypes);
+
+        bookedCheckbox = new JCheckBox();
+        Utils.addFormField(formPanel, "Initially Booked:", bookedCheckbox);
 
         mainPanel.add(formPanel, BorderLayout.CENTER);
 

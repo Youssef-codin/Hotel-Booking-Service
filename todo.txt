@@ -1,0 +1,12 @@
+- UI dialoges for check in and check out and cancel button for booked rooms
+- multiple rooms button/option Could be just a checkbox for add room
+- search accounts using name (use db select method will make it easier)
+- a way to find booking for a customer
+
+#Bugs
+
+- after adding a booking, the bookings doesnt update
+- bookings doesnt show multiple bookings for same room
+- bookings search dont work
+
+
