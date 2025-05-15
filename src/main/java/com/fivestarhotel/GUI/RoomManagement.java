@@ -943,7 +943,7 @@ public class RoomManagement extends JFrame {
         String[] parts = selectedRecep.split(": ");
         int receptionist_id = Integer.parseInt(parts[1]);
 
-        Booking booking = new Booking(room, customerId, receptionist_id, checkInLocalDate, checkInLocalDate);
+        Booking booking = new Booking(room, customerId, receptionist_id, checkInLocalDate, checkOutLocalDate);
         Db.create.addBooking(booking);
         JOptionPane.showMessageDialog(checkInDialog,
                 "Room #" + room.getNum() + " checked in successfully!",
