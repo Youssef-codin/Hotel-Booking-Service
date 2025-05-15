@@ -469,7 +469,7 @@ public class RoomManagement extends JFrame {
 
             allRooms.add(new Room(roomNumber, roomType, isBooked));
             JOptionPane.showMessageDialog(addRoomDialog,
-                    "Room #" + roomNumber + " added successfully! (Mock implementation)",
+                    "Room #" + roomNumber + " added successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
             addRoomDialog.dispose();
             loadRooms();
