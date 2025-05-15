@@ -19,36 +19,32 @@ import java.util.Date;
 
 public class BookingCalendar {
 
-    private RoomManagement rm;
     private JCalendar calendar;
-    JFrame frame;
+    private JFrame frame;
+    private JPanel dayPanel;
 
     public JCalendar showCalendar(RoomManagement rm, int roomNum) {
-        // Get bookings for the room
         ArrayList<Booking> bookings = Db.select.getBookings(roomNum);
-        this.rm = rm;
 
         if (bookings == null || bookings.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No bookings found for room " + roomNum);
             return null;
         }
 
-        // Create a JCalendar
         calendar = new JCalendar();
 
         // Add a listener to detect month changes
         calendar.addPropertyChangeListener("calendar", new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                // Reapply highlights when the month changes
-                JPanel dayPanel = calendar.getDayChooser().getDayPanel();
-                highlightDays(bookings, dayPanel, calendar, roomNum);
+                dayPanel = calendar.getDayChooser().getDayPanel();
+                highlightDays(bookings, roomNum);
             }
         });
 
         // Highlight the initial month
-        JPanel dayPanel = calendar.getDayChooser().getDayPanel();
-        highlightDays(bookings, dayPanel, calendar, roomNum);
+        dayPanel = calendar.getDayChooser().getDayPanel();
+        highlightDays(bookings, roomNum);
 
         // Create a JFrame to display the calendar
         frame = new JFrame("Room " + roomNum + " Bookings");
@@ -61,11 +57,9 @@ public class BookingCalendar {
         return calendar;
     }
 
-    private void highlightDays(ArrayList<Booking> bookings, JPanel dayPanel, JCalendar calendar, int roomNum) {
-        // Clear any previous highlights
-        clearHighlights(dayPanel);
+    private void highlightDays(ArrayList<Booking> bookings, int roomNum) {
+        clearHighlights();
 
-        // Get the currently displayed month and year
         Date displayedDate = calendar.getDate();
         LocalDate displayedMonth = displayedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
@@ -77,15 +71,14 @@ public class BookingCalendar {
                 // Only highlight dates in the currently displayed month
                 if (checkIn.getMonth() == displayedMonth.getMonth() && checkIn.getYear() == displayedMonth.getYear()) {
                     Date currentDate = Date.from(checkIn.atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    highlightDate(dayPanel, currentDate, booking, roomNum);
+                    highlightDate(currentDate, booking, roomNum);
                 }
                 checkIn = checkIn.plusDays(1);
             }
         }
     }
 
-    private void highlightDate(JPanel dayPanel, Date date, Booking booking, int roomNum) {
-
+    private void highlightDate(Date date, Booking booking, int roomNum) {
         LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         int dayOfMonth = localDate.getDayOfMonth();
 
@@ -95,18 +88,24 @@ public class BookingCalendar {
                 JButton dayButton = (JButton) component;
 
                 if (dayButton.getText().equals(String.valueOf(dayOfMonth))) {
-                    // Highlight the button
                     dayButton.setBackground(Color.RED); // Highlight with red background
                     dayButton.setOpaque(true);
                     dayButton.setForeground(Color.WHITE); // Change text color to white
 
-                    dayButton.addActionListener(e -> onDateClicked(localDate, booking, roomNum));
+                    for (ActionListener listener : dayButton.getActionListeners()) {
+                        dayButton.removeActionListener(listener);
+                    }
+
+                    dayButton.addActionListener(e -> {
+                        // Show booking details for this specific booking and room
+                        showBookingDetails(localDate, booking, roomNum);
+                    });
                 }
             }
         }
     }
 
-    private void clearHighlights(JPanel dayPanel) {
+    private void clearHighlights() {
         // Reset all buttons to their default appearance
         Component[] components = dayPanel.getComponents();
         for (Component component : components) {
@@ -115,22 +114,13 @@ public class BookingCalendar {
                 dayButton.setBackground(null); // Reset background
                 dayButton.setOpaque(false);
                 dayButton.setForeground(Color.BLACK); // Reset text color
-                // Remove any existing ActionListeners
-                for (ActionListener listener : dayButton.getActionListeners()) {
-                    dayButton.removeActionListener(listener);
-                }
             }
         }
     }
 
-    private void onDateClicked(LocalDate date, Booking booking, int roomNum) {
-        showBookingDetails(booking);
-
-    }
-
-    public void showBookingDetails(Booking booking) {
-        JDialog detailsDialog = new JDialog(frame, "Booking Details", true);
-        detailsDialog.setSize(300, 250);
+    public void showBookingDetails(LocalDate date, Booking booking, int roomNum) {
+        JDialog detailsDialog = new JDialog(frame, "Bookings for Room " + roomNum + " on " + date, true);
+        detailsDialog.setSize(400, 300);
         detailsDialog.setBackground(Utils.BROWN);
 
         JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
@@ -138,10 +128,10 @@ public class BookingCalendar {
 
         User customer = Db.select.getUserById(UserRoles.CUSTOMER, booking.getCustomer_id());
 
-        panel.add(Utils.createDetailLabel("ID: " + booking.getBooking_id()));
-        panel.add(Utils.createDetailLabel("Room number: " + booking.getRoom().getNum()));
-        panel.add(Utils.createDetailLabel("Customer Id: " + customer.getId()));
-        panel.add(Utils.createDetailLabel("Customer name: " + customer.getFullName()));
+        panel.add(Utils.createDetailLabel("Booking ID: " + booking.getBooking_id()));
+        panel.add(Utils.createDetailLabel("Room Number: " + booking.getRoom().getNum()));
+        panel.add(Utils.createDetailLabel("Customer ID: " + customer.getId()));
+        panel.add(Utils.createDetailLabel("Customer Name: " + customer.getFullName()));
         panel.add(Utils.createDetailLabel("Check-in Date: " + booking.getCheckInDate()));
         panel.add(Utils.createDetailLabel("Check-out Date: " + booking.getCheckOutDate()));
         panel.add(Utils.createDetailLabel("Balance: " + ((Customer) customer).getBalance()));

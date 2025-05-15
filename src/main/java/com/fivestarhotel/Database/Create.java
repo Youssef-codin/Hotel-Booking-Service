@@ -13,6 +13,7 @@ import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
+import com.fivestarhotel.Billing.BillingStatus;
 import com.fivestarhotel.Room.RoomType;
 import static com.fivestarhotel.security.Crypto.makeSalt;
 import static com.fivestarhotel.security.Crypto.stringToHash;
@@ -223,7 +224,7 @@ public class Create {
                 PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)");
 
-                ps.setInt(1, booking.getBooking_id());
+                ps.setInt(1, Db.select.lastBookingId() + 1);
                 ps.setInt(2, booking.getRoom().getNum());
                 ps.setInt(3, booking.getCustomer_id());
                 ps.setInt(4, booking.getReceptionist_id());
@@ -234,15 +235,10 @@ public class Create {
                 Db.update.roomStatus(booking.getRoom().getNum(), true);
 
                 // Calculate bill amount
-                double amount = Billing.calculateAmount(booking);
 
                 // Create bill
-                Billing bill = new Billing(
-                        Db.select.lastBookingId(),
-                        booking.getCustomer_id(),
-                        Billing.BillingStatus.PENDING);
+                Billing bill = new Billing(Db.select.lastBookingId(), BillingStatus.PENDING);
                 addBill(bill);
-                System.out.println("Added bill for booking ID: " + booking.getBooking_id() + ", Amount: $" + amount);
                 return 0;
 
             } catch (SQLException e) {
