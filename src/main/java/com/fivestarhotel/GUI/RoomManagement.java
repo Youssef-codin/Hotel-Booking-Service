@@ -24,7 +24,7 @@ public class RoomManagement extends JFrame {
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, searchNumber;
     private String currentUserRole;
-    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel;
+    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel, bookedRoomsPanel;
     private JProgressBar loadingBar;
     private JCheckBox bookedCheckbox;
     private JComboBox<RoomType> roomTypes;
@@ -38,9 +38,7 @@ public class RoomManagement extends JFrame {
 
     // Lists
     private ArrayList<Room> allRooms = Db.select.getRooms();
-    private ArrayList<Room> allBookedRooms = Db.select.getRooms();
-    private ArrayList<Room> allLogs;
-    private ArrayList<Room> activeLogs;
+    private ArrayList<Room> allBookedRooms = Db.select.getRooms(true);
     private ArrayList<User> allAdminAccounts = Db.select.getAllUsers(Db.UserRoles.ADMIN);
     private ArrayList<User> allRecepAccounts = Db.select.getAllUsers(Db.UserRoles.RECEPTIONIST);
     private ArrayList<User> allCustAccounts = Db.select.getAllUsers(Db.UserRoles.CUSTOMER);
@@ -122,48 +120,67 @@ public class RoomManagement extends JFrame {
 
         tabbedPane.addTab("Rooms", createRoomsScrollPane());
         tabbedPane.addTab("Accounts", createAccountsPanel());
-        tabbedPane.addTab("Room Logs", new JPanel());
+        tabbedPane.addTab("Bookings", createBookedRoomsScrollPane());
 
         return tabbedPane;
     }
 
     private void SearchButton() {
         try {
-            searchNumber = Integer.parseInt(searchField.getText().trim()) - 1;
+            searchNumber = Integer.parseInt(searchField.getText().trim());
+            if (searchNumber >= 0) {
+                switch (tabbedPane.getSelectedIndex()) {
+                    case 0 -> {
+                        if (allRooms.size() >= searchNumber) {
+                            Room room = Db.select.getRoom(searchNumber);
+                            if (!(room == null)) {
+                                loadRoom(room);
+                            }
 
-            switch (tabbedPane.getSelectedIndex()) {
-                case 0 -> {
-                    if (allRooms.size() > searchNumber && searchNumber >= 0) {
-                        loadRoom(allRooms.get(searchNumber));
+                        } else {
+                            loadRooms();
+                        }
+                    }
+
+                    case 1 -> {
+                        if (!allAdminAccounts.isEmpty() && allAdminAccounts.size() >= searchNumber) {
+                            User admin = Db.select.getUserById(UserRoles.ADMIN, searchNumber);
+                            if (!(admin == null)) {
+                                loadAccount(admin, adminPanel);
+                                loadAccountSections();
+                            }
+                        } else {
+                            loadAccounts(adminPanel, allAdminAccounts);
+                        }
+
+                        if (!allRecepAccounts.isEmpty() && allRecepAccounts.size() >= searchNumber) {
+                            User recep = Db.select.getUserById(UserRoles.RECEPTIONIST, searchNumber);
+                            if (!(recep == null)) {
+                                loadAccount(recep, recepPanel);
+                                loadAccountSections();
+                            }
+                        } else {
+                            loadAccounts(recepPanel, allRecepAccounts);
+                        }
+
+                        if (!allCustAccounts.isEmpty() && allCustAccounts.get(allCustAccounts.size() - 1).getId() >= searchNumber && allCustAccounts.get(0).getId() <= searchNumber) {
+                            User cust = Db.select.getUserById(UserRoles.CUSTOMER, searchNumber);
+                            if(!(cust == null)) {
+                                loadAccount(cust, custPanel);
+                                loadAccountSections();
+                            }
+                        } else {
+                            loadAccounts(custPanel, allCustAccounts);
+                        }
                     }
                 }
-
-                case 1 -> {
-                    if (!allAdminAccounts.isEmpty()) {
-                        loadAccount(allAdminAccounts.get(searchNumber), adminPanel);
-                        loadAccountSections();
-                    } else {
-                        loadAccounts(adminPanel, allAdminAccounts);
-                    }
-
-                    if (!allRecepAccounts.isEmpty()) {
-                        loadAccount(allRecepAccounts.get(searchNumber), recepPanel);
-                        loadAccountSections();
-                    } else {
-                        loadAccounts(recepPanel, allRecepAccounts);
-                    }
-
-                    if (!allCustAccounts.isEmpty()) {
-                        loadAccount(allCustAccounts.get(searchNumber), custPanel);
-                        loadAccountSections();
-                    } else {
-                        loadAccounts(custPanel, allCustAccounts);
-                    }
-                }
+            } else{
+                loadAccountSections();
+                loadRooms();
             }
-        } catch (NumberFormatException a) {
-            loadAccountSections();
-            loadRooms();
+        } catch(NumberFormatException a){
+                loadAccountSections();
+                loadRooms();
         }
     }
 
@@ -196,6 +213,19 @@ public class RoomManagement extends JFrame {
         return scrollPane;
     }
 
+    private JScrollPane createBookedRoomsScrollPane() {
+        bookedRoomsPanel = new JPanel(new WrapLayout(WrapLayout.LEADING, 20, 20));
+        bookedRoomsPanel.setBackground(Utils.OFF_WHITE);
+        bookedRoomsPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JScrollPane scrollPane = new JScrollPane(bookedRoomsPanel);
+        scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        loadBookedRooms();
+        return scrollPane;
+    }
+
     private JScrollPane createAccountScrollPane(String title, ArrayList<User> users, JPanel sectionPanel) {
         sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
         sectionPanel.setBackground(Utils.OFF_WHITE);
@@ -225,6 +255,25 @@ public class RoomManagement extends JFrame {
 
             roomsPanel.revalidate();
             roomsPanel.repaint();
+        });
+    }
+
+    private void loadBookedRooms() {
+        bookedRoomsPanel.removeAll();
+        bookedRoomsPanel.revalidate();
+        bookedRoomsPanel.repaint();
+
+        SwingUtilities.invokeLater(() -> {
+            bookedRoomsPanel.removeAll();
+
+            if (allBookedRooms.isEmpty()) {
+                bookedRoomsPanel.add(new JLabel("No rooms found"));
+            } else {
+                allBookedRooms.forEach(room -> addRoomCard(room));
+            }
+
+            bookedRoomsPanel.revalidate();
+            bookedRoomsPanel.repaint();
         });
     }
 
@@ -269,6 +318,7 @@ public class RoomManagement extends JFrame {
         sectionPanel.add(new JLabel("Loading Account..."));
 
         Timer timer = new Timer(1000, e -> {
+            sectionPanel.removeAll();
             sectionPanel.add(addAccountCard(user));
             sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
             sectionPanel.revalidate();
@@ -433,9 +483,9 @@ public class RoomManagement extends JFrame {
     private void showUserDetails(User user) {
         JDialog detailsDialog = new JDialog(this, "User Details", true);
         detailsDialog.setSize(300, 250);
-        detailsDialog.setBackground(Utils.BROWN);
 
-        JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
+        JPanel panel = new JPanel(new GridLayout(0, 1, 0, 0));
+        panel.setBackground(Utils.OFF_WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         panel.add(Utils.createDetailLabel("ID: " + user.getId()));
@@ -587,7 +637,7 @@ public class RoomManagement extends JFrame {
         JButton cancelButton = Utils.createActionButton("Cancel", e -> {
             addAccountDialog.dispose();
         });
-
+        passwordField.addActionListener(e -> submitButton.doClick());
         buttonPanel.add(submitButton);
         buttonPanel.add(cancelButton);
 
@@ -599,6 +649,7 @@ public class RoomManagement extends JFrame {
         addAccountDialog.setMinimumSize(new Dimension(400, 350));
         addAccountDialog.setLocationRelativeTo(this);
         addAccountDialog.setVisible(true);
+        refreshAccounts();
     }
 
     private void showRemoveAccountDialog() {
