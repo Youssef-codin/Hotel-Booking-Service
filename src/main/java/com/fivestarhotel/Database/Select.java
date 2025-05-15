@@ -227,24 +227,6 @@ public class Select {
         }
     }
 
-    public int lastBookignNum() {
-        try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn
-                    .prepareStatement("SELECT * from booking ORDER BY booking_id DESC LIMIT 1");
-            ResultSet result = ps.executeQuery();
-            if (result.next()) {
-                return result.getInt("booking_id");
-            } else {
-                System.err.println("Last id not found.");
-                return 0;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println(e.getErrorCode());
-            return 0;
-        }
-    }
-
     public int getRate(RoomType type) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM rates WHERE room_type = ?");
@@ -425,7 +407,7 @@ public class Select {
         ArrayList<Booking> bookings = new ArrayList<>();
 
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id = ?");
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE room_number = ?");
             ps.setInt(1, roomNum);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -606,12 +588,12 @@ public class Select {
 
     public Billing getBill(int billId) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM billing WHERE bill_id = ?");
+            PreparedStatement ps = conn.prepareStatement("SELECT * FROM billing WHERE billing_id = ?");
             ps.setInt(1, billId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Billing(
-                        rs.getInt("bill_id"),
+                        rs.getInt("billing_id"),
                         rs.getInt("booking_id"),
                         Billing.convertStr(rs.getString("billing_status")));
             } else {
@@ -632,7 +614,7 @@ public class Select {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Billing(
-                        rs.getInt("bill_id"),
+                        rs.getInt("billing_id"),
                         rs.getInt("booking_id"),
                         Billing.convertStr(rs.getString("billing_status")));
             } else {
@@ -653,7 +635,7 @@ public class Select {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Billing(
-                        rs.getInt("bill_id"),
+                        rs.getInt("billing_id"),
                         rs.getInt("booking_id"),
                         Billing.convertStr(rs.getString("billing_status")));
             } else {
@@ -675,7 +657,7 @@ public class Select {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 bills.add(new Billing(
-                        rs.getInt("bill_id"),
+                        rs.getInt("billing_id"),
                         rs.getInt("booking_id"),
                         Billing.convertStr(rs.getString("billing_status"))));
             }
@@ -694,7 +676,7 @@ public class Select {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 bills.add(new Billing(
-                        rs.getInt("bill_id"),
+                        rs.getInt("billing_id"),
                         rs.getInt("booking_id"),
                         Billing.convertStr(rs.getString("billing_status"))));
             }
@@ -806,7 +788,7 @@ public class Select {
         }
     }
 
-    public User getUsersByEmail(UserRoles role, String email) {
+    public User getUserByEmail(UserRoles role, String email) {
         User user = null;
 
         System.out.println(role.toString());
