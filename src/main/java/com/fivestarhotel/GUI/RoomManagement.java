@@ -1,7 +1,9 @@
 package com.fivestarhotel.GUI;
 
 import com.fivestarhotel.Database.Db;
+import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
+import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
@@ -11,6 +13,8 @@ import com.fivestarhotel.users.User;
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 public class RoomManagement extends JFrame {
@@ -29,9 +33,12 @@ public class RoomManagement extends JFrame {
     private JTabbedPane tabbedPane;
     private JButton addButton, removeButton;
     private JScrollPane adminSection, recepSection, custSection;
+    private BookingCalendar calendar = new BookingCalendar();
+    JComboBox<String> receptionistCombo;
 
     // Lists
     private ArrayList<Room> allRooms = Db.select.getRooms();
+    private ArrayList<Room> allBookedRooms = Db.select.getRooms();
     private ArrayList<Room> allLogs;
     private ArrayList<Room> activeLogs;
     private ArrayList<User> allAdminAccounts = Db.select.getAllUsers(Db.UserRoles.ADMIN);
@@ -52,22 +59,21 @@ public class RoomManagement extends JFrame {
         setLocationRelativeTo(null);
         getContentPane().setBackground(Utils.OFF_WHITE);
 
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        mainPanel.setBackground(Utils.OFF_WHITE);
+        JPanel anchorPanel = new JPanel(new BorderLayout(10, 10));
+        anchorPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        anchorPanel.setBackground(Utils.OFF_WHITE);
 
-        mainPanel.add(createHeaderPanel(), BorderLayout.NORTH);
+        anchorPanel.add(createHeaderPanel(), BorderLayout.NORTH);
         if (currentUserRole.matches("Admin")) {
-            mainPanel.add(tabbedInterface(), BorderLayout.CENTER);
+            anchorPanel.add(tabbedInterface(), BorderLayout.CENTER);
         } else {
-            mainPanel.add(createRoomsScrollPane(), BorderLayout.CENTER);
+            anchorPanel.add(createRoomsScrollPane(), BorderLayout.CENTER);
         }
 
         loadingBar = Utils.createLoadingBar();
-        mainPanel.add(loadingBar, BorderLayout.SOUTH);
+        anchorPanel.add(loadingBar, BorderLayout.SOUTH);
 
-        add(mainPanel);
-        loadRooms();
+        add(anchorPanel);
     }
 
     private JPanel createHeaderPanel() {
@@ -115,7 +121,7 @@ public class RoomManagement extends JFrame {
 
         tabbedPane.addChangeListener(e -> updateHeaderButtons());
 
-        tabbedPane.addTab("Available Rooms", createRoomsScrollPane());
+        tabbedPane.addTab("Rooms", createRoomsScrollPane());
         tabbedPane.addTab("Accounts", createAccountsPanel());
         tabbedPane.addTab("Room Logs", new JPanel());
 
@@ -124,34 +130,32 @@ public class RoomManagement extends JFrame {
 
     private void SearchButton() {
         try {
-            searchNumber = Integer.parseInt(searchField.getText().trim());
+            searchNumber = Integer.parseInt(searchField.getText().trim()) - 1;
 
             switch (tabbedPane.getSelectedIndex()) {
                 case 0 -> {
-                    if (!allRooms.isEmpty() && allRooms.size() > searchNumber && searchNumber > 0) {
-                        loadRoom(allRooms.get(searchNumber - 1));
-                    }else{
-                        loadRooms();
+                    if (allRooms.size() > searchNumber && searchNumber >= 0) {
+                        loadRoom(allRooms.get(searchNumber));
                     }
                 }
 
                 case 1 -> {
-                    if (!allAdminAccounts.isEmpty() && allAdminAccounts.size() > searchNumber && searchNumber > 0) {
-                        loadAccount(allAdminAccounts.get(searchNumber - 1), adminPanel);
+                    if (!allAdminAccounts.isEmpty()) {
+                        loadAccount(allAdminAccounts.get(searchNumber), adminPanel);
                         loadAccountSections();
                     } else {
                         loadAccounts(adminPanel, allAdminAccounts);
                     }
 
-                    if (!allRecepAccounts.isEmpty() && allRecepAccounts.size() > searchNumber && searchNumber > 0) {
-                        loadAccount(allRecepAccounts.get(searchNumber - 1), recepPanel);
+                    if (!allRecepAccounts.isEmpty()) {
+                        loadAccount(allRecepAccounts.get(searchNumber), recepPanel);
                         loadAccountSections();
                     } else {
                         loadAccounts(recepPanel, allRecepAccounts);
                     }
 
-                    if (!allCustAccounts.isEmpty() && allCustAccounts.size() > searchNumber && searchNumber > 0) {
-                        loadAccount(allCustAccounts.get(searchNumber - 1), custPanel);
+                    if (!allCustAccounts.isEmpty()) {
+                        loadAccount(allCustAccounts.get(searchNumber), custPanel);
                         loadAccountSections();
                     } else {
                         loadAccounts(custPanel, allCustAccounts);
@@ -188,6 +192,7 @@ public class RoomManagement extends JFrame {
         scrollPane.getViewport().setBackground(Utils.OFF_WHITE);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        loadRooms();
         return scrollPane;
     }
 
@@ -264,7 +269,6 @@ public class RoomManagement extends JFrame {
         sectionPanel.add(new JLabel("Loading Account..."));
 
         Timer timer = new Timer(1000, e -> {
-            sectionPanel.removeAll();
             sectionPanel.add(addAccountCard(user));
             sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
             sectionPanel.revalidate();
@@ -434,23 +438,17 @@ public class RoomManagement extends JFrame {
         JPanel panel = new JPanel(new GridLayout(0, 1, 5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        panel.add(createDetailLabel("ID: " + user.getId()));
-        panel.add(createDetailLabel("Name: " + user.getFullName()));
-        panel.add(createDetailLabel("Email: " + user.getEmail()));
+        panel.add(Utils.createDetailLabel("ID: " + user.getId()));
+        panel.add(Utils.createDetailLabel("Name: " + user.getFullName()));
+        panel.add(Utils.createDetailLabel("Email: " + user.getEmail()));
         if (user instanceof Customer) {
-            panel.add(createDetailLabel("Phone: " + ((Customer) user).getPhone()));
-            panel.add(createDetailLabel("Address: " + ((Customer) user).getAddress()));
-            panel.add(createDetailLabel("Balance: " + ((Customer) user).getBalance()));
+            panel.add(Utils.createDetailLabel("Phone: " + ((Customer) user).getPhone()));
+            panel.add(Utils.createDetailLabel("Address: " + ((Customer) user).getAddress()));
+            panel.add(Utils.createDetailLabel("Balance: " + ((Customer) user).getBalance()));
         }
         detailsDialog.add(panel);
         detailsDialog.setLocationRelativeTo(this);
         detailsDialog.setVisible(true);
-    }
-
-    private JLabel createDetailLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        return label;
     }
 
     private void updateHeaderButtons() {
@@ -665,17 +663,9 @@ public class RoomManagement extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         panel.setBackground(Utils.OFF_WHITE);
 
-        if (room.getStatus()) {
-            panel.add(Utils.createActionButton("Check Out", e -> Utils.showError(panel, "hi")));// showCheckoutMessage(room)));
-            if ("Admin".equals(currentUserRole)) {
-                panel.add(Utils.createActionButton("Set Open", e -> Utils.showError(panel, "hi")));// showSetAvailableMessage(room)));
-            }
-        } else {
-            panel.add(Utils.createActionButton("Check In", e -> showCheckInDialog(room)));
-            if ("Admin".equals(currentUserRole)) {
-                panel.add(Utils.createActionButton("Set Closed", e -> Utils.showError(panel, "hi")));// showSetUnavailableMessage(room)));
-            }
-        }
+        panel.add(Utils.createActionButton("Book", e -> showCheckInDialog(room)));
+        panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(this, room.getNum())));
+
         return panel;
     }
 
@@ -785,7 +775,7 @@ public class RoomManagement extends JFrame {
     };
 
     private void showCheckInDialog(Room room) {
-        checkInDialog = new JDialog(this, "Check In - Room #" + room.getNum(), true);
+        checkInDialog = new JDialog(this, "Book - Room #" + room.getNum(), true);
         checkInDialog.setSize(600, 600);
         checkInDialog.setLocationRelativeTo(this);
         checkInDialog.getContentPane().setBackground(Utils.OFF_WHITE);
@@ -815,9 +805,9 @@ public class RoomManagement extends JFrame {
         verifyPanel.setBackground(Utils.OFF_WHITE);
 
         customerIdField = new JTextField();
-        JButton verifyButton = new JButton("Verify Customer");
+        JButton verifyButton = Utils.createActionButton("Verify Customer", e -> verifyCustomerAction());
         Utils.styleButton(verifyButton, Utils.BROWN);
-
+        customerIdField.addActionListener(e -> verifyButton.doClick());
         Utils.addFormField(verifyPanel, "Customer ID:", customerIdField);
         verifyPanel.add(new JLabel());
         verifyPanel.add(verifyButton);
@@ -862,12 +852,18 @@ public class RoomManagement extends JFrame {
         Utils.addFormField(datesPanel, "Check-out Date:", checkOutSpinner);
 
         if ("Admin".equals(currentUserRole)) {
-            JComboBox<String> receptionistCombo = new JComboBox<>(
-                    new String[] { "Receptionist 1 (ID: 1)", "Receptionist 2 (ID: 2)" });
+            ArrayList<User> receptionists = Db.select.getAllUsers(UserRoles.RECEPTIONIST);
+            String[] recepStrings = new String[receptionists.size()];
+
+            for (int i = 0; i < receptionists.size(); i++) {
+                recepStrings[i] = "Receptionist ID: " + receptionists.get(i).getId();
+            }
+
+            receptionistCombo = new JComboBox<>(recepStrings);
             Utils.addFormField(datesPanel, "Receptionist:", receptionistCombo);
         }
 
-        JButton submitButton = Utils.createActionButton("Complete Check In", e -> {
+        JButton submitButton = Utils.createActionButton("Finish Booking", e -> {
             completeCheckButtonAction(room);
         });
 
@@ -883,64 +879,99 @@ public class RoomManagement extends JFrame {
         checkInDialog.setVisible(true);
     }
 
-    private void completeCheckButtonAction(Room room) {
-        try {
-            if (customerIdField.getText().isEmpty()) {
-                customerInfoLabel.setText("Please enter a customer ID");
-                return;
-            }
-
-            int customerId = Integer.parseInt(customerIdField.getText());
-            if (customerId > 0) {
-                customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
-                customerInfoLabel.setForeground(new Color(0, 128, 0));
-            } else {
-                customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
-                customerInfoLabel.setForeground(Color.RED);
-                tabbedPane.setSelectedIndex(1);
-            }
-        } catch (NumberFormatException ex) {
-            customerInfoLabel.setText("Please enter a valid customer ID");
-            customerInfoLabel.setForeground(Color.RED);
+    private int verifyCustomerAction() {
+        if (customerIdField.getText().isEmpty()) {
+            customerInfoLabel.setText("Please enter a customer ID");
+            customerInfoLabel.setForeground(Color.BLACK);
+            return -1;
         }
 
-        try {
-            Date checkInDate = (Date) checkInSpinner.getValue();
-            Date checkOutDate = (Date) checkOutSpinner.getValue();
+        int customerId = Integer.parseInt(customerIdField.getText());
 
-            if (checkOutDate.before(checkInDate)) {
+        if (customerId <= 0) {
+            customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
+            customerInfoLabel.setForeground(Color.RED);
+            return -1;
+        } else {
+
+            User user = Db.select.getUserById(UserRoles.CUSTOMER, customerId);
+            if (user != null) {
+                customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
+                customerInfoLabel.setForeground(new Color(0, 128, 0));
+
+                return customerId;
+            }
+            customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
+            customerInfoLabel.setForeground(Color.RED);
+            return -1;
+        }
+    }
+
+    private void completeCheckButtonAction(Room room) {
+        int customerId = verifyCustomerAction();
+
+        Date checkInDate = (Date) checkInSpinner.getValue();
+        Date checkOutDate = (Date) checkOutSpinner.getValue();
+
+        LocalDate checkInLocalDate = checkInDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate checkOutLocalDate = checkOutDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        if (checkOutDate.before(checkInDate)) {
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Check-out date must be after check-in date",
+                    "Invalid Dates", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (tabbedPane.getSelectedIndex() == 0) {
+            if (customerId == -1) {
                 JOptionPane.showMessageDialog(checkInDialog,
-                        "Check-out date must be after check-in date",
-                        "Invalid Dates", JOptionPane.ERROR_MESSAGE);
+                        "Please verify customer ID first",
+                        "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
-            if (tabbedPane.getSelectedIndex() == 0) {
-                if (customerIdField.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(checkInDialog,
-                            "Please verify customer ID first",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } else {
-                if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
-                    JOptionPane.showMessageDialog(checkInDialog,
-                            "First and last name are required",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
+        } else {
+            if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(checkInDialog,
+                        "First and last name are required",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+        }
 
+        String selectedRecep = (String) receptionistCombo.getSelectedItem();
+        String[] parts = selectedRecep.split(": ");
+        int receptionist_id = Integer.parseInt(parts[1]);
+
+        Booking booking = new Booking(room, customerId, receptionist_id, checkInLocalDate, checkOutLocalDate);
+        int successfullBooking = Db.create.addBooking(booking);
+
+        // -3 sql error
+        // -2 invalid input
+        // -1 room not avaliable at requested dates
+        // 0 successful
+        if (successfullBooking == 0) {
             JOptionPane.showMessageDialog(checkInDialog,
-                    "Room #" + room.getNum() + " checked in successfully! (Mock implementation)",
+                    "Room #" + room.getNum() + " checked in successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
 
             checkInDialog.dispose();
             loadRooms();
-        } catch (Exception ex) {
+
+        } else if (successfullBooking == -1) {
             JOptionPane.showMessageDialog(checkInDialog,
-                    "Error during check-in: " + ex.getMessage(),
+                    "Booking failed: room not available at requested dates.",
                     "Error", JOptionPane.ERROR_MESSAGE);
+        } else if (successfullBooking == -2) {
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Booking failed: Invalid date inputs.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
+        } else if (successfullBooking == -3) {
+            JOptionPane.showMessageDialog(checkInDialog,
+                    "Booking failed: SQLError",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+
         }
     }
 
