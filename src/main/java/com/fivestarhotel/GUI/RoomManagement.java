@@ -243,6 +243,7 @@ public class RoomManagement extends JFrame {
         roomsPanel.removeAll();
         roomsPanel.revalidate();
         roomsPanel.repaint();
+        allRooms = Db.select.getRooms();
 
         SwingUtilities.invokeLater(() -> {
             roomsPanel.removeAll();
@@ -994,6 +995,7 @@ public class RoomManagement extends JFrame {
         int receptionist_id = Integer.parseInt(parts[1]);
 
         Booking booking = new Booking(room, customerId, receptionist_id, checkInLocalDate, checkOutLocalDate);
+        booking.toString();
         int successfullBooking = Db.create.addBooking(booking);
 
         // -3 sql error

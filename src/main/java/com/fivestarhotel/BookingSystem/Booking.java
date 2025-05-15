@@ -79,4 +79,16 @@ public class Booking {
     public LocalDate getCheckOutDate() {
         return checkOutDate;
     }
+
+    @Override
+    public String toString() {
+        return "Booking{" +
+                "booking_id=" + booking_id +
+                ", room=" + (room != null ? room.getNum() : "null") +
+                ", customer_id=" + customer_id +
+                ", receptionist_id=" + receptionist_id +
+                ", checkInDate=" + checkInDate +
+                ", checkOutDate=" + checkOutDate +
+                '}';
+    }
 }
