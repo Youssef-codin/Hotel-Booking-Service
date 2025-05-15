@@ -24,11 +24,11 @@ public class RoomManagement extends JFrame {
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, searchNumber;
     private String currentUserRole;
-    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel;
+    private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel;
     private JProgressBar loadingBar;
     private JCheckBox bookedCheckbox;
     private JComboBox<RoomType> roomTypes;
-    private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[] { "Admin", "Receptionist", "Customer" });;
+    private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[] { "Admin", "Receptionist", "Customer" });
     private JLabel customerInfoLabel;
     private JTabbedPane tabbedPane;
     private JButton addButton, removeButton;
@@ -59,7 +59,7 @@ public class RoomManagement extends JFrame {
         setLocationRelativeTo(null);
         getContentPane().setBackground(Utils.OFF_WHITE);
 
-        JPanel anchorPanel = new JPanel(new BorderLayout(10, 10));
+        anchorPanel = new JPanel(new BorderLayout(10, 10));
         anchorPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         anchorPanel.setBackground(Utils.OFF_WHITE);
 
@@ -118,7 +118,6 @@ public class RoomManagement extends JFrame {
 
         tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         tabbedPane.setBackground(Utils.OFF_WHITE);
-
         tabbedPane.addChangeListener(e -> updateHeaderButtons());
 
         tabbedPane.addTab("Rooms", createRoomsScrollPane());
@@ -178,6 +177,7 @@ public class RoomManagement extends JFrame {
             addButton = Utils.createActionButton("Account +", e -> showAddAccountDialog());
             removeButton = Utils.createActionButton("Account -", e -> showRemoveAccountDialog());
         }
+
         adminPanel.add(addButton);
         adminPanel.add(removeButton);
         return adminPanel;
@@ -772,7 +772,7 @@ public class RoomManagement extends JFrame {
         } catch (NumberFormatException ex) {
             Utils.showError(removeDialog, "Please enter a valid room number");
         }
-    };
+    }
 
     private void showCheckInDialog(Room room) {
         checkInDialog = new JDialog(this, "Book - Room #" + room.getNum(), true);
@@ -794,7 +794,7 @@ public class RoomManagement extends JFrame {
 
         mainPanel.add(roomInfoPanel, BorderLayout.NORTH);
 
-        tabbedPane = new JTabbedPane();
+        JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setBackground(Utils.OFF_WHITE);
         tabbedPane.setFont(Utils.LABEL_FONT);
 
@@ -874,7 +874,6 @@ public class RoomManagement extends JFrame {
 
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         mainPanel.add(submitButton, BorderLayout.SOUTH);
-
         checkInDialog.add(mainPanel);
         checkInDialog.setVisible(true);
     }
