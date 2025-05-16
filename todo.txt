@@ -1,7 +1,11 @@
 - UI dialoges for check in and check out and cancel button for booked rooms -youssef
+
 - multiple rooms button/option Could be just a checkbox for add room -momen
-- search accounts using name (use db select method will make it easier) -momen
-- a way to find booking for a customer -momen
+
+- search accounts using name (use db select method will make it easier) -momen DONE
+
+- a way to find booking for a customer -momen 
+
 - Remember me and password field -ali
 
 #Bugs

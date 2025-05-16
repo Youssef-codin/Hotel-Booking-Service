@@ -319,41 +319,6 @@ public class Select {
 
     // Booking System wa kda b2a
 
-    public Booking getBooking(int roomNum) {
-        try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE room_number = ?");
-            ps.setInt(1, roomNum);
-
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                System.out.println("Booking " + roomNum + " Found.");
-
-                int roomNumber = rs.getInt("room_number");
-                Room room = getRoom(roomNumber); // Using your getRoom method
-
-                if (room != null) {
-                    return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
-                            rs.getInt("receptionist_id"),
-                            rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
-                } else {
-                    System.err
-                            .println("Error: Room with number " + roomNumber + " not found for booking " + roomNum);
-                    return null;
-                }
-            } else {
-                System.err.println("Query-Error: Booking Not Found");
-                return null;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println(e.getErrorCode());
-            return null;
-        }
-
-    }
-
     public Booking getbooking(int booking_id) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id = ?");
