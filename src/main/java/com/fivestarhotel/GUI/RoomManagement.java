@@ -357,7 +357,7 @@ public class RoomManagement extends JFrame {
             if (rooms.isEmpty()) {
                 bookedRoomsPanel.add(new JLabel("No rooms found"));
             } else {
-                rooms.forEach(room -> addBookedRoomCard(room));
+                rooms.forEach(room -> addRoomCard(room));
             }
 
             bookedRoomsPanel.revalidate();
@@ -406,7 +406,7 @@ public class RoomManagement extends JFrame {
             if (users.isEmpty()) {
                 sectionPanel.add(new JLabel("No account found"));
             } else {
-                users.forEach(user -> {2 weeks ago
+                users.forEach(user -> {
                     sectionPanel.add(addAccountCard(user));
                     sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
                 });
@@ -1231,7 +1231,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "mimimi45");
+        Db.connect("root", "yoyo8080");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);
