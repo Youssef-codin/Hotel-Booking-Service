@@ -2,6 +2,7 @@ package com.fivestarhotel.GUI;
 
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Database.Db.UserRoles;
+import com.fivestarhotel.Billing;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room.RoomType;
@@ -95,7 +96,7 @@ public class RoomManagement extends JFrame {
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)));
         searchField.setPreferredSize(new Dimension(120, 40)); // match height
 
-        JButton searchButton = Utils.createActionButton("Search", e -> SearchButton());
+        JButton searchButton = Utils.createActionButton("Search", e -> searchAction());
         Utils.styleButton(searchButton, Utils.primaryColor, 85, 40);
         searchField.addActionListener(e -> searchButton.doClick());
 
@@ -126,9 +127,11 @@ public class RoomManagement extends JFrame {
         return tabbedPane;
     }
 
-    private void SearchButton() {
+    private void searchAction() {
+
         try {
             searchNumber = Integer.parseInt(searchField.getText().trim());
+
             if (searchNumber >= 0) {
                 switch (tabbedPane.getSelectedIndex()) {
                     case 0 -> {
@@ -146,6 +149,7 @@ public class RoomManagement extends JFrame {
                         if (allBookedRooms.size() >= searchNumber) {
                             Room room = Db.select.getRoom(searchNumber);
                             if (!(room == null)) {
+
                                 loadBookedRoom(room);
                             }
 
@@ -192,7 +196,9 @@ public class RoomManagement extends JFrame {
             } else {
                 loadAccountSections();
                 loadRooms();
+                loadBookedRooms();
             }
+
         } catch (NumberFormatException a) {
             String searchName = searchField.getText().trim();
             switch(tabbedPane.getSelectedIndex()) {
@@ -231,6 +237,7 @@ public class RoomManagement extends JFrame {
 
             loadAccountSections();
             loadRooms();
+            loadBookedRooms();
         }
     }
 
@@ -247,6 +254,7 @@ public class RoomManagement extends JFrame {
 
         adminPanel.add(addButton);
         adminPanel.add(removeButton);
+
         return adminPanel;
     }
 
@@ -260,6 +268,7 @@ public class RoomManagement extends JFrame {
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         loadRooms();
+
         return scrollPane;
     }
 
@@ -274,6 +283,7 @@ public class RoomManagement extends JFrame {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         loadBookedRooms();
+
         return scrollPane;
     }
 
@@ -302,7 +312,7 @@ public class RoomManagement extends JFrame {
             if (allRooms.isEmpty()) {
                 roomsPanel.add(new JLabel("No rooms found"));
             } else {
-                allRooms.forEach(room -> addRoomCard(room, true));
+                allRooms.forEach(room -> addRoomCard(room));
             }
 
             roomsPanel.revalidate();
@@ -321,7 +331,14 @@ public class RoomManagement extends JFrame {
             if (allBookedRooms.isEmpty()) {
                 bookedRoomsPanel.add(new JLabel("No rooms found"));
             } else {
-                allBookedRooms.forEach(room -> addRoomCard(room, false));
+                for (Room room : allBookedRooms) {
+                    ArrayList<Booking> bookings = Db.select.getBookings(room.getNum());
+
+                    for (Booking booking : bookings) {
+                        addBookedRoomCard(room, booking);
+
+                    }
+                }
             }
 
             bookedRoomsPanel.revalidate();
@@ -355,7 +372,12 @@ public class RoomManagement extends JFrame {
 
         SwingUtilities.invokeLater(() -> {
             bookedRoomsPanel.removeAll();
-            addRoomCard(room, true);
+            for (Booking booking : Db.select.getBookings(room.getNum())) {
+                booking.getRoom().getNum();
+                loadBookedRoom(room);
+
+            }
+
             bookedRoomsPanel.revalidate();
             bookedRoomsPanel.repaint();
         });
@@ -368,7 +390,7 @@ public class RoomManagement extends JFrame {
 
         SwingUtilities.invokeLater(() -> {
             roomsPanel.removeAll();
-            addRoomCard(room, true);
+            addRoomCard(room);
             roomsPanel.revalidate();
             roomsPanel.repaint();
 
@@ -384,7 +406,7 @@ public class RoomManagement extends JFrame {
             if (users.isEmpty()) {
                 sectionPanel.add(new JLabel("No account found"));
             } else {
-                users.forEach(user -> {
+                users.forEach(user -> {2 weeks ago
                     sectionPanel.add(addAccountCard(user));
                     sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
                 });
@@ -412,7 +434,7 @@ public class RoomManagement extends JFrame {
         timer.start();
     }
 
-    private void addRoomCard(Room room, boolean switcher) {
+    private void addRoomCard(Room room) {
         JPanel card = Utils.createStyledPanel(15, Utils.primaryColor, true);
         card.setPreferredSize(new Dimension(300, 200));
 
@@ -430,14 +452,34 @@ public class RoomManagement extends JFrame {
         infoPanel.add(createStatusLabel(room.isBooked()));
 
         card.add(infoPanel, BorderLayout.CENTER);
+        card.add(createRoomButtons(room, false), BorderLayout.SOUTH);
+        roomsPanel.add(card);
+    }
 
-        if (!switcher) {
-            card.add(createRoomButtons(room, !switcher), BorderLayout.SOUTH);
-            bookedRoomsPanel.add(card);
-        } else {
-            card.add(createRoomButtons(room, !switcher), BorderLayout.SOUTH);
-            roomsPanel.add(card);
-        }
+    private void addBookedRoomCard(Room room, Booking booking) {
+        JPanel card = Utils.createStyledPanel(15, Utils.primaryColor, true);
+        card.setPreferredSize(new Dimension(300, 260));
+
+        // Room Info
+        JPanel infoPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        infoPanel.setBackground(Utils.secondaryColor);
+
+        JLabel numberLabel = new JLabel("Room #" + room.getNum());
+        numberLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        numberLabel.setForeground(Utils.primaryColor);
+
+        infoPanel.add(numberLabel);
+        infoPanel.add(new JLabel("Floor: " + ((room.getNum() - 1) / 100 + 1)));
+        infoPanel.add(new JLabel("Type: " + room.getRoomType()));
+        infoPanel.add(createStatusLabel(room.isBooked()));
+
+        card.add(infoPanel, BorderLayout.CENTER);
+
+        infoPanel.add(new JLabel("Check-in: " + booking.getCheckInDate()));
+        infoPanel.add(new JLabel("Check-out: " + booking.getCheckOutDate()));
+        card.add(createRoomButtons(room, true), BorderLayout.SOUTH);
+        bookedRoomsPanel.add(card);
+
     }
 
     private JPanel addAccountCard(User user) {
@@ -805,8 +847,10 @@ public class RoomManagement extends JFrame {
             panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(room.getNum())));
         } else {
             if (!room.isCheckedIn()) {
-                panel.add(Utils.createActionButton("Check in", e -> showCheckinDialog(room)));
-                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialog(room)));
+
+                panel.add(Utils.createActionButton("Check in", e -> checkInAction(room)));
+                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(room)));
+
             } else {
                 panel.add(Utils.createActionButton("Check out", e -> showCheckOutDialog(room)));
                 panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialog(room)));
@@ -815,36 +859,35 @@ public class RoomManagement extends JFrame {
         return panel;
     }
 
-    private void cancelBookingDialog(Room room) {
-        Db.update.roomStatus(room.getNum(), false);
-        allBookedRooms = Db.select.getRooms(true);
-        allRooms = Db.select.getRooms();
+
+
+
+    private void cancelBookingDialoge(Room room) {
+        int confirm = JOptionPane.showConfirmDialog(
+                removeDialog,
+                "Are you sure you want to Cancel this booking?",
+                "Confirm Removal",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Booking booking = Db.select.getBooking(room.getNum());
+            // Billing bill = Db.select.getBillBooking(booking.getBooking_id());
+
+            // Db.delete.bill(bill);
+            // Db.delete.booking(booking.getBooking_id());
+
+        }
     }
 
-    private JDialog showCheckinDialog(Room room) {
-        JDialog checkInPanel = new JDialog(this, "Room #" + room.getNum(), true);
-        checkInPanel.setSize(600, 400);
-        checkInPanel.setLocationRelativeTo(this);
-        checkInPanel.getContentPane().setBackground(Utils.secondaryColor);
+    private void checkInAction(Room room) {
 
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        mainPanel.setBackground(Utils.secondaryColor);
-
-        JPanel roomInfoPanel = new JPanel(new GridLayout(0, 2, 10, 10));
-        roomInfoPanel.setBorder(BorderFactory.createTitledBorder("Room Information"));
-        roomInfoPanel.setBackground(Utils.secondaryColor);
-
-        Utils.addFormField(roomInfoPanel, "Room Number:", new JLabel(String.valueOf(room.getNum())));
-        Utils.addFormField(roomInfoPanel, "Room Type:", new JLabel(Room.convertRm(room.getRoomType())));
-        Utils.addFormField(roomInfoPanel, "Daily Rate:", new JLabel(String.valueOf(Room.getRate(room.getRoomType()))));
-
-        mainPanel.add(roomInfoPanel, BorderLayout.NORTH);
-        checkInPanel.add(mainPanel);
-        checkInPanel.setVisible(true);
-
-        return checkInPanel;
-
+        // Booking booking = Db.select.getBooking(room.getNum());
+        // booking.setCheckInDate(LocalDate.now());
+        // Db.update.booking(booking);
+        // Db.update.roomCheckIn(room.getNum());
+        //
+        // loadBookedRooms();
     }
 
     private JDialog showCheckOutDialog(Room room) {
