@@ -28,7 +28,6 @@ public class Room {
         }
     }
 
-    // TODO: need to add checkedIn shit
     private int number;
     private int floor;
     private RoomType roomType;

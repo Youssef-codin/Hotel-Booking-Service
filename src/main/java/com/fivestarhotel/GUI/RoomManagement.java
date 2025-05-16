@@ -127,8 +127,10 @@ public class RoomManagement extends JFrame {
     }
 
     private void SearchButton() {
+
         try {
             searchNumber = Integer.parseInt(searchField.getText().trim());
+
             if (searchNumber >= 0) {
                 switch (tabbedPane.getSelectedIndex()) {
                     case 0 -> {
@@ -192,6 +194,7 @@ public class RoomManagement extends JFrame {
                 loadAccountSections();
                 loadRooms();
             }
+
         } catch (NumberFormatException a) {
             loadAccountSections();
             loadRooms();
@@ -211,6 +214,7 @@ public class RoomManagement extends JFrame {
 
         adminPanel.add(addButton);
         adminPanel.add(removeButton);
+
         return adminPanel;
     }
 
@@ -224,6 +228,7 @@ public class RoomManagement extends JFrame {
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         loadRooms();
+
         return scrollPane;
     }
 
@@ -238,6 +243,7 @@ public class RoomManagement extends JFrame {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         loadBookedRooms();
+
         return scrollPane;
     }
 
