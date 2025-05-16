@@ -357,7 +357,7 @@ public class RoomManagement extends JFrame {
             if (rooms.isEmpty()) {
                 bookedRoomsPanel.add(new JLabel("No rooms found"));
             } else {
-                rooms.forEach(room -> addRoomCard(room, false));
+                rooms.forEach(room -> addBookedRoomCard(room));
             }
 
             bookedRoomsPanel.revalidate();
@@ -853,7 +853,7 @@ public class RoomManagement extends JFrame {
 
             } else {
                 panel.add(Utils.createActionButton("Check out", e -> showCheckOutDialog(room)));
-                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialog(room)));
+                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(room)));
             }
         }
         return panel;
