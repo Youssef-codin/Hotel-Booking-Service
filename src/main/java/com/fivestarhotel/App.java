@@ -65,9 +65,8 @@ public class App {
 
         // Start the application
 
-           BookItLogin loginSystem = new BookItLogin();
-           loginSystem.setVisible(true);
-
+        BookItLogin loginSystem = new BookItLogin();
+        loginSystem.setVisible(true);
 
     }
 }
