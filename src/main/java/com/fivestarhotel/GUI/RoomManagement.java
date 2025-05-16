@@ -319,9 +319,10 @@ public class RoomManagement extends JFrame {
             bookedRoomsPanel.removeAll();
             for (Booking booking : Db.select.getBookings(room.getNum())) {
                 booking.getRoom().getNum();
-                // addRoomCard(, false);
+                loadBookedRoom(room);
 
             }
+
             bookedRoomsPanel.revalidate();
             bookedRoomsPanel.repaint();
         });
