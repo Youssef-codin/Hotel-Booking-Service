@@ -1231,7 +1231,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "root");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);

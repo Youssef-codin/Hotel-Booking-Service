@@ -210,11 +210,11 @@ public class Utils {
             return false;
         }
 
-        if (!password.matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[-_+$#%&]).{6,20}$")) {
-            Utils.showError(parent,
-                    "Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
+        if (!password.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{6,20}$")) {
+            Utils.showError(parent, "Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
             return false;
         }
+
 
         return true;
     }
