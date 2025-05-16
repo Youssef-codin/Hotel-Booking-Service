@@ -159,6 +159,7 @@ public class RoomManagement extends JFrame {
                     }
 
                     case 2 -> {
+
                         if (!allAdminAccounts.isEmpty() && allAdminAccounts.size() >= searchNumber) {
                             User admin = Db.select.getUserById(UserRoles.ADMIN, searchNumber);
                             if (!(admin == null)) {
@@ -166,7 +167,7 @@ public class RoomManagement extends JFrame {
                                 loadAccountSections();
                             }
                         } else {
-                            loadAccounts(adminPanel, allAdminAccounts);
+                                loadAccounts(adminPanel, allAdminAccounts);
                         }
 
                         if (!allRecepAccounts.isEmpty() && allRecepAccounts.size() >= searchNumber) {
@@ -180,15 +181,15 @@ public class RoomManagement extends JFrame {
                         }
 
                         if (!allCustAccounts.isEmpty()
-                                && allCustAccounts.get(allCustAccounts.size() - 1).getId() >= searchNumber
-                                && allCustAccounts.get(0).getId() <= searchNumber) {
+                                    && allCustAccounts.get(allCustAccounts.size() - 1).getId() >= searchNumber
+                                    && allCustAccounts.get(0).getId() <= searchNumber) {
                             User cust = Db.select.getUserById(UserRoles.CUSTOMER, searchNumber);
                             if (!(cust == null)) {
                                 loadAccount(cust, custPanel);
                                 loadAccountSections();
                             }
                         } else {
-                            loadAccounts(custPanel, allCustAccounts);
+                                loadAccounts(custPanel, allCustAccounts);
                         }
                     }
                 }
@@ -199,6 +200,41 @@ public class RoomManagement extends JFrame {
             }
 
         } catch (NumberFormatException a) {
+            String searchName = searchField.getText().trim();
+            switch(tabbedPane.getSelectedIndex()) {
+                case 1 -> {
+                    ArrayList<Room> rooms = Db.select.getBookedRoomsByCustomerName(searchName);
+                    if (!(rooms == null)) {
+                        loadBookedRooms(rooms);
+                    } else {
+                        loadBookedRooms();
+                    }
+                }
+                case 2 ->{
+                    ArrayList<User> admins = Db.select.getUsersByName(UserRoles.ADMIN, searchName);
+                    if (!(admins == null)) {
+                        loadAccounts(adminPanel, admins);
+                        loadAccountSections();
+                    } else {
+                        loadAccounts(adminPanel, allAdminAccounts);
+                    }
+                    ArrayList<User> receps = Db.select.getUsersByName(UserRoles.RECEPTIONIST, searchName);
+                    if (!(receps == null)) {
+                        loadAccounts(recepPanel, receps);
+                        loadAccountSections();
+                    } else {
+                        loadAccounts(recepPanel, allRecepAccounts);
+                    }
+                    ArrayList<User> custs = Db.select.getUsersByName(UserRoles.CUSTOMER, searchName);
+                    if (!(custs == null)) {
+                        loadAccounts(custPanel, custs);
+                        loadAccountSections();
+                    } else {
+                        loadAccounts(custPanel, allCustAccounts);
+                    }
+                }
+            }
+
             loadAccountSections();
             loadRooms();
             loadBookedRooms();
@@ -310,6 +346,25 @@ public class RoomManagement extends JFrame {
         });
     }
 
+    private void loadBookedRooms(ArrayList<Room> rooms) {
+        bookedRoomsPanel.removeAll();
+        bookedRoomsPanel.revalidate();
+        bookedRoomsPanel.repaint();
+
+        SwingUtilities.invokeLater(() -> {
+            bookedRoomsPanel.removeAll();
+
+            if (rooms.isEmpty()) {
+                bookedRoomsPanel.add(new JLabel("No rooms found"));
+            } else {
+                rooms.forEach(room -> addRoomCard(room, false));
+            }
+
+            bookedRoomsPanel.revalidate();
+            bookedRoomsPanel.repaint();
+        });
+    }
+
     private void loadBookedRoom(Room room) {
         bookedRoomsPanel.removeAll();
         bookedRoomsPanel.revalidate();
@@ -351,7 +406,7 @@ public class RoomManagement extends JFrame {
             if (users.isEmpty()) {
                 sectionPanel.add(new JLabel("No account found"));
             } else {
-                users.forEach(user -> {
+                users.forEach(user -> {2 weeks ago
                     sectionPanel.add(addAccountCard(user));
                     sectionPanel.add(Box.createRigidArea(new Dimension(0, 5)));
                 });
@@ -792,15 +847,20 @@ public class RoomManagement extends JFrame {
             panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(room.getNum())));
         } else {
             if (!room.isCheckedIn()) {
+
                 panel.add(Utils.createActionButton("Check in", e -> checkInAction(room)));
                 panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(room)));
+
             } else {
-                panel.add(Utils.createActionButton("Check out", e -> showCheckOutDialoge(room)));
-                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(room)));
+                panel.add(Utils.createActionButton("Check out", e -> showCheckOutDialog(room)));
+                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialog(room)));
             }
         }
         return panel;
     }
+
+
+
 
     private void cancelBookingDialoge(Room room) {
         int confirm = JOptionPane.showConfirmDialog(
@@ -830,7 +890,7 @@ public class RoomManagement extends JFrame {
         // loadBookedRooms();
     }
 
-    private JDialog showCheckOutDialoge(Room room) {
+    private JDialog showCheckOutDialog(Room room) {
         JDialog checkOutPanel = new JDialog(this, "Room #" + room.getNum(), true);
         checkOutPanel.setSize(600, 400);
         checkOutPanel.setLocationRelativeTo(this);
@@ -1169,11 +1229,12 @@ public class RoomManagement extends JFrame {
                     "Error", JOptionPane.ERROR_MESSAGE);
 
         }
+        allBookedRooms = Db.select.getRooms(true);
     }
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "mimimi45");
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);

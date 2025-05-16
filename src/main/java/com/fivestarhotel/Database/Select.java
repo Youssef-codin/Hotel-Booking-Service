@@ -1,10 +1,6 @@
 package com.fivestarhotel.Database;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 
 import com.fivestarhotel.Billing;
@@ -369,6 +365,52 @@ public class Select {
                 System.err.println("Query-Error: Booking Not Found");
                 return null;
             }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+
+        }
+    }
+
+    public Booking getBookingByCustomerName(String name) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("select * from booking where customer_id = (select customer_id from customer where customer_fname like ?)");
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                int roomNumber = rs.getInt("room_number");
+                Room room = getRoom(roomNumber); // Using your getRoom method
+                return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                        rs.getInt("receptionist_id"),
+                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
+            } else {
+                System.err.println("Query-Error: Booking Not Found");
+                return null;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+
+        }
+    }
+    public ArrayList<Room> getBookedRoomsByCustomerName(String name) {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement("select * from room where room_number = (select room_number from booking where customer_id = (select customer_id from customer where customer_fname like ?))");
+            ps.setString(1, name);
+            ResultSet result = ps.executeQuery();
+            ArrayList<Room> rooms = new ArrayList<>();
+            while (result.next()) {
+                rooms.add(new Room(result.getInt("room_number"),
+                        Room.convertStr(result.getString("room_type")), result.getBoolean("room_status"),
+                        result.getBoolean("room_checkedin")));
+
+            }
+            return rooms;
 
         } catch (SQLException e) {
             e.printStackTrace();
