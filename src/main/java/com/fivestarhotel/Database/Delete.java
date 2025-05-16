@@ -119,7 +119,7 @@ public class Delete {
         }
     }
 
-    public void deleteUser(int userID, UserRoles userRole) throws SQLException {
+    public void deleteUser(int userID, UserRoles userRole) {
         String tableName;
 
         switch (userRole) {
