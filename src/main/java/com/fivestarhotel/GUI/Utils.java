@@ -75,6 +75,7 @@ public class Utils {
         JLabel label = new JLabel(labelText);
         label.setFont(LABEL_FONT);
         label.setForeground(primaryColor);
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
         panel.add(label);
 
         field.setFont(LABEL_FONT);
@@ -129,7 +130,6 @@ public class Utils {
         UIManager.put("Table.foreground", primaryColor);
         UIManager.put("Table.gridColor", Utils.primaryColor);
         UIManager.put("Table.selectionBackground", selectionColor);
-
 
         // Scroll panes
         UIManager.put("ScrollPane.background", secondaryColor);
@@ -210,11 +210,12 @@ public class Utils {
             return false;
         }
 
-        if (!password.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{6,20}$")) {
-            Utils.showError(parent, "Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
+        if (!password.matches(
+                "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{6,20}$")) {
+            Utils.showError(parent,
+                    "Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
             return false;
         }
-
 
         return true;
     }

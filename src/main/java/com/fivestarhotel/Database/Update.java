@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
@@ -51,7 +52,7 @@ public class Update {
         }
     }
 
-    public void updateRates(RoomType type, int newRate) {
+    public void rates(RoomType type, int newRate) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("UPDATE rates SET room_rate = ? WHERE room_type = ?");
             ps.setInt(1, newRate);
@@ -86,10 +87,11 @@ public class Update {
         }
     }
 
-    public void roomCheckIn(int roomNum) {
+    public void roomCheckIn(int roomNum, boolean isCheckedIn) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("UPDATE room SET room_checkedin = true WHERE room_number = ?");
-            ps.setInt(1, roomNum);
+            PreparedStatement ps = conn.prepareStatement("UPDATE room SET room_checkedin = ? WHERE room_number = ?");
+            ps.setBoolean(1, isCheckedIn);
+            ps.setInt(2, roomNum);
 
             int rows = ps.executeUpdate();
             if (rows == 0) {
@@ -106,50 +108,21 @@ public class Update {
 
     // Booking update method b2a wa kda
 
-    // if a customer wants to extend their stay, they can use this method to update
-    // the check out date
-    public void bookingCheckoutdate(Booking booking) {
-        BookingManager bm = new BookingManager();
-        Room room = booking.getRoom();
-        bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
-
-        if (Db.select.IsRoomAvailable(room, booking, booking.getBooking_id())) {
-            System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
-            try (Connection conn = Db.connect()) {
-                PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE booking SET check_out_date = ? WHERE booking_id = ?");
-                ps.setDate(1, Date.valueOf(booking.getCheckOutDate()));
-                ps.setInt(2, booking.getBooking_id());
-
-                int rows = ps.executeUpdate();
-                if (rows == 0) {
-                    System.err.println("Booking ID not found.");
-                } else {
-                    System.out.println("updated " + rows + " rows!");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        } else {
-            System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
-        }
-
-    }
-
     public void booking(Booking booking) {
         BookingManager bm = new BookingManager();
         bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
         try (Connection conn = Db.connect()) {
 
-            if (Db.select.IsRoomAvailable(booking)) {
+            if (Db.select.IsRoomAvailable(booking.getRoom(), booking, booking.getBooking_id())) {
                 System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
                 PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ? WHERE booking_id = ?");
+                        "UPDATE booking SET room_number = ?, customer_id = ?, receptionist_id = ?, check_in_date = ?, check_out_date = ?, booking_checkedin = ? WHERE booking_id = ?");
                 ps.setInt(1, booking.getRoom().getNum());
                 ps.setInt(2, booking.getCustomer_id());
                 ps.setInt(3, booking.getReceptionist_id());
                 ps.setDate(4, Date.valueOf(booking.getCheckInDate())); // Format: yyyy-MM-dd
                 ps.setDate(5, Date.valueOf(booking.getCheckOutDate())); // Format: yyyy-MM-dd
+                ps.setBoolean(7, booking.isCheckedIn());
                 ps.setInt(6, booking.getBooking_id());
                 Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
 
@@ -182,6 +155,36 @@ public class Update {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // if a customer wants to extend their stay, they can use this method to update
+    // the check out date
+    public void bookingCheckoutdate(Booking booking) {
+        BookingManager bm = new BookingManager();
+        Room room = booking.getRoom();
+        bm.validateBookingDates(booking.getCheckInDate(), booking.getCheckOutDate());
+
+        if (Db.select.IsRoomAvailable(room, booking, booking.getBooking_id())) {
+            System.out.println("Room " + booking.getRoom().getNum() + " is available. Proceeding with booking...");
+            try (Connection conn = Db.connect()) {
+                PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE booking SET check_out_date = ? WHERE booking_id = ?");
+                ps.setDate(1, Date.valueOf(booking.getCheckOutDate()));
+                ps.setInt(2, booking.getBooking_id());
+
+                int rows = ps.executeUpdate();
+                if (rows == 0) {
+                    System.err.println("Booking ID not found.");
+                } else {
+                    System.out.println("updated " + rows + " rows!");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Room " + booking.getRoom().getNum() + " is not available for the requested dates.");
+        }
+
     }
 
     public void updateCustomerBalance(int customerId, double newBalance) {
@@ -218,7 +221,7 @@ public class Update {
         }
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE billing SET billing_status = ? WHERE bill_id = ?");
+                    "UPDATE billing SET billing_status = ? WHERE billing_id = ?");
             ps.setBoolean(1, Billing.convertBill(status));
             ps.setInt(2, billId);
             int rows = ps.executeUpdate();

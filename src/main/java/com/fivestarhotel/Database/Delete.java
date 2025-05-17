@@ -87,13 +87,13 @@ public class Delete {
 
     // billing delete method wa kda b2a
 
-    public void bill(int billId) {
+    public void bill(int booking_id) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE bill_id = ?");
-            ps.setInt(1, billId);
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE booking_id = ?");
+            ps.setInt(1, booking_id);
             int rows = ps.executeUpdate();
             if (rows == 0) {
-                System.err.println("Bill ID not found, didn't delete anything");
+                System.err.println("Booking ID not found, didn't delete anything");
             } else {
                 System.out.println("deleted " + rows + " rows.");
             }
@@ -119,7 +119,7 @@ public class Delete {
         }
     }
 
-    public void deleteUser(int userID, UserRoles userRole) throws SQLException {
+    public boolean deleteUser(int userID, UserRoles userRole) {
         String tableName;
 
         switch (userRole) {
@@ -138,11 +138,14 @@ public class Delete {
 
             if (rows > 0) {
                 System.out.println("User deleted successfully from " + tableName + " table.");
+                return true;
             } else {
                 System.out.println("No user found with ID: " + userID);
+                return false;
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 }

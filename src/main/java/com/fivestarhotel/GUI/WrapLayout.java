@@ -4,15 +4,24 @@ import java.awt.*;
 
 // Custom layout manager for wrapping room cards
 class WrapLayout extends FlowLayout {
-    public WrapLayout() { super(); }
-    public WrapLayout(int align) { super(align); }
-    public WrapLayout(int align, int hgap, int vgap) { super(align, hgap, vgap); }
+    public WrapLayout() {
+        super();
+    }
+
+    public WrapLayout(int align) {
+        super(align);
+    }
+
+    public WrapLayout(int align, int hgap, int vgap) {
+        super(align, hgap, vgap);
+    }
 
     @Override
     public Dimension preferredLayoutSize(Container target) {
         synchronized (target.getTreeLock()) {
             int targetWidth = target.getSize().width;
-            if (targetWidth == 0) targetWidth = Integer.MAX_VALUE;
+            if (targetWidth == 0)
+                targetWidth = Integer.MAX_VALUE;
 
             int hgap = getHgap();
             int vgap = getVgap();
@@ -32,7 +41,8 @@ class WrapLayout extends FlowLayout {
                         rowWidth = 0;
                         rowHeight = 0;
                     }
-                    if (rowWidth != 0) rowWidth += hgap;
+                    if (rowWidth != 0)
+                        rowWidth += hgap;
                     rowWidth += d.width;
                     rowHeight = Math.max(rowHeight, d.height);
                 }

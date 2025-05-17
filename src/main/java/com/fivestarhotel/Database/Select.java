@@ -1,7 +1,10 @@
 package com.fivestarhotel.Database;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
@@ -315,7 +318,7 @@ public class Select {
 
     // Booking System wa kda b2a
 
-    public Booking getbooking(int booking_id) {
+    public Booking getBooking(int booking_id) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id = ?");
             ps.setInt(1, booking_id);
@@ -326,12 +329,14 @@ public class Select {
                 System.out.println("Booking " + booking_id + " Found.");
 
                 int roomNumber = rs.getInt("room_number");
-                Room room = getRoom(roomNumber); // Using your getRoom method
+                Room room = getRoom(roomNumber);
 
                 if (room != null) {
                     return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
                             rs.getInt("receptionist_id"),
-                            rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
+                            rs.getBoolean("booking_checkedin"),
+                            rs.getDate("check_in_date").toLocalDate(),
+                            rs.getDate("check_out_date").toLocalDate());
                 } else {
                     System.err
                             .println("Error: Room with number " + roomNumber + " not found for booking " + booking_id);
@@ -349,18 +354,22 @@ public class Select {
         }
     }
 
-    public Booking getBooking(Booking booking) {
+    public Booking getBooking(int room_number, LocalDate check_in_date) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE room_number = ?");
-            ps.setInt(1, booking.getRoom().getNum());
+            PreparedStatement ps = conn
+                    .prepareStatement("SELECT * FROM booking WHERE room_number = ? AND check_in_date = ?");
+            ps.setInt(1, room_number);
+            ps.setDate(2, Date.valueOf(check_in_date));
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                int roomNumber = rs.getInt("room_number");
-                Room room = getRoom(roomNumber); // Using your getRoom method
-                return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                Room room = getRoom(room_number);
+                return new Booking(rs.getInt("booking_id"),
+                        room, rs.getInt("customer_id"),
                         rs.getInt("receptionist_id"),
-                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
+                        rs.getBoolean("booking_checkedin"),
+                        rs.getDate("check_in_date").toLocalDate(),
+                        rs.getDate("check_out_date").toLocalDate());
             } else {
                 System.err.println("Query-Error: Booking Not Found");
                 return null;
@@ -374,22 +383,29 @@ public class Select {
         }
     }
 
-    public Booking getBookingByCustomerName(String name) {
+    public ArrayList<Booking> getBookingByName(String name) {
+        ArrayList<Booking> bookings = new ArrayList<>();
+
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("select * from booking where customer_id = (select customer_id from customer where customer_fname like ?)");
-            ps.setString(1, name);
+            PreparedStatement ps = conn.prepareStatement(
+                    "select * from booking where customer_id IN (select customer_id from customer where customer_fname like ? or customer_lname like ?)");
+            ps.setString(1, "%" + name + "%");
+            ps.setString(2, "%" + name + "%");
             ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
+            while (rs.next()) {
                 int roomNumber = rs.getInt("room_number");
-                Room room = getRoom(roomNumber); // Using your getRoom method
-                return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                Room room = getRoom(roomNumber);
+
+                bookings.add(new Booking(rs.getInt("booking_id"),
+                        room, rs.getInt("customer_id"),
                         rs.getInt("receptionist_id"),
-                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
-            } else {
-                System.err.println("Query-Error: Booking Not Found");
-                return null;
+                        rs.getBoolean("booking_checkedin"),
+                        rs.getDate("check_in_date").toLocalDate(),
+                        rs.getDate("check_out_date").toLocalDate()));
             }
+
+            return bookings;
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -398,26 +414,23 @@ public class Select {
 
         }
     }
-    public ArrayList<Room> getBookedRoomsByCustomerName(String name) {
-        try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("select * from room where room_number = (select room_number from booking where customer_id = (select customer_id from customer where customer_fname like ?))");
-            ps.setString(1, name);
-            ResultSet result = ps.executeQuery();
-            ArrayList<Room> rooms = new ArrayList<>();
-            while (result.next()) {
-                rooms.add(new Room(result.getInt("room_number"),
-                        Room.convertStr(result.getString("room_type")), result.getBoolean("room_status"),
-                        result.getBoolean("room_checkedin")));
+
+    public ArrayList<Room> getBookedRoomsByName(String name) {
+        ArrayList<Booking> bookings = getBookingByName(name);
+        HashMap<Integer, Room> rooms = new HashMap<>();
+
+        if (!bookings.isEmpty()) {
+            for (Booking booking : bookings) {
+                Room room = booking.getRoom();
+                rooms.put(room.getNum(), room);
 
             }
-            return rooms;
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.out.println(e.getErrorCode());
-            return null;
-
+        } else {
+            System.err.println("no bookings available");
         }
+
+        return new ArrayList<>(rooms.values());
     }
 
     public ArrayList<Booking> getBookings() {
@@ -431,9 +444,12 @@ public class Select {
                 Room room = getRoom(roomNumber); // Fetch Room *inside* the loop
 
                 if (room != null) {
-                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                    bookings.add(new Booking(rs.getInt("booking_id"),
+                            room, rs.getInt("customer_id"),
                             rs.getInt("receptionist_id"),
-                            rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+                            rs.getBoolean("booking_checkedin"),
+                            rs.getDate("check_in_date").toLocalDate(),
+                            rs.getDate("check_out_date").toLocalDate()));
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                     // Handle missing room as needed
@@ -459,9 +475,12 @@ public class Select {
                 Room room = getRoom(roomNumber);
 
                 if (room != null) {
-                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                    bookings.add(new Booking(rs.getInt("booking_id"),
+                            room, rs.getInt("customer_id"),
                             rs.getInt("receptionist_id"),
-                            rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+                            rs.getBoolean("booking_checkedin"),
+                            rs.getDate("check_in_date").toLocalDate(),
+                            rs.getDate("check_out_date").toLocalDate()));
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                 }
@@ -486,9 +505,12 @@ public class Select {
                 Room room = getRoom(roomNumber); // Fetch Room *inside* the loop
 
                 if (room != null) {
-                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                    bookings.add(new Booking(rs.getInt("booking_id"),
+                            room, rs.getInt("customer_id"),
                             rs.getInt("receptionist_id"),
-                            rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+                            rs.getBoolean("booking_checkedin"),
+                            rs.getDate("check_in_date").toLocalDate(),
+                            rs.getDate("check_out_date").toLocalDate()));
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                     // Handle missing room as needed
@@ -773,14 +795,16 @@ public class Select {
     public ArrayList<User> getUsersByName(UserRoles role, String name) {
         ArrayList<User> users = new ArrayList<>();
         String sql = switch (role) {
-            case ADMIN -> "SELECT * FROM admin WHERE admin_fname LIKE ?";
-            case RECEPTIONIST -> "SELECT * FROM receptionist WHERE receptionist_fname LIKE ?";
-            case CUSTOMER -> "SELECT * FROM customer WHERE customer_fname LIKE ?";
+            case ADMIN -> "SELECT * FROM admin WHERE admin_fname LIKE ? OR admin_lname LIKE ?";
+            case RECEPTIONIST ->
+                "SELECT * FROM receptionist WHERE receptionist_fname LIKE ? OR receptionist_lname LIKE ?";
+            case CUSTOMER -> "SELECT * FROM customer WHERE customer_fname LIKE ? OR customer_lname LIKE ?";
             default -> throw new IllegalArgumentException("Invalid role: " + role);
         };
 
         try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + name + "%");
+            ps.setString(2, "%" + name + "%");
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {

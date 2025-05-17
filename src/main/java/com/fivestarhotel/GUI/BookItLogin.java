@@ -15,7 +15,6 @@ import com.fivestarhotel.users.User;
 import com.fivestarhotel.security.SecureCredentials;
 import com.fivestarhotel.users.Customer;
 
-
 public class BookItLogin extends JFrame {
     private JTextField emailField = new JTextField();
     private JPasswordField passwordField = new JPasswordField();
@@ -189,10 +188,6 @@ public class BookItLogin extends JFrame {
         }
     }
 
-
-
-
-
     private boolean directAuthenticate(String email, String password) {
         if (email.equals("admin@bookit.com") && password.equals("Admin_123")) {
             openRoomManagement("Admin", 1);
@@ -221,7 +216,4 @@ public class BookItLogin extends JFrame {
             dispose();
         });
     }
-
-    // TODO: the remember me shit
-
 }

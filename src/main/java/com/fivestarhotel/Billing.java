@@ -76,7 +76,7 @@ public class Billing {
     }
 
     public Booking getBooking() {
-        return Db.select.getbooking(bookingId);
+        return Db.select.getBooking(bookingId);
     }
 
     public int getBillId() {
