@@ -458,7 +458,7 @@ public class RoomManagement extends JFrame {
         infoPanel.add(createStatusLabel(room.isCheckedIn()));
 
         card.add(infoPanel, BorderLayout.CENTER);
-        card.add(createRoomButtons(room, false), BorderLayout.SOUTH);
+        card.add(createRoomButtons(room), BorderLayout.SOUTH);
         roomsPanel.add(card);
     }
 
@@ -481,13 +481,13 @@ public class RoomManagement extends JFrame {
         infoPanel.add(new JLabel("Customer: " + user.getFullName()));
         infoPanel.add(new JLabel("Floor: " + ((room.getNum() - 1) / 100 + 1)));
         infoPanel.add(new JLabel("Type: " + room.getRoomType()));
-        infoPanel.add(createStatusLabel(room.isCheckedIn()));
+        infoPanel.add(createStatusLabel(booking.isCheckedIn()));
 
         card.add(infoPanel, BorderLayout.CENTER);
 
         infoPanel.add(new JLabel("Check-in: " + booking.getCheckInDate()));
         infoPanel.add(new JLabel("Check-out: " + booking.getCheckOutDate()));
-        card.add(createRoomButtons(room, true), BorderLayout.SOUTH);
+        card.add(createBookedRoomButtons(room, booking), BorderLayout.SOUTH);
         bookedRoomsPanel.add(card);
 
     }
@@ -841,7 +841,7 @@ public class RoomManagement extends JFrame {
         accountsPanel.add(custSection);
         accountsPanel.revalidate();
         accountsPanel.repaint();
-    }
+    };
 
     private JLabel createStatusLabel(boolean isCheckedIn) {
         JLabel label = new JLabel("Status: " + (isCheckedIn ? "Occupied" : "un-Occupied"));
@@ -849,27 +849,32 @@ public class RoomManagement extends JFrame {
         return label;
     }
 
-    private JPanel createRoomButtons(Room room, boolean switcher) {
+    private JPanel createRoomButtons(Room room) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         panel.setBackground(Utils.secondaryColor);
-        if (!switcher) {
-            panel.add(Utils.createActionButton("Book", e -> showBookingDialog(room)));
-            panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(room.getNum())));
+
+        panel.add(Utils.createActionButton("Book", e -> showBookingDialog(room)));
+        panel.add(Utils.createActionButton("Bookings", e -> calendar.showCalendar(room.getNum())));
+
+        return panel;
+    }
+
+    private JPanel createBookedRoomButtons(Room room, Booking booking) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        panel.setBackground(Utils.secondaryColor);
+        if (!room.isCheckedIn()) {
+
+            panel.add(Utils.createActionButton("Check in", e -> checkInAction(booking)));
+            panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(booking)));
+
         } else {
-            if (!room.isCheckedIn()) {
-
-                panel.add(Utils.createActionButton("Check in", e -> checkInAction(room)));
-                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(room)));
-
-            } else {
-                panel.add(Utils.createActionButton("Check out", e -> showCheckOutDialog(room)));
-                panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(room)));
-            }
+            panel.add(Utils.createActionButton("Check out", e -> showCheckOutDialog(room)));
+            panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(booking)));
         }
         return panel;
     }
 
-    private void cancelBookingDialoge(Room room) {
+    private void cancelBookingDialoge(Booking booking) {
         int confirm = JOptionPane.showConfirmDialog(
                 removeDialog,
                 "Are you sure you want to Cancel this booking?",
@@ -877,24 +882,30 @@ public class RoomManagement extends JFrame {
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
 
-        if (confirm == JOptionPane.YES_OPTION) {
-            // Booking booking = Db.select.getBooking(room.getNum());
-            // Billing bill = Db.select.getBillBooking(booking.getBooking_id());
+        if (confirm == JOptionPane.YES_OPTION && !booking.getRoom().isCheckedIn()) {
+            Db.delete.bill(booking.getBooking_id());
+            Db.delete.booking(booking.getBooking_id());
 
-            // Db.delete.bill(bill);
-            // Db.delete.booking(booking.getBooking_id());
-
+            JOptionPane.showConfirmDialog(null, "Successfully cancelled booking.");
+            System.out.println("Successfully cancelled booking!");
+        } else {
+            Utils.showError(null, "Check-out the person in the room before deleting the booking.");
         }
+
+        loadRooms();
+        loadBookedRooms();
     }
 
-    private void checkInAction(Room room) {
+    private void checkInAction(Booking booking) {
+        booking.setCheckInDate(LocalDate.now());
+        Db.update.booking(booking);
+        Db.update.roomCheckIn(booking.getRoom().getNum());
 
-        // Booking booking = Db.select.getBooking(room.getNum());
-        // booking.setCheckInDate(LocalDate.now());
-        // Db.update.booking(booking);
-        // Db.update.roomCheckIn(room.getNum());
-        //
-        // loadBookedRooms();
+        JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        loadRooms();
+        loadBookedRooms();
     }
 
     private JDialog showCheckOutDialog(Room room) {

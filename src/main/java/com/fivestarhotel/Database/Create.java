@@ -233,7 +233,7 @@ public class Create {
 
             try (Connection conn = Db.connect()) {
                 PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date) VALUES (?, ?, ?, ?, ?, ?)");
+                        "INSERT INTO booking(booking_id, room_number, customer_id, receptionist_id, check_in_date, check_out_date, booking_checkedin) VALUES (?, ?, ?, ?, ?, ?, ?)");
 
                 ps.setInt(1, Db.select.lastBookingId() + 1);
                 ps.setInt(2, booking.getRoom().getNum());
@@ -241,6 +241,7 @@ public class Create {
                 ps.setInt(4, booking.getReceptionist_id());
                 ps.setDate(5, Date.valueOf(booking.getCheckInDate()));
                 ps.setDate(6, Date.valueOf(booking.getCheckOutDate()));
+                ps.setBoolean(7, booking.isCheckedIn());
                 int bookingRows = ps.executeUpdate();
                 System.out.println("Added " + bookingRows + " booking row(s).");
                 Db.update.roomStatus(booking.getRoom().getNum(), true);
@@ -263,6 +264,34 @@ public class Create {
             return -1;
         }
 
+    }
+
+    // billing stuff
+
+    public void addBill(Billing bill) {
+        if (Db.select.getBooking(bill.getBookingId()) == null) {
+            System.err.println("Invalid booking ID: " + bill.getBookingId());
+            return;
+        }
+
+        if (Db.select.getBillBooking(bill.getBookingId()) != null) {
+            System.err.println("A bill already exists for booking ID: " + bill.getBookingId());
+            return;
+        }
+
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO billing(booking_id, billing_status) VALUES (?, ?)");
+            ps.setInt(1, bill.getBookingId());
+            ps.setBoolean(2, Billing.convertBill(bill.getStatus()));
+            int rows = ps.executeUpdate();
+            System.out.println("Added " + rows + " bill row(s).");
+
+        } catch (SQLException e) {
+            System.err.println("Failed to create bill: " + e.getMessage());
+            e.printStackTrace();
+
+        }
     }
 
     public User signUpUser(User user) {
@@ -361,33 +390,5 @@ public class Create {
             return null;
         }
 
-    }
-
-    // billing stuff
-
-    public void addBill(Billing bill) {
-        if (Db.select.getBooking(bill.getBookingId()) == null) {
-            System.err.println("Invalid booking ID: " + bill.getBookingId());
-            return;
-        }
-
-        if (Db.select.getBillBooking(bill.getBookingId()) != null) {
-            System.err.println("A bill already exists for booking ID: " + bill.getBookingId());
-            return;
-        }
-
-        try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO billing(booking_id, billing_status) VALUES (?, ?)");
-            ps.setInt(1, bill.getBookingId());
-            ps.setBoolean(2, Billing.convertBill(bill.getStatus()));
-            int rows = ps.executeUpdate();
-            System.out.println("Added " + rows + " bill row(s).");
-
-        } catch (SQLException e) {
-            System.err.println("Failed to create bill: " + e.getMessage());
-            e.printStackTrace();
-
-        }
     }
 }

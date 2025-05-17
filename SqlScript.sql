@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS HMSDB.booking (
   receptionist_id INT NOT NULL,
   customer_id INT NOT NULL,
   room_number INT NOT NULL,
+  booking_checkedin boolean NULL,
   check_in_date TIMESTAMP NULL,
   check_out_date DATETIME NULL,
   INDEX fk_books_customer1_idx (customer_id ASC) VISIBLE,

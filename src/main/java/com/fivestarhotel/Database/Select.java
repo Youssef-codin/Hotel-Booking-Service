@@ -1,6 +1,7 @@
 package com.fivestarhotel.Database;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -328,12 +329,14 @@ public class Select {
                 System.out.println("Booking " + booking_id + " Found.");
 
                 int roomNumber = rs.getInt("room_number");
-                Room room = getRoom(roomNumber); // Using your getRoom method
+                Room room = getRoom(roomNumber);
 
                 if (room != null) {
                     return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
                             rs.getInt("receptionist_id"),
-                            rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
+                            rs.getBoolean("booking_checkedin"),
+                            rs.getDate("check_in_date").toLocalDate(),
+                            rs.getDate("check_out_date").toLocalDate());
                 } else {
                     System.err
                             .println("Error: Room with number " + roomNumber + " not found for booking " + booking_id);
@@ -351,18 +354,22 @@ public class Select {
         }
     }
 
-    public Booking getBooking(Booking booking) {
+    public Booking getBooking(int room_number, LocalDate check_in_date) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE room_number = ?");
-            ps.setInt(1, booking.getRoom().getNum());
+            PreparedStatement ps = conn
+                    .prepareStatement("SELECT * FROM booking WHERE room_number = ? AND check_in_date = ?");
+            ps.setInt(1, room_number);
+            ps.setDate(2, Date.valueOf(check_in_date));
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                int roomNumber = rs.getInt("room_number");
-                Room room = getRoom(roomNumber); // Using your getRoom method
-                return new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                Room room = getRoom(room_number);
+                return new Booking(rs.getInt("booking_id"),
+                        room, rs.getInt("customer_id"),
                         rs.getInt("receptionist_id"),
-                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate());
+                        rs.getBoolean("booking_checkedin"),
+                        rs.getDate("check_in_date").toLocalDate(),
+                        rs.getDate("check_out_date").toLocalDate());
             } else {
                 System.err.println("Query-Error: Booking Not Found");
                 return null;
@@ -390,9 +397,12 @@ public class Select {
                 int roomNumber = rs.getInt("room_number");
                 Room room = getRoom(roomNumber);
 
-                bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                bookings.add(new Booking(rs.getInt("booking_id"),
+                        room, rs.getInt("customer_id"),
                         rs.getInt("receptionist_id"),
-                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+                        rs.getBoolean("booking_checkedin"),
+                        rs.getDate("check_in_date").toLocalDate(),
+                        rs.getDate("check_out_date").toLocalDate()));
             }
 
             return bookings;
@@ -434,9 +444,12 @@ public class Select {
                 Room room = getRoom(roomNumber); // Fetch Room *inside* the loop
 
                 if (room != null) {
-                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                    bookings.add(new Booking(rs.getInt("booking_id"),
+                            room, rs.getInt("customer_id"),
                             rs.getInt("receptionist_id"),
-                            rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+                            rs.getBoolean("booking_checkedin"),
+                            rs.getDate("check_in_date").toLocalDate(),
+                            rs.getDate("check_out_date").toLocalDate()));
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                     // Handle missing room as needed
@@ -462,9 +475,12 @@ public class Select {
                 Room room = getRoom(roomNumber);
 
                 if (room != null) {
-                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                    bookings.add(new Booking(rs.getInt("booking_id"),
+                            room, rs.getInt("customer_id"),
                             rs.getInt("receptionist_id"),
-                            rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+                            rs.getBoolean("booking_checkedin"),
+                            rs.getDate("check_in_date").toLocalDate(),
+                            rs.getDate("check_out_date").toLocalDate()));
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                 }
@@ -489,9 +505,12 @@ public class Select {
                 Room room = getRoom(roomNumber); // Fetch Room *inside* the loop
 
                 if (room != null) {
-                    bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                    bookings.add(new Booking(rs.getInt("booking_id"),
+                            room, rs.getInt("customer_id"),
                             rs.getInt("receptionist_id"),
-                            rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+                            rs.getBoolean("booking_checkedin"),
+                            rs.getDate("check_in_date").toLocalDate(),
+                            rs.getDate("check_out_date").toLocalDate()));
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
                     // Handle missing room as needed

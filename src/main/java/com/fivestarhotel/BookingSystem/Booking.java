@@ -10,15 +10,18 @@ public class Booking {
     private Room room;
     private int customer_id;
     private int receptionist_id;
+    private boolean checkedIn;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
 
-    public Booking(int booking_id, Room room, int customer_id, int receptionist_id, LocalDate checkInDate,
+    public Booking(int booking_id, Room room, int customer_id, int receptionist_id, boolean checkedIn,
+            LocalDate checkInDate,
             LocalDate checkOutDate) {
         this.booking_id = booking_id;
         this.room = room;
         this.customer_id = customer_id;
         this.receptionist_id = receptionist_id;
+        this.checkedIn = checkedIn;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
     }
@@ -28,6 +31,7 @@ public class Booking {
         this.room = room;
         this.customer_id = customer_id;
         this.receptionist_id = receptionist_id;
+        this.checkedIn = false;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
     }
@@ -90,5 +94,13 @@ public class Booking {
                 ", checkInDate=" + checkInDate +
                 ", checkOutDate=" + checkOutDate +
                 '}';
+    }
+
+    public boolean isCheckedIn() {
+        return checkedIn;
+    }
+
+    public void setCheckedIn(boolean checkedIn) {
+        this.checkedIn = checkedIn;
     }
 }

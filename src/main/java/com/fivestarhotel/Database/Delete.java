@@ -87,13 +87,30 @@ public class Delete {
 
     // billing delete method wa kda b2a
 
-    public void bill(int billId) {
+    // public void bill(int billId) {
+    // try (Connection conn = Db.connect()) {
+    // PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE
+    // bill_id = ?");
+    // ps.setInt(1, billId);
+    // int rows = ps.executeUpdate();
+    // if (rows == 0) {
+    // System.err.println("Bill ID not found, didn't delete anything");
+    // } else {
+    // System.out.println("deleted " + rows + " rows.");
+    // }
+    // } catch (SQLException e) {
+    // e.printStackTrace();
+    // System.err.println(e.getErrorCode());
+    // }
+    // }
+
+    public void bill(int booking_id) {
         try (Connection conn = Db.connect()) {
-            PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE bill_id = ?");
-            ps.setInt(1, billId);
+            PreparedStatement ps = conn.prepareStatement("DELETE FROM billing WHERE booking_id = ?");
+            ps.setInt(1, booking_id);
             int rows = ps.executeUpdate();
             if (rows == 0) {
-                System.err.println("Bill ID not found, didn't delete anything");
+                System.err.println("Booking ID not found, didn't delete anything");
             } else {
                 System.out.println("deleted " + rows + " rows.");
             }
