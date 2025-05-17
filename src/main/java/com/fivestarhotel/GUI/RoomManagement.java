@@ -844,7 +844,7 @@ public class RoomManagement extends JFrame {
     }
 
     private JLabel createStatusLabel(boolean isCheckedIn) {
-        JLabel label = new JLabel("Status: " + (isCheckedIn ? "Occupied" : "Available"));
+        JLabel label = new JLabel("Status: " + (isCheckedIn ? "Occupied" : "un-Occupied"));
         label.setForeground(isCheckedIn ? Color.RED : new Color(0, 128, 0));
         return label;
     }
