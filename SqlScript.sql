@@ -71,6 +71,7 @@ CREATE TABLE IF NOT EXISTS HMSDB.room (
   room_floor INT NOT NULL,
   room_type VARCHAR(45) NULL,
   room_status boolean NULL,
+  room_checkedin boolean NULL,
   PRIMARY KEY (room_number))
 ENGINE = InnoDB;
 
@@ -83,6 +84,7 @@ CREATE TABLE IF NOT EXISTS HMSDB.booking (
   receptionist_id INT NOT NULL,
   customer_id INT NOT NULL,
   room_number INT NOT NULL,
+  booking_checkedin boolean NULL,
   check_in_date TIMESTAMP NULL,
   check_out_date DATETIME NULL,
   INDEX fk_books_customer1_idx (customer_id ASC) VISIBLE,
@@ -113,7 +115,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS HMSDB.billing (
   billing_id INT NOT NULL auto_increment,
   booking_id INT NOT NULL,
-  billing_status boolean NULL,
+  billing_status VARCHAR(45) NULL,
   PRIMARY KEY (billing_id),
   INDEX fk_billing_booking1_idx (booking_id ASC) VISIBLE,
   CONSTRAINT fk_billing_booking1

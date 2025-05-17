@@ -7,6 +7,13 @@ public abstract class User {
     private String email;
     private String password;
 
+    public User(String fname, String lname, String email, String password) {
+        this.fname = fname;
+        this.lname = lname;
+        this.email = email;
+        this.password = password;
+    }
+
     public User(int id, String fname, String lname, String email, String password) {
         this.id = id;
         this.fname = fname;
@@ -36,6 +43,10 @@ public abstract class User {
         return lname;
     }
 
+    public String getFullName() {
+        return fname + " " + lname;
+    }
+
     public void setLname(String lname) {
         this.lname = lname;
     }
@@ -55,6 +66,4 @@ public abstract class User {
     public void setPassword(String password) {
         this.password = password;
     }
-
-    public abstract void showDashboard();
 }
