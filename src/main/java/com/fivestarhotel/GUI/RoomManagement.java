@@ -1000,21 +1000,6 @@ public class RoomManagement extends JFrame {
         loadBookedRooms();
     }
 
-    // private void checkInAction(Booking booking) {
-    // // booking.setCheckInDate(LocalDate.now());
-    // booking.setCheckedIn(true);
-
-    // Db.update.booking(booking);
-    // Db.update.roomCheckIn(booking.getRoom().getNum(), true);
-
-    // JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in
-    // status",
-    // JOptionPane.INFORMATION_MESSAGE);
-
-    // loadRooms();
-    // loadBookedRooms();
-    // }
-
     private void checkInAction(Booking booking) {
         booking.setCheckedIn(true); // Update the object locally
         Db.update.updateBookingCheckIn(booking.getBooking_id(), true); // Update database
