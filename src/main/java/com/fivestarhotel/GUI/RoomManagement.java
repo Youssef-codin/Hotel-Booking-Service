@@ -336,6 +336,7 @@ public class RoomManagement extends JFrame {
         bookedRoomsPanel.removeAll();
         bookedRoomsPanel.revalidate();
         bookedRoomsPanel.repaint();
+        allBookedRooms = Db.select.getRooms(true);
 
         SwingUtilities.invokeLater(() -> {
             bookedRoomsPanel.removeAll();
@@ -473,6 +474,7 @@ public class RoomManagement extends JFrame {
         roomsPanel.add(card);
     }
 
+    // the booking passed here is wrong
     private void addBookedRoomCard(Booking booking) {
         Room room = booking.getRoom();
 
@@ -495,7 +497,8 @@ public class RoomManagement extends JFrame {
         infoPanel.add(new JLabel("Type: " + room.getRoomType()));
         infoPanel.add(createStatusLabel(booking.isCheckedIn()));
 
-        System.out.println("checked in " + booking.isCheckedIn());
+        System.out.println("checked in adding bookedroom" + booking.isCheckedIn());
+        System.out.println(booking.toString());
 
         card.add(infoPanel, BorderLayout.CENTER);
 
@@ -579,10 +582,7 @@ public class RoomManagement extends JFrame {
         Db.update.rates(RoomType.SINGLE, Integer.parseInt(single));
         Db.update.rates(RoomType.DOUBLE, Integer.parseInt(doubleRate));
         Db.update.rates(RoomType.SUITE, Integer.parseInt(suite));
-
-        Room.setRate(RoomType.SINGLE, Integer.parseInt(single));
-        Room.setRate(RoomType.DOUBLE, Integer.parseInt(doubleRate));
-        Room.setRate(RoomType.SUITE, Integer.parseInt(suite));
+        Db.select.loadRates();
 
         JOptionPane.showMessageDialog(addRoomDialog,
                 "Room rates changed Successfully!",
@@ -978,6 +978,8 @@ public class RoomManagement extends JFrame {
     private void checkInAction(Booking booking) {
         booking.setCheckInDate(LocalDate.now());
         booking.setCheckedIn(true);
+
+        System.out.println("Before DB update - Checked in status: " + booking.isCheckedIn());
 
         Db.update.booking(booking);
         Db.update.roomCheckIn(booking.getRoom().getNum(), true);
@@ -1421,10 +1423,6 @@ public class RoomManagement extends JFrame {
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
         Db.connect("root", "yoyo8080");
-        // run at least once
-        // Db.create.addRate(RoomType.SINGLE, 750);
-        // Db.create.addRate(RoomType.DOUBLE, 1200);
-        // Db.create.addRate(RoomType.SUITE, 2000);
         Db.select.loadRates();
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
