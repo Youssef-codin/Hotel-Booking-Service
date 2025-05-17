@@ -366,7 +366,7 @@ public class Create {
     // billing stuff
 
     public void addBill(Billing bill) {
-        if (Db.select.getbooking(bill.getBookingId()) == null) {
+        if (Db.select.getBooking(bill.getBookingId()) == null) {
             System.err.println("Invalid booking ID: " + bill.getBookingId());
             return;
         }
