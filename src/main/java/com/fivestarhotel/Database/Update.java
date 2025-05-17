@@ -157,37 +157,6 @@ public class Update {
         }
     }
 
-    // public void bookingCheckIndate(int booking_id, boolean isCheckedIn) {
-    // BookingManager bm = new BookingManager();
-    // Booking booking = Db.select.getBooking(booking_id);
-    // Room room = booking.getRoom();
-    // bm.validateBookingDates(LocalDate.now(), booking.getCheckOutDate());
-    //
-    // if (Db.select.IsRoomAvailable(room, booking, booking.getBooking_id())) {
-    // System.out.println("Room " + booking.getRoom().getNum() + " is available.
-    // Proceeding with booking...");
-    // try (Connection conn = Db.connect()) {
-    // PreparedStatement ps = conn.prepareStatement(
-    // "UPDATE booking SET check_in_date = ? WHERE booking_id = ?");
-    // ps.setDate(1, Date.valueOf(booking.getCheckOutDate()));
-    // ps.setInt(2, booking.getBooking_id());
-    //
-    // int rows = ps.executeUpdate();
-    // if (rows == 0) {
-    // System.err.println("Booking ID not found.");
-    // } else {
-    // System.out.println("updated " + rows + " rows!");
-    // }
-    // } catch (SQLException e) {
-    // e.printStackTrace();
-    // }
-    // } else {
-    // System.out.println("Room " + booking.getRoom().getNum() + " is not available
-    // for the requested dates.");
-    // }
-    //
-    // }
-
     // if a customer wants to extend their stay, they can use this method to update
     // the check out date
     public void bookingCheckoutdate(Booking booking) {
