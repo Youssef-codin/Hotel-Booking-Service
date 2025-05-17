@@ -4,14 +4,13 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDate;
 
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
-import com.fivestarhotel.Room.RoomType; // Ensure this is the correct package for the Booking class
+import com.fivestarhotel.Room.RoomType;
 
 public class Update {
 
@@ -257,4 +256,19 @@ public class Update {
             System.err.println("Database error: " + e.getMessage());
         }
     }
+
+
+
+    public static void updateBookingCheckIn(int bookingId, boolean checkedIn) {
+    String sql = "UPDATE booking SET booking_checkedin = ? WHERE booking_id = ?";
+    try (Connection conn = Db.connect();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setBoolean(1, checkedIn);
+        ps.setInt(2, bookingId);
+        int rows = ps.executeUpdate();
+        System.out.println("Check-in update: " + rows + " rows affected for booking " + bookingId);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
 }

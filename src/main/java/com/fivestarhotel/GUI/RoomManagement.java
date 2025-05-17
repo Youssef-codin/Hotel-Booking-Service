@@ -1,24 +1,49 @@
 package com.fivestarhotel.GUI;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+
+import com.fivestarhotel.Billing;
+import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Database.Db.UserRoles;
-import com.fivestarhotel.Billing;
 import com.fivestarhotel.Payment;
 import com.fivestarhotel.Room;
-import com.fivestarhotel.Billing.BillingStatus;
-import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
-
-import javax.swing.*;
-import javax.swing.Timer;
-import java.awt.*;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.*;
 
 public class RoomManagement extends JFrame {
     private JTextField accountIdField, searchField, customerIdField, firstNameField, lastNameField, emailField,
@@ -975,19 +1000,28 @@ public class RoomManagement extends JFrame {
         loadBookedRooms();
     }
 
+    // private void checkInAction(Booking booking) {
+    //     // booking.setCheckInDate(LocalDate.now());
+    //     booking.setCheckedIn(true);
+
+    //     Db.update.booking(booking);
+    //     Db.update.roomCheckIn(booking.getRoom().getNum(), true);
+
+    //     JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status",
+    //             JOptionPane.INFORMATION_MESSAGE);
+
+    //     loadRooms();
+    //     loadBookedRooms();
+    // }
+
     private void checkInAction(Booking booking) {
-        booking.setCheckInDate(LocalDate.now());
-        booking.setCheckedIn(true);
-
-        Db.update.booking(booking);
-        Db.update.roomCheckIn(booking.getRoom().getNum(), true);
-
-        JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status",
-                JOptionPane.INFORMATION_MESSAGE);
-
-        loadRooms();
-        loadBookedRooms();
-    }
+    booking.setCheckedIn(true); // Update the object locally
+    Db.update.updateBookingCheckIn(booking.getBooking_id(), true); // Update database
+    Db.update.roomCheckIn(booking.getRoom().getNum(), true); // Update room status
+    JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status", JOptionPane.INFORMATION_MESSAGE);
+    loadRooms(); // Refresh available rooms
+    loadBookedRooms(); // Refresh booked rooms UI
+}
 
     private JDialog showCheckOutDialog(Booking booking) {
         Room room = booking.getRoom();
@@ -1420,7 +1454,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "6831");
         // run at least once
         // Db.create.addRate(RoomType.SINGLE, 750);
         // Db.create.addRate(RoomType.DOUBLE, 1200);
