@@ -52,7 +52,7 @@ public class Update {
         }
     }
 
-    public void updateRates(RoomType type, int newRate) {
+    public void rates(RoomType type, int newRate) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("UPDATE rates SET room_rate = ? WHERE room_type = ?");
             ps.setInt(1, newRate);

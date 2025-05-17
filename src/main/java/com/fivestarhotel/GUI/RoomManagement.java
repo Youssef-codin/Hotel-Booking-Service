@@ -22,8 +22,8 @@ import java.util.*;
 
 public class RoomManagement extends JFrame {
     private JTextField accountIdField, searchField, customerIdField, firstNameField, lastNameField, emailField,
-            phoneField, payField;
-    private JDialog addRoomDialog, removeDialog, checkInDialog;
+            phoneField, payField, singleRateField, doubleRateField, suiteRateField;
+    private JDialog addRoomDialog, removeDialog, checkInDialog, ratesDialog;
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, searchNumber;
     private String currentUserRole;
@@ -35,7 +35,7 @@ public class RoomManagement extends JFrame {
     private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[] { "Admin", "Receptionist", "Customer" });
     private JLabel customerInfoLabel;
     private JTabbedPane tabbedPane;
-    private JButton addButton, removeButton;
+    private JButton addButton, removeButton, setRateButton;
     private JScrollPane adminSection, recepSection, custSection;
     private BookingCalendar calendar = new BookingCalendar();
     JComboBox<String> receptionistCombo;
@@ -110,6 +110,7 @@ public class RoomManagement extends JFrame {
 
         if (currentUserRole.matches("Admin")) {
             headerPanel.add(createAdminControls(false), BorderLayout.EAST);
+
         }
 
         return headerPanel;
@@ -256,6 +257,7 @@ public class RoomManagement extends JFrame {
         if (!switcher) {
             addButton = Utils.createActionButton("Room +", e -> showAddRoomDialog());
             removeButton = Utils.createActionButton("Room -", e -> showRemoveRoomDialog());
+            setRateButton = Utils.createActionButton("Rates", e -> showRatesDialog());
         } else {
             addButton = Utils.createActionButton("Account +", e -> showAddAccountDialog());
             removeButton = Utils.createActionButton("Account -", e -> showRemoveAccountDialog());
@@ -263,6 +265,7 @@ public class RoomManagement extends JFrame {
 
         adminPanel.add(addButton);
         adminPanel.add(removeButton);
+        adminPanel.add(setRateButton);
 
         return adminPanel;
     }
@@ -529,6 +532,64 @@ public class RoomManagement extends JFrame {
     private void returnToLogin() {
         dispose();
         SwingUtilities.invokeLater(() -> new BookItLogin().setVisible(true));
+    }
+
+    private void showRatesDialog() {
+        ratesDialog = new JDialog();
+        ratesDialog.setSize(400, 250);
+        ratesDialog.setLocationRelativeTo(this);
+        ratesDialog.getContentPane().setBackground(Utils.secondaryColor);
+
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        mainPanel.setBackground(Utils.secondaryColor);
+
+        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        formPanel.setBackground(Utils.secondaryColor);
+
+        singleRateField = new JTextField();
+        singleRateField.setText(String.valueOf(Db.select.getRate(RoomType.SINGLE)));
+        Utils.addFormField(formPanel, "Single Rate", singleRateField);
+        doubleRateField = new JTextField();
+        doubleRateField.setText(String.valueOf(Db.select.getRate(RoomType.DOUBLE)));
+        Utils.addFormField(formPanel, "Double Rate", doubleRateField);
+        suiteRateField = new JTextField();
+        suiteRateField.setText(String.valueOf(Db.select.getRate(RoomType.SUITE)));
+        Utils.addFormField(formPanel, "suite Rate", suiteRateField);
+
+        JButton changeRatesButton = Utils.createActionButton("Change Rates", e -> changeRatesAction());
+
+        mainPanel.add(formPanel);
+        formPanel.add(Box.createHorizontalGlue());
+        formPanel.add(changeRatesButton);
+        ratesDialog.add(mainPanel);
+        ratesDialog.setVisible(true);
+    }
+
+    private void changeRatesAction() {
+        String single = singleRateField.getText();
+        String doubleRate = doubleRateField.getText();
+        String suite = suiteRateField.getText();
+
+        if (single.isEmpty() || doubleRate.isEmpty() || suite.isEmpty()) {
+            Utils.showError(null, "Please don't leave any fields empty.");
+            return;
+        }
+
+        Db.update.rates(RoomType.SINGLE, Integer.parseInt(single));
+        Db.update.rates(RoomType.DOUBLE, Integer.parseInt(doubleRate));
+        Db.update.rates(RoomType.SUITE, Integer.parseInt(suite));
+
+        Room.setRate(RoomType.SINGLE, Integer.parseInt(single));
+        Room.setRate(RoomType.DOUBLE, Integer.parseInt(doubleRate));
+        Room.setRate(RoomType.SUITE, Integer.parseInt(suite));
+
+        JOptionPane.showMessageDialog(addRoomDialog,
+                "Room rates changed Successfully!",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+
+        loadRooms();
+        loadBookedRooms();
     }
 
     private void showAddRoomDialog() {
@@ -1360,6 +1421,11 @@ public class RoomManagement extends JFrame {
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
         Db.connect("root", "yoyo8080");
+        // run at least once
+        // Db.create.addRate(RoomType.SINGLE, 750);
+        // Db.create.addRate(RoomType.DOUBLE, 1200);
+        // Db.create.addRate(RoomType.SUITE, 2000);
+        Db.select.loadRates();
         SwingUtilities.invokeLater(() -> {
             RoomManagement roomManagement = new RoomManagement("Admin", 1);
             roomManagement.setVisible(true);
