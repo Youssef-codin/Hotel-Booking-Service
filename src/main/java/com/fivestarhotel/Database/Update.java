@@ -121,8 +121,8 @@ public class Update {
                 ps.setInt(3, booking.getReceptionist_id());
                 ps.setDate(4, Date.valueOf(booking.getCheckInDate())); // Format: yyyy-MM-dd
                 ps.setDate(5, Date.valueOf(booking.getCheckOutDate())); // Format: yyyy-MM-dd
-                ps.setBoolean(7, booking.isCheckedIn());
-                ps.setInt(6, booking.getBooking_id());
+                ps.setBoolean(6, booking.isCheckedIn());
+                ps.setInt(7, booking.getBooking_id());
                 Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
 
                 int rows = ps.executeUpdate();
