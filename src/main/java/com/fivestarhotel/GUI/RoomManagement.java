@@ -238,7 +238,7 @@ public class RoomManagement extends JFrame {
 
             loadAccountSections();
             loadRooms();
-            // loadBookedRooms();
+            loadBookedRooms();
         }
     }
 
@@ -336,7 +336,7 @@ public class RoomManagement extends JFrame {
                     ArrayList<Booking> bookings = Db.select.getBookings(room.getNum());
 
                     for (Booking booking : bookings) {
-                        addBookedRoomCard(room, booking);
+                        addBookedRoomCard(booking);
 
                     }
                 }
@@ -362,7 +362,7 @@ public class RoomManagement extends JFrame {
                     ArrayList<Booking> bookings = Db.select.getBookings(room.getNum());
                     for (Booking booking : bookings) {
                         System.out.println("room: " + room.getNum() + " : " + "booking: " + booking.getBooking_id());
-                        addBookedRoomCard(room, booking);
+                        addBookedRoomCard(booking);
                     }
                 }
             }
@@ -381,7 +381,7 @@ public class RoomManagement extends JFrame {
             bookedRoomsPanel.removeAll();
             for (Booking booking : Db.select.getBookings(room.getNum())) {
                 booking.getRoom().getNum();
-                addBookedRoomCard(room, booking);
+                addBookedRoomCard(booking);
             }
 
             bookedRoomsPanel.revalidate();
@@ -462,7 +462,8 @@ public class RoomManagement extends JFrame {
         roomsPanel.add(card);
     }
 
-    private void addBookedRoomCard(Room room, Booking booking) {
+    private void addBookedRoomCard(Booking booking) {
+        Room room = booking.getRoom();
 
         JPanel card = Utils.createStyledPanel(15, Utils.primaryColor, true);
         card.setPreferredSize(new Dimension(300, 290));
@@ -487,7 +488,7 @@ public class RoomManagement extends JFrame {
 
         infoPanel.add(new JLabel("Check-in: " + booking.getCheckInDate()));
         infoPanel.add(new JLabel("Check-out: " + booking.getCheckOutDate()));
-        card.add(createBookedRoomButtons(room, booking), BorderLayout.SOUTH);
+        card.add(createBookedRoomButtons(booking), BorderLayout.SOUTH);
         bookedRoomsPanel.add(card);
 
     }
@@ -859,17 +860,17 @@ public class RoomManagement extends JFrame {
         return panel;
     }
 
-    private JPanel createBookedRoomButtons(Room room, Booking booking) {
+    private JPanel createBookedRoomButtons(Booking booking) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         panel.setBackground(Utils.secondaryColor);
-        if (!room.isCheckedIn()) {
-
+        if (!booking.isCheckedIn()) {
             panel.add(Utils.createActionButton("Check in", e -> checkInAction(booking)));
             panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(booking)));
 
         } else {
-            panel.add(Utils.createActionButton("Check out", e -> showCheckOutDialog(room)));
+            panel.add(Utils.createActionButton("Check out", e -> showCheckOutDialog(booking.getRoom())));
             panel.add(Utils.createActionButton("Cancel", e -> cancelBookingDialoge(booking)));
+
         }
         return panel;
     }
@@ -885,11 +886,21 @@ public class RoomManagement extends JFrame {
         if (confirm == JOptionPane.YES_OPTION && !booking.getRoom().isCheckedIn()) {
             Db.delete.bill(booking.getBooking_id());
             Db.delete.booking(booking.getBooking_id());
+            if (booking.isCheckedIn()) {
+                Db.update.roomStatus(booking.getRoom().getNum(), false);
+            }
 
             JOptionPane.showConfirmDialog(null, "Successfully cancelled booking.");
             System.out.println("Successfully cancelled booking!");
         } else {
             Utils.showError(null, "Check-out the person in the room before deleting the booking.");
+
+            // TODO: REMOVE THIS BEFORE PROD
+            Db.delete.bill(booking.getBooking_id());
+            Db.delete.booking(booking.getBooking_id());
+            if (booking.isCheckedIn()) {
+                Db.update.roomStatus(booking.getRoom().getNum(), false);
+            }
         }
 
         loadRooms();
@@ -898,6 +909,10 @@ public class RoomManagement extends JFrame {
 
     private void checkInAction(Booking booking) {
         booking.setCheckInDate(LocalDate.now());
+        booking.setCheckedIn(true);
+
+        System.out.println(booking.toString());
+
         Db.update.booking(booking);
         Db.update.roomCheckIn(booking.getRoom().getNum());
 
