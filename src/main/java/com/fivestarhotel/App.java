@@ -13,9 +13,6 @@ public class App {
          *
          * Afterwards use Db.select.loadRates(); to load in the rates from the database
          *
-         * Db.connect("Enter username here (probably is just root)",
-         * "Enter password here");
-         *
          * Use Db.select.loadRates(); to load the latest rates from the DB to the
          * program
          *
@@ -28,10 +25,11 @@ public class App {
         // Simplified authentication to use hardcoded credentials:
         // Admin: admin@bookit.com / Admin_123
         Db.connect("root", "6831");
+
         // Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com",
         // "Admin_123"));
-        //
 
+        Db.select.loadRates();
         // Db.delete.deleteUser(2, UserRoles.RECEPTIONIST);
         // Db.create.signUpUser(new Receptionist("recep", "recep", "recep@bookit.com",
         // "Recep_123"));

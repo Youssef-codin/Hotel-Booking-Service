@@ -237,7 +237,21 @@ public class Select {
 
             if (!rs.next()) {
                 System.err.println("Room type doesn't have a set rate");
-                return -1;
+                switch (type) {
+                    case SINGLE -> {
+                        return 750;
+                    }
+                    case DOUBLE -> {
+                        return 1200;
+                    }
+                    case SUITE -> {
+                        return 2000;
+                    }
+                    default -> {
+                        return 0; // this case should never happen, but if it happens the app will probably
+                                  // crash
+                    }
+                }
 
             } else {
                 return rs.getInt("room_rate");
@@ -258,10 +272,9 @@ public class Select {
             if (rate == -1) {
                 System.err.println("Rate not found for type: " + type);
 
-            } else {
-                Room.setRate(type, rate);
-
             }
+            Room.setRate(type, rate);
+
         }
     }
 
@@ -326,7 +339,6 @@ public class Select {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                System.out.println("Booking " + booking_id + " Found.");
 
                 int roomNumber = rs.getInt("room_number");
                 Room room = getRoom(roomNumber);
@@ -441,7 +453,7 @@ public class Select {
 
             while (rs.next()) {
                 int roomNumber = rs.getInt("room_number");
-                Room room = getRoom(roomNumber); // Fetch Room *inside* the loop
+                Room room = getRoom(roomNumber);
 
                 if (room != null) {
                     bookings.add(new Booking(rs.getInt("booking_id"),
@@ -452,7 +464,6 @@ public class Select {
                             rs.getDate("check_out_date").toLocalDate()));
                 } else {
                     System.err.println("Warning: Room not found for booking ID " + rs.getInt("booking_id"));
-                    // Handle missing room as needed
                 }
             }
             return bookings;

@@ -91,6 +91,7 @@ public class Booking {
                 ", room=" + (room != null ? room.getNum() : "null") +
                 ", customer_id=" + customer_id +
                 ", receptionist_id=" + receptionist_id +
+                ", checkedIn=" + checkedIn +
                 ", checkInDate=" + checkInDate +
                 ", checkOutDate=" + checkOutDate +
                 '}';
