@@ -1,11 +1,9 @@
 package com.fivestarhotel.Database;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
@@ -319,7 +317,7 @@ public class Select {
 
     // Booking System wa kda b2a
 
-    public Booking getbooking(int booking_id) {
+    public Booking getBooking(int booking_id) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("SELECT * FROM booking WHERE booking_id = ?");
             ps.setInt(1, booking_id);
@@ -376,6 +374,53 @@ public class Select {
             return null;
 
         }
+    }
+
+    public ArrayList<Booking> getBookingByName(String name) {
+        ArrayList<Booking> bookings = new ArrayList<>();
+
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn.prepareStatement(
+                    "select * from booking where customer_id IN (select customer_id from customer where customer_fname like ? or customer_lname like ?)");
+            ps.setString(1, "%" + name + "%");
+            ps.setString(2, "%" + name + "%");
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                int roomNumber = rs.getInt("room_number");
+                Room room = getRoom(roomNumber);
+
+                bookings.add(new Booking(rs.getInt("booking_id"), room, rs.getInt("customer_id"),
+                        rs.getInt("receptionist_id"),
+                        rs.getDate("check_in_date").toLocalDate(), rs.getDate("check_out_date").toLocalDate()));
+            }
+
+            return bookings;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return null;
+
+        }
+    }
+
+    public ArrayList<Room> getBookedRoomsByName(String name) {
+        ArrayList<Booking> bookings = getBookingByName(name);
+        HashMap<Integer, Room> rooms = new HashMap<>();
+
+        if (!bookings.isEmpty()) {
+            for (Booking booking : bookings) {
+                Room room = booking.getRoom();
+                rooms.put(room.getNum(), room);
+
+            }
+
+        } else {
+            System.err.println("no bookings available");
+        }
+
+        return new ArrayList<>(rooms.values());
     }
 
     public ArrayList<Booking> getBookings() {
@@ -731,14 +776,16 @@ public class Select {
     public ArrayList<User> getUsersByName(UserRoles role, String name) {
         ArrayList<User> users = new ArrayList<>();
         String sql = switch (role) {
-            case ADMIN -> "SELECT * FROM admin WHERE admin_fname LIKE ?";
-            case RECEPTIONIST -> "SELECT * FROM receptionist WHERE receptionist_fname LIKE ?";
-            case CUSTOMER -> "SELECT * FROM customer WHERE customer_fname LIKE ?";
+            case ADMIN -> "SELECT * FROM admin WHERE admin_fname LIKE ? OR admin_lname LIKE ?";
+            case RECEPTIONIST ->
+                "SELECT * FROM receptionist WHERE receptionist_fname LIKE ? OR receptionist_lname LIKE ?";
+            case CUSTOMER -> "SELECT * FROM customer WHERE customer_fname LIKE ? OR customer_lname LIKE ?";
             default -> throw new IllegalArgumentException("Invalid role: " + role);
         };
 
         try (Connection conn = Db.connect(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, "%" + name + "%");
+            ps.setString(2, "%" + name + "%");
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {

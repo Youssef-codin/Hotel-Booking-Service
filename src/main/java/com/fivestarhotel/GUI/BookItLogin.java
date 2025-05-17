@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
+import com.fivestarhotel.security.SecureCredentials;
+import com.fivestarhotel.users.Customer;
+
 
 public class BookItLogin extends JFrame {
     private JTextField emailField = new JTextField();
@@ -22,6 +25,12 @@ public class BookItLogin extends JFrame {
 
     public BookItLogin() {
         initializeUI();
+        String[] savedCredentials = SecureCredentials.loadCredentials();
+        if (savedCredentials != null) {
+            emailField.setText(savedCredentials[0]);
+            passwordField.setText(savedCredentials[1]);
+            rememberMe.setSelected(true);
+        }
     }
 
     public BookItLogin(String email, String password) {
@@ -166,26 +175,23 @@ public class BookItLogin extends JFrame {
                 loadingBar.setVisible(false);
                 setEnabled(true);
             });
+
             if (rememberMe.isSelected()) {
-                try {
-                    FileWriter writer = new FileWriter(new File(
-                            "C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt"));
-                    writer.write(emailField.getText() + "\n");
-                    writer.write(passwordField.getText());
-                    writer.close();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                SecureCredentials.saveCredentials(email, password);
             } else {
-                new File("C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt")
-                        .delete();
+                SecureCredentials.clearCredentials();
             }
+
             timer.setRepeats(false);
             timer.start();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
+
+
+
 
     private boolean directAuthenticate(String email, String password) {
         if (email.equals("admin@bookit.com") && password.equals("Admin_123")) {
@@ -217,25 +223,5 @@ public class BookItLogin extends JFrame {
     }
 
     // TODO: the remember me shit
-    public static void main(String[] args) {
-        Db.connect("root", "mimimi45");
-        SwingUtilities.invokeLater(() -> {
-            if (!new File(
-                    "C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt")
-                    .exists()) {
-                BookItLogin loginSystem = new BookItLogin();
-                loginSystem.setVisible(true);
-            } else {
-                try {
-                    BufferedReader reader = new BufferedReader(new FileReader(
-                            "C:\\Users\\HTech\\IdeaProjects\\Hotel-Booking-Service\\src\\main\\resources\\credentials.txt"));
-                    String email = reader.readLine();
-                    String password = reader.readLine();
-                    new BookItLogin(email, password);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-    }
+
 }

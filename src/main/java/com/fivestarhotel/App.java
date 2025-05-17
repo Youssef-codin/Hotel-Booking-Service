@@ -5,10 +5,12 @@ import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.GUI.BookItLogin;
+import com.fivestarhotel.GUI.Utils;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
+import com.fivestarhotel.users.User;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -40,7 +42,7 @@ public class App {
         // TODO: After successful login, transition to:
         // Simplified authentication to use hardcoded credentials:
         // Admin: admin@bookit.com / Admin_123
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "root");
         // Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com",
         // "Admin_123"));
         //
@@ -62,9 +64,9 @@ public class App {
         // Db.create.addBooking(booking1);
 
         // Start the application
-        SwingUtilities.invokeLater(() -> {
-           BookItLogin loginSystem = new BookItLogin();
-           loginSystem.setVisible(true);
-        });
+
+        BookItLogin loginSystem = new BookItLogin();
+        loginSystem.setVisible(true);
+
     }
 }
