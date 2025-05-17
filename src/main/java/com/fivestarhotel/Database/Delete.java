@@ -136,7 +136,7 @@ public class Delete {
         }
     }
 
-    public void deleteUser(int userID, UserRoles userRole) {
+    public boolean deleteUser(int userID, UserRoles userRole) {
         String tableName;
 
         switch (userRole) {
@@ -155,11 +155,14 @@ public class Delete {
 
             if (rows > 0) {
                 System.out.println("User deleted successfully from " + tableName + " table.");
+                return true;
             } else {
                 System.out.println("No user found with ID: " + userID);
+                return false;
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
     }
 }

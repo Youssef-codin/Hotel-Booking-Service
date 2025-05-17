@@ -5,6 +5,7 @@ import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.Payment;
 import com.fivestarhotel.Room;
+import com.fivestarhotel.Billing.BillingStatus;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
@@ -995,6 +996,11 @@ public class RoomManagement extends JFrame {
             JOptionPane.showMessageDialog(null,
                     "Payment successfully processed.",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
+            System.out.println("PAID");
+            Db.delete.bill(booking.getBooking_id());
+            Db.delete.booking(booking.getBooking_id());
+            Db.update.roomStatus(booking.getRoom().getNum(), false);
+            Db.update.roomCheckIn(booking.getRoom().getNum(), false);
 
         } else if (processed == -2) {
             Utils.showError(null, "Payment was not complete.");
@@ -1003,6 +1009,10 @@ public class RoomManagement extends JFrame {
             JOptionPane.showMessageDialog(null,
                     "Payment successfully processed, refunded " + processed + " into you account.",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
+            Db.delete.bill(booking.getBooking_id());
+            Db.delete.booking(booking.getBooking_id());
+            Db.update.roomStatus(booking.getRoom().getNum(), false);
+            Db.update.roomCheckIn(booking.getRoom().getNum(), false);
         }
 
         allCustAccounts = Db.select.getAllUsers(UserRoles.CUSTOMER);
@@ -1011,6 +1021,8 @@ public class RoomManagement extends JFrame {
         loadBookedRooms();
     }
 
+    // private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[] {
+    // "Admin", "Receptionist", "Customer" });
     private void removeAccountButton(JComboBox<String> accountTypeCombo) {
         String accountType = (String) accountTypeCombo.getSelectedItem();
         String accountId = accountIdField.getText().trim();
@@ -1029,13 +1041,31 @@ public class RoomManagement extends JFrame {
                     JOptionPane.WARNING_MESSAGE);
 
             if (confirm == JOptionPane.YES_OPTION) {
-                // In real implementation: Db.delete.removeUser(Integer.parseInt(accountId),
-                // accountType)
-                JOptionPane.showMessageDialog(removeDialog,
-                        accountType + " account #" + accountId + " removed (Mock implementation)",
-                        "Success", JOptionPane.INFORMATION_MESSAGE);
-                removeDialog.dispose();
-                loadAccountSections(); // Refresh the accounts display
+                boolean deleted = false;
+
+                switch (accountType) {
+                    case "Customer" -> deleted = Db.delete.deleteUser(Integer.parseInt(accountId), UserRoles.CUSTOMER);
+                    case "Receptionist" ->
+                        deleted = Db.delete.deleteUser(Integer.parseInt(accountId), UserRoles.RECEPTIONIST);
+                    case "Admin" -> deleted = Db.delete.deleteUser(Integer.parseInt(accountId), UserRoles.ADMIN);
+                }
+
+                if (deleted) {
+                    JOptionPane.showMessageDialog(removeDialog,
+                            accountType + " account #" + accountId + " removed",
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    Utils.showError(null,
+                            "Error: Person seems to have bookings, remove their bookings before attempting to delete account.");
+                }
+
+                allCustAccounts = Db.select.getAllUsers(UserRoles.CUSTOMER);
+                loadAccounts(custPanel, allCustAccounts);
+                allAdminAccounts = Db.select.getAllUsers(UserRoles.ADMIN);
+                loadAccounts(adminPanel, allAdminAccounts);
+                allRecepAccounts = Db.select.getAllUsers(UserRoles.RECEPTIONIST);
+                loadAccounts(recepPanel, allRecepAccounts);
+                loadAccountSections();
             }
         } catch (NumberFormatException ex) {
             Utils.showError(removeDialog, "Please enter a valid numeric ID");
