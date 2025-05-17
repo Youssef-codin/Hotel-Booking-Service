@@ -75,6 +75,7 @@ public class Utils {
         JLabel label = new JLabel(labelText);
         label.setFont(LABEL_FONT);
         label.setForeground(primaryColor);
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
         panel.add(label);
 
         field.setFont(LABEL_FONT);
