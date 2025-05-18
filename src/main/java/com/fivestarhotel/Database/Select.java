@@ -305,6 +305,10 @@ public class Select {
         }
     }
 
+
+    
+
+
     public boolean IsRoomAvailable(Room room, Booking booking, int excludeBookingId) {
         String sql = "SELECT COUNT(*) FROM booking " +
                 "WHERE room_number = ? " +
@@ -984,4 +988,29 @@ public class Select {
             return null;
         }
     }
+    // Check if a room exists in the database
+
+    public boolean doesRoomExist(int roomNum) {
+        String sql = "SELECT COUNT(*) FROM room WHERE room_number = ?";
+        try (Connection conn = Db.connect();) {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, roomNum);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0; // Return true if room exists
+            }
+            return false;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error while checking room existence: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean doesRoomExist(Room room) {
+        return doesRoomExist(room.getNum());
+    }
+
 }

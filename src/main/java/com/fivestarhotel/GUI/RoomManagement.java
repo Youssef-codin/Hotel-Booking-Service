@@ -662,14 +662,21 @@ public class RoomManagement extends JFrame {
             int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
             RoomType roomType = (RoomType) roomTypes.getSelectedItem();
 
-            Db.create.addRoom(roomNumber, roomType);
+            if (Db.select.doesRoomExist(roomNumber)) {
+                Utils.showError(addRoomDialog, "Room #" + roomNumber + " already exists");
+                return;
+            }else{
+                Db.create.addRoom(roomNumber, roomType);
 
-            allRooms.add(new Room(roomNumber, roomType, false, false));
-            JOptionPane.showMessageDialog(addRoomDialog,
+                allRooms.add(new Room(roomNumber, roomType, false, false));
+                JOptionPane.showMessageDialog(addRoomDialog,
                     "Room #" + roomNumber + " added successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
-            addRoomDialog.dispose();
-            loadRooms();
+                addRoomDialog.dispose();
+                loadRooms();
+            }
+
+            
         } catch (NumberFormatException ex) {
             Utils.showError(addRoomDialog, "Please enter a valid room number");
         }
