@@ -257,22 +257,22 @@ public class Update {
         }
     }
 
-<<<<<<< HEAD
 
 
-    public static void updateBookingCheckIn(int bookingId, boolean checkedIn) {
-    String sql = "UPDATE booking SET booking_checkedin = ? WHERE booking_id = ?";
-    try (Connection conn = Db.connect();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setBoolean(1, checkedIn);
-        ps.setInt(2, bookingId);
-        int rows = ps.executeUpdate();
-        System.out.println("Check-in update: " + rows + " rows affected for booking " + bookingId);
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-}
-=======
+
+    // public static void updateBookingCheckIn(int bookingId, boolean checkedIn) {
+    // String sql = "UPDATE booking SET booking_checkedin = ? WHERE booking_id = ?";
+    // try (Connection conn = Db.connect();
+    //      PreparedStatement ps = conn.prepareStatement(sql)) {
+    //     ps.setBoolean(1, checkedIn);
+    //     ps.setInt(2, bookingId);
+    //     int rows = ps.executeUpdate();
+    //     System.out.println("Check-in update: " + rows + " rows affected for booking " + bookingId);
+    // } catch (SQLException e) {
+    //     e.printStackTrace();
+    // }
+    // }
+
     public void updateBookingCheckIn(int bookingId, boolean checkedIn) {
         String sql = "UPDATE booking SET booking_checkedin = ? WHERE booking_id = ?";
         try (Connection conn = Db.connect();
@@ -285,5 +285,5 @@ public class Update {
             e.printStackTrace();
         }
     }
->>>>>>> edd958b1fff09e15e47dac765047b127c5307066
+
 }

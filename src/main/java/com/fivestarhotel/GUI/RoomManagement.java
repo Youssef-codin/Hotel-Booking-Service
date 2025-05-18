@@ -996,14 +996,14 @@ public class RoomManagement extends JFrame {
 
 
     private void checkInAction(Booking booking) {
-<<<<<<< HEAD
+
         booking.setCheckedIn(true); // Update the object locally
         Db.update.updateBookingCheckIn(booking.getBooking_id(), true); // Update database
         Db.update.roomCheckIn(booking.getRoom().getNum(), true); // Update room status
         JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status", JOptionPane.INFORMATION_MESSAGE);
         loadRooms(); // Refresh available rooms
         loadBookedRooms(); // Refresh booked rooms UI
-=======
+
         booking.setCheckInDate(LocalDate.now());
         booking.setCheckedIn(true);
 
@@ -1015,7 +1015,7 @@ public class RoomManagement extends JFrame {
 
         loadRooms();
         loadBookedRooms();
->>>>>>> edd958b1fff09e15e47dac765047b127c5307066
+
     }
 
     private JDialog showCheckOutDialog(Booking booking) {
@@ -1449,11 +1449,11 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-<<<<<<< HEAD
+
         Db.connect("root", "6831");
-=======
-        Db.connect("root", "");
->>>>>>> edd958b1fff09e15e47dac765047b127c5307066
+
+        // Db.connect("root", "");
+
         // run at least once
         // Db.create.addRate(RoomType.SINGLE, 750);
         // Db.create.addRate(RoomType.DOUBLE, 1200);
