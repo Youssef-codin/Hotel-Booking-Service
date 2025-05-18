@@ -1,19 +1,14 @@
 package com.fivestarhotel.GUI;
 
 import com.fivestarhotel.Database.Db;
-import com.fivestarhotel.Database.Db.UserRoles;
-import com.fivestarhotel.security.Crypto;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
-import java.util.ArrayList;
 
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
 import com.fivestarhotel.security.SecureCredentials;
-import com.fivestarhotel.users.Customer;
 
 public class BookItLogin extends JFrame {
     private JTextField emailField = new JTextField();

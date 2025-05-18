@@ -234,9 +234,9 @@ public class RoomManagement extends JFrame {
             String searchName = searchField.getText().trim();
             switch (tabbedPane.getSelectedIndex()) {
                 case 1 -> {
-                    ArrayList<Room> rooms = Db.select.getBookedRoomsByName(searchName);
-                    if (!rooms.isEmpty()) {
-                        loadBookedRooms(rooms);
+                    ArrayList<Booking> bookings = Db.select.getBookingByName(searchName);
+                    if (!bookings.isEmpty()) {
+                        loadBookedRooms(bookings);
                     } else {
                         System.out.println("empty 210");
                         loadBookedRooms();
@@ -272,7 +272,6 @@ public class RoomManagement extends JFrame {
 
             loadAccountSections();
             loadRooms();
-            loadBookedRooms();
         }
     }
 
@@ -383,23 +382,18 @@ public class RoomManagement extends JFrame {
         });
     }
 
-    private void loadBookedRooms(ArrayList<Room> rooms) {
+    private void loadBookedRooms(ArrayList<Booking> bookings) {
         bookedRoomsPanel.removeAll();
         bookedRoomsPanel.revalidate();
         bookedRoomsPanel.repaint();
 
         SwingUtilities.invokeLater(() -> {
-            bookedRoomsPanel.removeAll();
-
-            if (rooms.isEmpty()) {
+            if (bookings.isEmpty()) {
+                bookedRoomsPanel.removeAll();
                 bookedRoomsPanel.add(new JLabel("No rooms found"));
             } else {
-                for (Room room : rooms) {
-                    ArrayList<Booking> bookings = Db.select.getBookings(room.getNum());
-                    for (Booking booking : bookings) {
-                        System.out.println("room: " + room.getNum() + " : " + "booking: " + booking.getBooking_id());
-                        addBookedRoomCard(booking);
-                    }
+                for (Booking booking : bookings) {
+                    addBookedRoomCard(booking);
                 }
             }
 
@@ -1002,12 +996,26 @@ public class RoomManagement extends JFrame {
 
 
     private void checkInAction(Booking booking) {
+<<<<<<< HEAD
         booking.setCheckedIn(true); // Update the object locally
         Db.update.updateBookingCheckIn(booking.getBooking_id(), true); // Update database
         Db.update.roomCheckIn(booking.getRoom().getNum(), true); // Update room status
         JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status", JOptionPane.INFORMATION_MESSAGE);
         loadRooms(); // Refresh available rooms
         loadBookedRooms(); // Refresh booked rooms UI
+=======
+        booking.setCheckInDate(LocalDate.now());
+        booking.setCheckedIn(true);
+
+        Db.update.booking(booking);
+        Db.update.roomCheckIn(booking.getRoom().getNum(), true);
+
+        JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        loadRooms();
+        loadBookedRooms();
+>>>>>>> edd958b1fff09e15e47dac765047b127c5307066
     }
 
     private JDialog showCheckOutDialog(Booking booking) {
@@ -1441,7 +1449,11 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
+<<<<<<< HEAD
         Db.connect("root", "6831");
+=======
+        Db.connect("root", "");
+>>>>>>> edd958b1fff09e15e47dac765047b127c5307066
         // run at least once
         // Db.create.addRate(RoomType.SINGLE, 750);
         // Db.create.addRate(RoomType.DOUBLE, 1200);
