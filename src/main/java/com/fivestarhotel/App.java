@@ -4,6 +4,8 @@ import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.GUI.BookItLogin;
 import com.fivestarhotel.users.Admin;
 
+import java.util.ArrayList;
+
 public class App {
     public static void main(String[] args) throws Exception {
         /*
@@ -18,12 +20,10 @@ public class App {
          *
          * Login with admin@gbookit.com and Pass_123
          */
-        Db.connect("root", "");
-        Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Pass_123"));
-        Db.select.loadRates();
-
-        BookItLogin loginSystem = new BookItLogin();
-        loginSystem.setVisible(true);
-
+        Db.connect("root", "mimimi45");
+        ArrayList<Room> rooms = Db.select.getBookedRoomsByName("mark");
+        for (int i = 0; i < rooms.size(); i++) {
+            rooms.get(i).getData();
+        }
     }
 }

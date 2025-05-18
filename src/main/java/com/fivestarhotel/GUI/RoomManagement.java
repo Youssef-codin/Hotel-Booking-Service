@@ -1,56 +1,31 @@
 package com.fivestarhotel.GUI;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.SpinnerDateModel;
-import javax.swing.SwingUtilities;
-import javax.swing.Timer;
-
-import com.fivestarhotel.Billing;
-import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Database.Db.UserRoles;
+import com.fivestarhotel.Billing;
 import com.fivestarhotel.Payment;
 import com.fivestarhotel.Room;
+import com.fivestarhotel.Billing.BillingStatus;
+import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
 
+import javax.swing.*;
+import javax.swing.Timer;
+import java.awt.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
+
 public class RoomManagement extends JFrame {
     private JTextField accountIdField, searchField, customerIdField, firstNameField, lastNameField, emailField,
             phoneField, payField, singleRateField, doubleRateField, suiteRateField;
     private JDialog addRoomDialog, removeDialog, checkInDialog, ratesDialog;
     private JSpinner checkInSpinner, checkOutSpinner;
-    private int searchNumber;
+    private int currentUserId, searchNumber;
     private String currentUserRole;
     private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel,
             bookedRoomsPanel;
@@ -74,6 +49,7 @@ public class RoomManagement extends JFrame {
 
     public RoomManagement(String userRole, int userId) {
         this.currentUserRole = userRole;
+        this.currentUserId = userId;
         initializeUI();
     }
 
@@ -271,7 +247,6 @@ public class RoomManagement extends JFrame {
 
             loadAccountSections();
             loadRooms();
-            loadBookedRooms();
         }
     }
 
@@ -360,7 +335,6 @@ public class RoomManagement extends JFrame {
         bookedRoomsPanel.removeAll();
         bookedRoomsPanel.revalidate();
         bookedRoomsPanel.repaint();
-        allBookedRooms = Db.select.getRooms(true);
 
         SwingUtilities.invokeLater(() -> {
             bookedRoomsPanel.removeAll();
@@ -388,24 +362,23 @@ public class RoomManagement extends JFrame {
         bookedRoomsPanel.revalidate();
         bookedRoomsPanel.repaint();
 
-        SwingUtilities.invokeLater(() -> {
-            bookedRoomsPanel.removeAll();
 
-            if (rooms.isEmpty()) {
-                bookedRoomsPanel.add(new JLabel("No rooms found"));
-            } else {
-                for (Room room : rooms) {
-                    ArrayList<Booking> bookings = Db.select.getBookings(room.getNum());
-                    for (Booking booking : bookings) {
-                        System.out.println("room: " + room.getNum() + " : " + "booking: " + booking.getBooking_id());
-                        addBookedRoomCard(booking);
-                    }
+
+        if (rooms.isEmpty()) {
+            bookedRoomsPanel.removeAll();
+            bookedRoomsPanel.add(new JLabel("No rooms found"));
+        } else {
+            for (Room room : rooms) {
+                ArrayList<Booking> bookings = Db.select.getBookings(room.getNum());
+                for (Booking booking : bookings) {
+                    System.out.println("room: " + room.getNum() + " : " + "booking: " + booking.getBooking_id());
+                    addBookedRoomCard(booking);
                 }
             }
+        }
 
-            bookedRoomsPanel.revalidate();
-            bookedRoomsPanel.repaint();
-        });
+        bookedRoomsPanel.revalidate();
+        bookedRoomsPanel.repaint();
     }
 
     private void loadBookedRoom(Room room) {
@@ -498,7 +471,6 @@ public class RoomManagement extends JFrame {
         roomsPanel.add(card);
     }
 
-    // the booking passed here is wrong
     private void addBookedRoomCard(Booking booking) {
         Room room = booking.getRoom();
 
@@ -521,8 +493,7 @@ public class RoomManagement extends JFrame {
         infoPanel.add(new JLabel("Type: " + room.getRoomType()));
         infoPanel.add(createStatusLabel(booking.isCheckedIn()));
 
-        System.out.println("checked in adding bookedroom" + booking.isCheckedIn());
-        System.out.println(booking.toString());
+        System.out.println("checked in " + booking.isCheckedIn());
 
         card.add(infoPanel, BorderLayout.CENTER);
 
@@ -606,7 +577,10 @@ public class RoomManagement extends JFrame {
         Db.update.rates(RoomType.SINGLE, Integer.parseInt(single));
         Db.update.rates(RoomType.DOUBLE, Integer.parseInt(doubleRate));
         Db.update.rates(RoomType.SUITE, Integer.parseInt(suite));
-        Db.select.loadRates();
+
+        Room.setRate(RoomType.SINGLE, Integer.parseInt(single));
+        Room.setRate(RoomType.DOUBLE, Integer.parseInt(doubleRate));
+        Room.setRate(RoomType.SUITE, Integer.parseInt(suite));
 
         JOptionPane.showMessageDialog(addRoomDialog,
                 "Room rates changed Successfully!",
@@ -1000,13 +974,17 @@ public class RoomManagement extends JFrame {
     }
 
     private void checkInAction(Booking booking) {
-        booking.setCheckedIn(true); // Update the object locally
-        Db.update.updateBookingCheckIn(booking.getBooking_id(), true); // Update database
-        Db.update.roomCheckIn(booking.getRoom().getNum(), true); // Update room status
+        booking.setCheckInDate(LocalDate.now());
+        booking.setCheckedIn(true);
+
+        Db.update.booking(booking);
+        Db.update.roomCheckIn(booking.getRoom().getNum(), true);
+
         JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status",
                 JOptionPane.INFORMATION_MESSAGE);
-        loadRooms(); // Refresh available rooms
-        loadBookedRooms(); // Refresh booked rooms UI
+
+        loadRooms();
+        loadBookedRooms();
     }
 
     private JDialog showCheckOutDialog(Booking booking) {
@@ -1440,7 +1418,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "");
+        Db.connect("root", "mimimi45");
         // run at least once
         // Db.create.addRate(RoomType.SINGLE, 750);
         // Db.create.addRate(RoomType.DOUBLE, 1200);
