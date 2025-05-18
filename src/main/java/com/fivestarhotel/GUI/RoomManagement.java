@@ -50,7 +50,7 @@ public class RoomManagement extends JFrame {
             phoneField, payField, singleRateField, doubleRateField, suiteRateField;
     private JDialog addRoomDialog, removeDialog, checkInDialog, ratesDialog;
     private JSpinner checkInSpinner, checkOutSpinner;
-    private int currentUserId, searchNumber;
+    private int searchNumber;
     private String currentUserRole;
     private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel,
             bookedRoomsPanel;
@@ -74,7 +74,6 @@ public class RoomManagement extends JFrame {
 
     public RoomManagement(String userRole, int userId) {
         this.currentUserRole = userRole;
-        this.currentUserId = userId;
         initializeUI();
     }
 
