@@ -7,8 +7,7 @@ import com.fivestarhotel.users.Admin;
 public class App {
     public static void main(String[] args) throws Exception {
         /*
-         * WELCOME TO Db!! You may do "limited" sql functionalities in Java by using
-         * Db.!!
+         * WELCOME TO BOOKIT!
          * START BY CONNECTING TO YOUR OWN DATABASE SERVER, Use Db.connect() and add
          * your username and password
          *
