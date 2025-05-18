@@ -21,9 +21,5 @@ public class App {
          * Login with admin@gbookit.com and Pass_123
          */
         Db.connect("root", "mimimi45");
-        ArrayList<Room> rooms = Db.select.getBookedRoomsByName("mark");
-        for (int i = 0; i < rooms.size(); i++) {
-            rooms.get(i).getData();
-        }
     }
 }
