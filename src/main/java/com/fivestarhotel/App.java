@@ -4,6 +4,8 @@ import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.GUI.BookItLogin;
 import com.fivestarhotel.users.Admin;
 
+import java.util.ArrayList;
+
 public class App {
     public static void main(String[] args) throws Exception {
         /*
@@ -24,6 +26,5 @@ public class App {
 
         BookItLogin loginSystem = new BookItLogin();
         loginSystem.setVisible(true);
-
     }
 }
