@@ -20,6 +20,11 @@ public class App {
          *
          * Login with admin@gbookit.com and Pass_123
          */
-        Db.connect("root", "mimimi45");
+        Db.connect("root", "");
+        Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Pass_123"));
+        Db.select.loadRates();
+
+        BookItLogin loginSystem = new BookItLogin();
+        loginSystem.setVisible(true);
     }
 }
