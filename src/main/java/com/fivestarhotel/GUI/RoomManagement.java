@@ -1002,6 +1002,10 @@ public class RoomManagement extends JFrame {
 
     private void checkInAction(Booking booking) {
 
+        if (booking.getCheckInDate().isAfter(LocalDate.now())) {
+            booking.setCheckInDate(LocalDate.now());
+        }
+
         booking.setCheckedIn(true); // Update the object locally
         Db.update.updateBookingCheckIn(booking.getBooking_id(), true); // Update database
         Db.update.roomCheckIn(booking.getRoom().getNum(), true); // Update room status
@@ -1009,21 +1013,6 @@ public class RoomManagement extends JFrame {
                 JOptionPane.INFORMATION_MESSAGE);
         loadRooms(); // Refresh available rooms
         loadBookedRooms(); // Refresh booked rooms UI
-
-        if (booking.getCheckInDate().isAfter(LocalDate.now())) {
-            booking.setCheckInDate(LocalDate.now());
-        }
-
-        // booking.setCheckedIn(true);
-        // Db.update.booking(booking);
-        // Db.update.roomCheckIn(booking.getRoom().getNum(), true);
-
-        // JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status",
-        //         JOptionPane.INFORMATION_MESSAGE);
-
-        // loadRooms();
-        // loadBookedRooms();
-
     }
 
     private JDialog showCheckOutDialog(Booking booking) {
