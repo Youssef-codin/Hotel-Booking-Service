@@ -145,8 +145,9 @@ public class BookItLogin extends JFrame {
             String email = emailField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
 
-            if (!Utils.validateInputs(email, password, this))
+            if (!Utils.validateInputs(email, password, null, null, null, null, null)) {
                 return;
+            }
 
             loadingBar.setVisible(true);
             setEnabled(false);

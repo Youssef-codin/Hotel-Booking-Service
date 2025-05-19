@@ -199,7 +199,8 @@ public class Utils {
         JOptionPane.showMessageDialog(parent, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    public static boolean validateInputs(String email, String password, Component parent) {
+    public static boolean validateInputs(String email, String password, String fullName, String phone, String address, String accountType, Component parent) {
+        // Email and Password Validation
         if (email.isEmpty() || password.isEmpty()) {
             Utils.showError(parent, "Please enter both email and password");
             return false;
@@ -210,15 +211,38 @@ public class Utils {
             return false;
         }
 
-        if (!password.matches(
-                "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{6,20}$")) {
-            Utils.showError(parent,
-                    "Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
+        if (!password.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{6,20}$")) {
+            Utils.showError(parent, "Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
+            return false;
+        }
+
+        // Full Name Validation
+        if (fullName.isEmpty()) {
+            Utils.showError(parent, "Full Name is required.");
+            return false;
+        }
+
+        // Customer-Specific Validation
+        if ("Customer".equals(accountType)) {
+            if (phone.isEmpty() || address.isEmpty()) {
+                Utils.showError(parent, "Phone and Address are required for Customer accounts.");
+                return false;
+            }
+            if (!phone.matches("^\\d{10,15}$")) {
+                Utils.showError(parent, "Please enter a valid phone number (10-15 digits).");
+                return false;
+            }
+        }
+
+        // Length Checks for Name
+        if (fullName.length() > 50) {
+            Utils.showError(parent, "Full Name must not exceed 50 characters.");
             return false;
         }
 
         return true;
     }
+
 
     public static JLabel createDetailLabel(String text) {
         JLabel label = new JLabel(text);
