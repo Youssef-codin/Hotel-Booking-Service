@@ -1,29 +1,54 @@
 package com.fivestarhotel.GUI;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+
+import com.fivestarhotel.Billing;
+import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Database.Db.UserRoles;
-import com.fivestarhotel.Billing;
 import com.fivestarhotel.Payment;
 import com.fivestarhotel.Room;
-import com.fivestarhotel.Billing.BillingStatus;
-import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
 
-import javax.swing.*;
-import javax.swing.Timer;
-import java.awt.*;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.*;
-
 public class RoomManagement extends JFrame {
     private JTextField accountIdField, searchField, customerIdField, firstNameField, lastNameField, emailField,
             phoneField, payField, singleRateField, doubleRateField, suiteRateField;
-    private JDialog addRoomDialog, removeDialog, checkInDialog, ratesDialog;
+    private JDialog addRoomDialog, removeDialog, bookingDialog, ratesDialog;
     private JSpinner checkInSpinner, checkOutSpinner;
     private int currentUserId, searchNumber;
     private String currentUserRole;
@@ -637,14 +662,20 @@ public class RoomManagement extends JFrame {
             int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
             RoomType roomType = (RoomType) roomTypes.getSelectedItem();
 
-            Db.create.addRoom(roomNumber, roomType);
+            if (Db.select.doesRoomExist(roomNumber)) {
+                Utils.showError(addRoomDialog, "Room #" + roomNumber + " already exists");
+                return;
+            } else {
+                Db.create.addRoom(roomNumber, roomType);
 
-            allRooms.add(new Room(roomNumber, roomType, false, false));
-            JOptionPane.showMessageDialog(addRoomDialog,
-                    "Room #" + roomNumber + " added successfully!",
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
-            addRoomDialog.dispose();
-            loadRooms();
+                allRooms.add(new Room(roomNumber, roomType, false, false));
+                JOptionPane.showMessageDialog(addRoomDialog,
+                        "Room #" + roomNumber + " added successfully!",
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                addRoomDialog.dispose();
+                loadRooms();
+            }
+
         } catch (NumberFormatException ex) {
             Utils.showError(addRoomDialog, "Please enter a valid room number");
         }
@@ -970,17 +1001,18 @@ public class RoomManagement extends JFrame {
     }
 
     private void checkInAction(Booking booking) {
-        booking.setCheckInDate(LocalDate.now());
-        booking.setCheckedIn(true);
 
-        Db.update.booking(booking);
-        Db.update.roomCheckIn(booking.getRoom().getNum(), true);
+        if (booking.getCheckInDate().isAfter(LocalDate.now())) {
+            booking.setCheckInDate(LocalDate.now());
+        }
 
+        booking.setCheckedIn(true); // Update the object locally
+        Db.update.updateBookingCheckIn(booking.getBooking_id(), true); // Update database
+        Db.update.roomCheckIn(booking.getRoom().getNum(), true); // Update room status
         JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status",
                 JOptionPane.INFORMATION_MESSAGE);
-
-        loadRooms();
-        loadBookedRooms();
+        loadRooms(); // Refresh available rooms
+        loadBookedRooms(); // Refresh booked rooms UI
     }
 
     private JDialog showCheckOutDialog(Booking booking) {
@@ -1211,10 +1243,10 @@ public class RoomManagement extends JFrame {
     }
 
     private void showBookingDialog(Room room) {
-        checkInDialog = new JDialog(this, "Book - Room #" + room.getNum(), true);
-        checkInDialog.setSize(600, 600);
-        checkInDialog.setLocationRelativeTo(this);
-        checkInDialog.getContentPane().setBackground(Utils.secondaryColor);
+        bookingDialog = new JDialog(this, "Book - Room #" + room.getNum(), true);
+        bookingDialog.setSize(600, 600);
+        bookingDialog.setLocationRelativeTo(this);
+        bookingDialog.getContentPane().setBackground(Utils.secondaryColor);
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -1310,8 +1342,8 @@ public class RoomManagement extends JFrame {
 
         mainPanel.add(centerPanel, BorderLayout.CENTER);
         mainPanel.add(submitButton, BorderLayout.SOUTH);
-        checkInDialog.add(mainPanel);
-        checkInDialog.setVisible(true);
+        bookingDialog.add(mainPanel);
+        bookingDialog.setVisible(true);
     }
 
     private int verifyCustomerAction() {
@@ -1352,7 +1384,7 @@ public class RoomManagement extends JFrame {
         LocalDate checkOutLocalDate = checkOutDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
         if (checkOutDate.before(checkInDate)) {
-            JOptionPane.showMessageDialog(checkInDialog,
+            JOptionPane.showMessageDialog(bookingDialog,
                     "Check-out date must be after check-in date",
                     "Invalid Dates", JOptionPane.ERROR_MESSAGE);
             return;
@@ -1360,14 +1392,14 @@ public class RoomManagement extends JFrame {
 
         if (tabbedPane.getSelectedIndex() == 0) {
             if (customerId == -1) {
-                JOptionPane.showMessageDialog(checkInDialog,
+                JOptionPane.showMessageDialog(bookingDialog,
                         "Please verify customer ID first",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
         } else {
             if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(checkInDialog,
+                JOptionPane.showMessageDialog(bookingDialog,
                         "First and last name are required",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -1386,25 +1418,25 @@ public class RoomManagement extends JFrame {
         // -1 room not avaliable at requested dates
         // 0 successful
         if (successfullBooking == 0) {
-            JOptionPane.showMessageDialog(checkInDialog,
+            JOptionPane.showMessageDialog(bookingDialog,
                     "Room #" + room.getNum() + " booked successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
 
-            checkInDialog.dispose();
+            bookingDialog.dispose();
             loadRooms();
             loadBookedRooms();
 
         } else if (successfullBooking == -1) {
-            JOptionPane.showMessageDialog(checkInDialog,
+            JOptionPane.showMessageDialog(bookingDialog,
                     "Booking failed: room not available at requested dates.",
                     "Error", JOptionPane.ERROR_MESSAGE);
         } else if (successfullBooking == -2) {
-            JOptionPane.showMessageDialog(checkInDialog,
+            JOptionPane.showMessageDialog(bookingDialog,
                     "Booking failed: Invalid date inputs.",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
         } else if (successfullBooking == -3) {
-            JOptionPane.showMessageDialog(checkInDialog,
+            JOptionPane.showMessageDialog(bookingDialog,
                     "Booking failed: SQLError",
                     "Error", JOptionPane.ERROR_MESSAGE);
 
@@ -1414,7 +1446,11 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "");
+
+        Db.connect("root", "6831");
+
+        // Db.connect("root", "");
+
         // run at least once
         // Db.create.addRate(RoomType.SINGLE, 750);
         // Db.create.addRate(RoomType.DOUBLE, 1200);

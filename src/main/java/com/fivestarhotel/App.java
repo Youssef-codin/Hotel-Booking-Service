@@ -4,7 +4,6 @@ import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.GUI.BookItLogin;
 import com.fivestarhotel.users.Admin;
 
-import java.util.ArrayList;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -20,7 +19,17 @@ public class App {
          *
          * Login with admin@gbookit.com and Pass_123
          */
-        Db.connect("root", "");
+
+        // TODO: After successful login, transition to:
+        // Simplified authentication to use hardcoded credentials:
+        // Admin: admin@bookit.com / Admin_123
+        Db.connect("root", "6831");
+
+        // Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com",
+        // "Admin_123"));
+
+
+        // Db.connect("root", "");
         Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Pass_123"));
         Db.select.loadRates();
 

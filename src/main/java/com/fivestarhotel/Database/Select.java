@@ -1,9 +1,12 @@
 package com.fivestarhotel.Database;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
@@ -11,7 +14,6 @@ import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
 import com.fivestarhotel.Room.RoomType;
 import static com.fivestarhotel.security.Crypto.stringToHash;
-
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
@@ -302,6 +304,10 @@ public class Select {
             return false;
         }
     }
+
+
+    
+
 
     public boolean IsRoomAvailable(Room room, Booking booking, int excludeBookingId) {
         String sql = "SELECT COUNT(*) FROM booking " +
@@ -682,6 +688,24 @@ public class Select {
             return null;
         }
     }
+    
+    public int lastBillId() {
+        try (Connection conn = Db.connect()) {
+            PreparedStatement ps = conn
+                    .prepareStatement("SELECT * from billing ORDER BY billing_id DESC LIMIT 1");
+            ResultSet result = ps.executeQuery();
+            if (result.next()) {
+                return result.getInt("billing_id");
+            } else {
+                System.err.println("Last bill not found.");
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(e.getErrorCode());
+            return 0;
+        }
+    }
 
     public Billing getBillCustomer(int customerId) {
         try (Connection conn = Db.connect()) {
@@ -964,4 +988,29 @@ public class Select {
             return null;
         }
     }
+    // Check if a room exists in the database
+
+    public boolean doesRoomExist(int roomNum) {
+        String sql = "SELECT COUNT(*) FROM room WHERE room_number = ?";
+        try (Connection conn = Db.connect();) {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, roomNum);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0; // Return true if room exists
+            }
+            return false;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Database error while checking room existence: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean doesRoomExist(Room room) {
+        return doesRoomExist(room.getNum());
+    }
+
 }

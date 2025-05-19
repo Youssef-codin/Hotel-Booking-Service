@@ -9,15 +9,14 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 
 import com.fivestarhotel.Billing;
+import com.fivestarhotel.Billing.BillingStatus;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
-import com.fivestarhotel.Billing.BillingStatus;
 import com.fivestarhotel.Room.RoomType;
 import static com.fivestarhotel.security.Crypto.makeSalt;
 import static com.fivestarhotel.security.Crypto.stringToHash;
-
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
@@ -218,9 +217,10 @@ public class Create {
 
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO billing(booking_id, billing_status) VALUES (?, ?)");
-            ps.setInt(1, bill.getBookingId());
-            ps.setBoolean(2, Billing.convertBill(bill.getStatus()));
+                    "INSERT INTO billing(billing_id, booking_id, billing_status) VALUES (?, ?, ?)");
+            ps.setInt(1, Db.select.lastBillId() + 1);
+            ps.setInt(2, bill.getBookingId());
+            ps.setBoolean(3, Billing.convertBill(bill.getStatus()));
             int rows = ps.executeUpdate();
             System.out.println("Added " + rows + " bill row(s).");
 
