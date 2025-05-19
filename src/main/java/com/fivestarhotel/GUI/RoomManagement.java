@@ -1014,15 +1014,15 @@ public class RoomManagement extends JFrame {
             booking.setCheckInDate(LocalDate.now());
         }
 
-        booking.setCheckedIn(true);
-        Db.update.booking(booking);
-        Db.update.roomCheckIn(booking.getRoom().getNum(), true);
+        // booking.setCheckedIn(true);
+        // Db.update.booking(booking);
+        // Db.update.roomCheckIn(booking.getRoom().getNum(), true);
 
-        JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status",
-                JOptionPane.INFORMATION_MESSAGE);
+        // JOptionPane.showMessageDialog(null, "Successfully Checked in!", "Check in status",
+        //         JOptionPane.INFORMATION_MESSAGE);
 
-        loadRooms();
-        loadBookedRooms();
+        // loadRooms();
+        // loadBookedRooms();
 
     }
 
@@ -1458,7 +1458,7 @@ public class RoomManagement extends JFrame {
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
 
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "6831");
 
         // Db.connect("root", "");
 
