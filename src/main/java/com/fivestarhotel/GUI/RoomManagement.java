@@ -1,26 +1,50 @@
 package com.fivestarhotel.GUI;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Date;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+
+import com.fivestarhotel.Billing;
+import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.Database.Db.UserRoles;
-import com.fivestarhotel.Billing;
 import com.fivestarhotel.Payment;
 import com.fivestarhotel.Room;
-import com.fivestarhotel.Billing.BillingStatus;
-import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.Room.RoomType;
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
 import com.fivestarhotel.users.User;
-
-import javax.swing.*;
-import javax.swing.Timer;
-import java.awt.*;
-import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.*;
 
 public class RoomManagement extends JFrame {
     private JTextField accountIdField, searchField, customerIdField, firstNameField, lastNameField, emailField,
@@ -1386,8 +1410,6 @@ public class RoomManagement extends JFrame {
             customerInfoLabel.setForeground(Color.BLACK);
             return -1;
         }
-        try {
-            int customerId = Integer.parseInt(customerIdField.getText());
 
         int customerId;
     try {
@@ -1403,14 +1425,12 @@ public class RoomManagement extends JFrame {
             customerInfoLabel.setForeground(Color.RED);
             return -1;
         }else if (customerId > 0 ) {
+            User user = Db.select.getUserById(UserRoles.CUSTOMER, customerId);
+            if (user != null) {
+                customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
+                customerInfoLabel.setForeground(new Color(0, 128, 0));
 
-
-                User user = Db.select.getUserById(UserRoles.CUSTOMER, customerId);
-                if (user != null) {
-                    customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
-                    customerInfoLabel.setForeground(new Color(0, 128, 0));
-
-                    return customerId;
+                return customerId;
                 }
                 customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
                 customerInfoLabel.setForeground(Color.RED);
@@ -1420,13 +1440,6 @@ public class RoomManagement extends JFrame {
             customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
             customerInfoLabel.setForeground(Color.RED);
             return -1;
-        }else {
-            customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
-            customerInfoLabel.setForeground(Color.RED);
-            return -1;
-
-        }
-        return -1;
     }
 
     private void finishBookingAction(Room room) {
@@ -1501,7 +1514,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
-        Db.connect("root", "mimimi45");
+        Db.connect("root", "6831");
         // run at least once
         // Db.create.addRate(RoomType.SINGLE, 750);
         // Db.create.addRate(RoomType.DOUBLE, 1200);
