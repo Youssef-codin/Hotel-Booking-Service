@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
@@ -305,10 +306,6 @@ public class Select {
         }
     }
 
-
-    
-
-
     public boolean IsRoomAvailable(Room room, Booking booking, int excludeBookingId) {
         String sql = "SELECT COUNT(*) FROM booking " +
                 "WHERE room_number = ? " +
@@ -431,24 +428,6 @@ public class Select {
 
         }
     }
-
-    // public ArrayList<Room> getBookedRoomsByName(String name) {
-    // ArrayList<Booking> bookings = getBookingByName(name);
-    // HashMap<Integer, Room> rooms = new HashMap<>();
-    //
-    // if (!bookings.isEmpty()) {
-    // for (Booking booking : bookings) {
-    // Room room = booking.getRoom();
-    // rooms.put(room.getNum(), room);
-    //
-    // }
-    //
-    // } else {
-    // System.err.println("no bookings available");
-    // }
-    //
-    // return new ArrayList<>(rooms.values());
-    // }
 
     public ArrayList<Booking> getBookings() {
         ArrayList<Booking> bookings = new ArrayList<>();
@@ -688,7 +667,7 @@ public class Select {
             return null;
         }
     }
-    
+
     public int lastBillId() {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn
