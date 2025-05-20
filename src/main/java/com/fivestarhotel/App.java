@@ -10,11 +10,14 @@ public class App {
          * WELCOME TO BOOKIT!
          * Step 1: Make sure to run the SQLScript
          *
-         * Step 2: Run Db.create.signUpUser(new Admin("admin", "admin",
+         * Step 2: make sure to change the username and password of Db.connect() to ur
+         * SQLServer username and pass
+         *
+         * Step 3: Run Db.create.signUpUser(new Admin("admin", "admin",
          * "admin@bookit.com", "Pass_123"));
          * at least once
          *
-         * Step 3: Login with admin@gbookit.com and Pass_123
+         * Step 4: Login with admin@gbookit.com and Pass_123
          */
 
         Db.connect("root", "root");
