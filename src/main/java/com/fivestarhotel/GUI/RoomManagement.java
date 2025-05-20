@@ -30,6 +30,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -766,6 +767,8 @@ public class RoomManagement extends JFrame {
         JTextField nameField = new JTextField();
         JTextField emailField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
+        JTextField phoneFieldLocal = new JTextField();
+        JTextField addressFieldLocal = new JTextField();
 
         Utils.addFormField(formPanel, "Account Type:", accountTypeCombo);
         Utils.addFormField(formPanel, "Full Name:", nameField);
@@ -773,15 +776,14 @@ public class RoomManagement extends JFrame {
         Utils.addFormField(formPanel, "Password:", passwordField);
 
         JLabel phoneLabel = new JLabel("Phone:");
-        JTextField phoneFieldLocal = new JTextField();
-
         JLabel addressLabel = new JLabel("Address:");
-        JTextField addressFieldLocal = new JTextField();
 
         phoneLabel.setFont(Utils.LABEL_FONT);
         phoneLabel.setForeground(Utils.primaryColor);
+        phoneLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         addressLabel.setFont(Utils.LABEL_FONT);
         addressLabel.setForeground(Utils.primaryColor);
+        addressLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
         phoneFieldLocal.setFont(Utils.LABEL_FONT);
         phoneFieldLocal.setBorder(BorderFactory.createCompoundBorder(
@@ -797,25 +799,23 @@ public class RoomManagement extends JFrame {
         formPanel.add(addressLabel);
         formPanel.add(addressFieldLocal);
 
-        phoneLabel.setVisible(false);
-        phoneFieldLocal.setVisible(false);
-        addressLabel.setVisible(false);
-        addressFieldLocal.setVisible(false);
+        // Set initial visibility based on the current account type
+        boolean isCustomer = "Customer".equals(accountTypeCombo.getSelectedItem());
+        phoneLabel.setVisible(isCustomer);
+        phoneFieldLocal.setVisible(isCustomer);
+        addressLabel.setVisible(isCustomer);
+        addressFieldLocal.setVisible(isCustomer);
 
         accountTypeCombo.addActionListener(e -> {
             String selectedType = (String) accountTypeCombo.getSelectedItem();
-            boolean isCustomer = "Customer".equals(selectedType);
+            boolean isCustomerSelected = "Customer".equals(selectedType);
 
-            phoneLabel.setVisible(isCustomer);
-            phoneFieldLocal.setVisible(isCustomer);
-            addressLabel.setVisible(isCustomer);
-            addressFieldLocal.setVisible(isCustomer);
+            phoneLabel.setVisible(isCustomerSelected);
+            phoneFieldLocal.setVisible(isCustomerSelected);
+            addressLabel.setVisible(isCustomerSelected);
+            addressFieldLocal.setVisible(isCustomerSelected);
 
-            addAccountDialog.pack(); // Adjust dialog size to fit new content
-            // Ensure dialog is not smaller than a minimum reasonable size after pack
-            addAccountDialog.setMinimumSize(new Dimension(400, (isCustomer ? 420 : 350)));
-            // Re-center dialog if its size changed
-            addAccountDialog.setLocationRelativeTo(RoomManagement.this);
+            addAccountDialog.pack();
         });
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -824,55 +824,33 @@ public class RoomManagement extends JFrame {
         JButton submitButton = Utils.createActionButton("Add", e -> {
             String accountType = (String) accountTypeCombo.getSelectedItem();
             String fullName = nameField.getText().trim();
-            String[] nameParts = fullName.split("\\s+");
-
-            String fName = nameParts.length > 0 ? nameParts[0] : "";
-            String lName = nameParts.length > 1 ? nameParts[1] : "";
-
             String email = emailField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
-            String phone = null;
-            String address = null;
+            String phone = phoneFieldLocal.getText().trim();
+            String address = addressFieldLocal.getText().trim();
 
-            if (fullName.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                Utils.showError(addAccountDialog, "Full Name, Email, and Password are required.");
+            // Use the validateInputs method for complete validation
+            if (!Utils.validateInputs(email, password, fullName, phone, address, accountType, addAccountDialog)) {
                 return;
             }
 
-            String message = "Type: " + accountType +
-                    "\nName: " + fullName + "\nEmail: " + email;
-
-            if ("Customer".equals(accountType)) {
-                phone = phoneFieldLocal.getText().trim();
-                address = addressFieldLocal.getText().trim();
-                if (phone.isEmpty() || address.isEmpty()) {
-                    Utils.showError(addAccountDialog, "Phone and Address are required for Customer accounts.");
-                    return;
-                }
-                message += "\nPhone: " + phone + "\nAddress: " + address;
-            }
             if (accountType.equals("Admin")) {
-                Db.create.signUpUser(new Admin(fName, lName, email, password));
-
+                Db.create.signUpUser(new Admin(fullName, "", email, password));
             } else if (accountType.equals("Receptionist")) {
-                Db.create.signUpUser(new Receptionist(fName, lName, email, password));
-
+                Db.create.signUpUser(new Receptionist(fullName, "", email, password));
             } else {
-                Db.create.signUpUser(new Customer(fName, lName, email, password, phone, address, 0));
-
+                Db.create.signUpUser(new Customer(fullName, "", email, password, phone, address, 0));
             }
 
-            JOptionPane.showMessageDialog(addAccountDialog,
-                    message, "Account Action (GUI Only)", JOptionPane.INFORMATION_MESSAGE);
-
+            JOptionPane.showMessageDialog(addAccountDialog, "Account created successfully.", "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
             addAccountDialog.dispose();
             loadAccountSections();
+            refreshAccounts();
         });
 
-        JButton cancelButton = Utils.createActionButton("Cancel", e -> {
-            addAccountDialog.dispose();
-        });
-        passwordField.addActionListener(e -> submitButton.doClick());
+        JButton cancelButton = Utils.createActionButton("Cancel", e -> addAccountDialog.dispose());
+
         buttonPanel.add(submitButton);
         buttonPanel.add(cancelButton);
 
@@ -884,8 +862,6 @@ public class RoomManagement extends JFrame {
         addAccountDialog.setMinimumSize(new Dimension(400, 350));
         addAccountDialog.setLocationRelativeTo(this);
         addAccountDialog.setVisible(true);
-
-        refreshAccounts();
     }
 
     private void showRemoveAccountDialog() {
@@ -1459,6 +1435,7 @@ public class RoomManagement extends JFrame {
         // Insert Db.connect(user,pass) here if you want to test
 
         Db.connect("root", "6831");
+
 
         // Db.connect("root", "");
 
