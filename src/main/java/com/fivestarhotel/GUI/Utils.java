@@ -242,6 +242,18 @@ public class Utils {
 
         return true;
     }
+    public static boolean validateInputs(String email, String password) {
+        if (email == null || email.isEmpty()) {
+            showError(null, "Email is required.");
+            return false;
+        }
+        if (password == null || password.isEmpty()) {
+            showError(null, "Password is required.");
+            return false;
+        }
+        return true;
+    }
+
 
 
     public static JLabel createDetailLabel(String text) {
