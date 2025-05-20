@@ -9,15 +9,14 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 
 import com.fivestarhotel.Billing;
+import com.fivestarhotel.Billing.BillingStatus;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
-import com.fivestarhotel.Billing.BillingStatus;
 import com.fivestarhotel.Room.RoomType;
 import static com.fivestarhotel.security.Crypto.makeSalt;
 import static com.fivestarhotel.security.Crypto.stringToHash;
-
 import com.fivestarhotel.users.Admin;
 import com.fivestarhotel.users.Customer;
 import com.fivestarhotel.users.Receptionist;
@@ -84,29 +83,6 @@ public class Create {
         }
     }
 
-    // public void overrideRoom(int roomNumber, RoomType roomType) {
-    //
-    // int updates = 0;
-    // try (Connection conn = Db.connect()) {
-    // PreparedStatement ps = conn.prepareStatement("DELETE FROM room WHERE
-    // room_number = ?");
-    // ps.setInt(1, roomNumber);
-    // ps.executeUpdate();
-    // ps = conn.prepareStatement(
-    // "INSERT INTO room(room_number, room_floor, room_type, room_status)
-    // Values(?,?,?,?)");
-    // ps.setInt(1, roomNumber);
-    // ps.setInt(2, (roomNumber / 100) + 1);
-    // ps.setString(3, Room.convertRm(roomType));
-    // ps.setBoolean(4, false);
-    // updates = ps.executeUpdate();
-    // System.out.println("overrode " + updates + " rows");
-    //
-    // } catch (SQLException e) {
-    // System.err.println("SQL: Error");
-    // }
-    // }
-
     public boolean addRooms(RoomType roomType, int amount) {
 
         int updates = 0;
@@ -144,46 +120,6 @@ public class Create {
             return false;
         }
     }
-
-    // public boolean addBookedRooms(RoomType roomType, int amount) {
-    //
-    // int updates = 0;
-    // try (Connection conn = Db.connect()) {
-    // for (int i = 0; i < amount; i++) {
-    // int lastRoomNum = Db.select.lastRoomNum();
-    // if (lastRoomNum >= 1) {
-    // PreparedStatement ps = conn.prepareStatement(
-    // "INSERT INTO room(room_floor, room_type, room_status, room_checkedin)
-    // Values(?,?,?,?)");
-    // ps.setInt(1, (lastRoomNum / 100) + 1);
-    // ps.setString(2, Room.convertRm(roomType));
-    // ps.setBoolean(3, true);
-    // ps.setBoolean(4, false);
-    // updates += ps.executeUpdate();
-    //
-    // } else if (lastRoomNum == 0) {
-    // Db.update.resetIncrementRooms();
-    // PreparedStatement ps = conn.prepareStatement(
-    // "INSERT INTO room(room_number, room_floor, room_type, room_status,
-    // room_checkedin) Values(?,?,?,?,?)");
-    // ps.setInt(1, 1);
-    // ps.setInt(2, (lastRoomNum / 100) + 1);
-    // ps.setString(3, Room.convertRm(roomType));
-    // ps.setBoolean(4, true);
-    // ps.setBoolean(5, false);
-    // updates += ps.executeUpdate();
-    //
-    // }
-    // }
-    // System.out.println("Added " + updates + " rows");
-    // return true;
-    //
-    // } catch (SQLException e) {
-    // e.printStackTrace();
-    // System.err.println(e.getErrorCode());
-    // return false;
-    // }
-    // }
 
     public void addRate(RoomType type, int newRate) {
 
@@ -281,9 +217,10 @@ public class Create {
 
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO billing(booking_id, billing_status) VALUES (?, ?)");
-            ps.setInt(1, bill.getBookingId());
-            ps.setBoolean(2, Billing.convertBill(bill.getStatus()));
+                    "INSERT INTO billing(billing_id, booking_id, billing_status) VALUES (?, ?, ?)");
+            ps.setInt(1, Db.select.lastBillId() + 1);
+            ps.setInt(2, bill.getBookingId());
+            ps.setBoolean(3, Billing.convertBill(bill.getStatus()));
             int rows = ps.executeUpdate();
             System.out.println("Added " + rows + " bill row(s).");
 

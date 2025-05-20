@@ -4,14 +4,13 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDate;
 
 import com.fivestarhotel.Billing;
 import com.fivestarhotel.BookingSystem.Booking;
 import com.fivestarhotel.BookingSystem.BookingManager;
 import com.fivestarhotel.Database.Db.UserRoles;
 import com.fivestarhotel.Room;
-import com.fivestarhotel.Room.RoomType; // Ensure this is the correct package for the Booking class
+import com.fivestarhotel.Room.RoomType;
 
 public class Update {
 
@@ -52,7 +51,7 @@ public class Update {
         }
     }
 
-    public void updateRates(RoomType type, int newRate) {
+    public void rates(RoomType type, int newRate) {
         try (Connection conn = Db.connect()) {
             PreparedStatement ps = conn.prepareStatement("UPDATE rates SET room_rate = ? WHERE room_type = ?");
             ps.setInt(1, newRate);
@@ -122,8 +121,8 @@ public class Update {
                 ps.setInt(3, booking.getReceptionist_id());
                 ps.setDate(4, Date.valueOf(booking.getCheckInDate())); // Format: yyyy-MM-dd
                 ps.setDate(5, Date.valueOf(booking.getCheckOutDate())); // Format: yyyy-MM-dd
-                ps.setBoolean(7, booking.isCheckedIn());
-                ps.setInt(6, booking.getBooking_id());
+                ps.setBoolean(6, booking.isCheckedIn());
+                ps.setInt(7, booking.getBooking_id());
                 Db.update.roomStatus(booking.getRoom().getNum(), true); // Update room status to booked
 
                 int rows = ps.executeUpdate();
@@ -156,37 +155,6 @@ public class Update {
             e.printStackTrace();
         }
     }
-
-    // public void bookingCheckIndate(int booking_id, boolean isCheckedIn) {
-    // BookingManager bm = new BookingManager();
-    // Booking booking = Db.select.getBooking(booking_id);
-    // Room room = booking.getRoom();
-    // bm.validateBookingDates(LocalDate.now(), booking.getCheckOutDate());
-    //
-    // if (Db.select.IsRoomAvailable(room, booking, booking.getBooking_id())) {
-    // System.out.println("Room " + booking.getRoom().getNum() + " is available.
-    // Proceeding with booking...");
-    // try (Connection conn = Db.connect()) {
-    // PreparedStatement ps = conn.prepareStatement(
-    // "UPDATE booking SET check_in_date = ? WHERE booking_id = ?");
-    // ps.setDate(1, Date.valueOf(booking.getCheckOutDate()));
-    // ps.setInt(2, booking.getBooking_id());
-    //
-    // int rows = ps.executeUpdate();
-    // if (rows == 0) {
-    // System.err.println("Booking ID not found.");
-    // } else {
-    // System.out.println("updated " + rows + " rows!");
-    // }
-    // } catch (SQLException e) {
-    // e.printStackTrace();
-    // }
-    // } else {
-    // System.out.println("Room " + booking.getRoom().getNum() + " is not available
-    // for the requested dates.");
-    // }
-    //
-    // }
 
     // if a customer wants to extend their stay, they can use this method to update
     // the check out date
@@ -288,4 +256,34 @@ public class Update {
             System.err.println("Database error: " + e.getMessage());
         }
     }
+
+
+
+
+    // public static void updateBookingCheckIn(int bookingId, boolean checkedIn) {
+    // String sql = "UPDATE booking SET booking_checkedin = ? WHERE booking_id = ?";
+    // try (Connection conn = Db.connect();
+    //      PreparedStatement ps = conn.prepareStatement(sql)) {
+    //     ps.setBoolean(1, checkedIn);
+    //     ps.setInt(2, bookingId);
+    //     int rows = ps.executeUpdate();
+    //     System.out.println("Check-in update: " + rows + " rows affected for booking " + bookingId);
+    // } catch (SQLException e) {
+    //     e.printStackTrace();
+    // }
+    // }
+
+    public void updateBookingCheckIn(int bookingId, boolean checkedIn) {
+        String sql = "UPDATE booking SET booking_checkedin = ? WHERE booking_id = ?";
+        try (Connection conn = Db.connect();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, checkedIn);
+            ps.setInt(2, bookingId);
+            int rows = ps.executeUpdate();
+            System.out.println("Check-in update: " + rows + " rows affected for booking " + bookingId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
