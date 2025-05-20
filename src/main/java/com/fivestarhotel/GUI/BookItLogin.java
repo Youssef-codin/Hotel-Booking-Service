@@ -145,8 +145,9 @@ public class BookItLogin extends JFrame {
             String email = emailField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
 
-            if (!Utils.validateInputs(email, password, this))
+            if (!Utils.validateInputs(email, password)) {
                 return;
+            }
 
             loadingBar.setVisible(true);
             setEnabled(false);
@@ -159,7 +160,8 @@ public class BookItLogin extends JFrame {
                     openRoomManagement("Admin", user.getId());
 
                 } else if (user instanceof Receptionist) {
-                    System.out.println("Receptionist login successful");
+                    System.out.println("Receptionist lo" +
+                            "gin successful");
                     openRoomManagement("Receptionist", user.getId());
 
                 } else {
