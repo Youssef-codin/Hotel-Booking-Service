@@ -424,13 +424,11 @@ public class RoomManagement extends JFrame {
         roomsPanel.revalidate();
         roomsPanel.repaint();
 
-        SwingUtilities.invokeLater(() -> {
-            roomsPanel.removeAll();
-            addRoomCard(room);
-            roomsPanel.revalidate();
-            roomsPanel.repaint();
+        roomsPanel.removeAll();
+        addRoomCard(room);
+        roomsPanel.revalidate();
+        roomsPanel.repaint();
 
-        });
     }
 
     private void loadAccounts(JPanel sectionPanel, ArrayList<User> users) {
@@ -808,49 +806,29 @@ public class RoomManagement extends JFrame {
         JButton submitButton = Utils.createActionButton("Add", e -> {
             String accountType = (String) accountTypeCombo.getSelectedItem();
             String fullName = nameField.getText().trim();
-            String[] nameParts = fullName.split("\\s+");
-
-            String fName = nameParts.length > 0 ? nameParts[0] : "";
-            String lName = nameParts.length > 1 ? nameParts[1] : "";
-
             String email = emailField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
-            String phone = null;
-            String address = null;
+            String phone = phoneFieldLocal.getText().trim();
+            String address = addressFieldLocal.getText().trim();
 
-            if (fullName.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                Utils.showError(addAccountDialog, "Full Name, Email, and Password are required.");
+            // Use the validateInputs method for complete validation
+            if (!Utils.validateInputs(email, password, fullName, phone, address, accountType, addAccountDialog)) {
                 return;
             }
 
-            String message = "Type: " + accountType +
-                    "\nName: " + fullName + "\nEmail: " + email;
-
-            if ("Customer".equals(accountType)) {
-                phone = phoneFieldLocal.getText().trim();
-                address = addressFieldLocal.getText().trim();
-                if (phone.isEmpty() || address.isEmpty()) {
-                    Utils.showError(addAccountDialog, "Phone and Address are required for Customer accounts.");
-                    return;
-                }
-                message += "\nPhone: " + phone + "\nAddress: " + address;
-            }
             if (accountType.equals("Admin")) {
-                Db.create.signUpUser(new Admin(fName, lName, email, password));
-
+                Db.create.signUpUser(new Admin(fullName, "", email, password));
             } else if (accountType.equals("Receptionist")) {
-                Db.create.signUpUser(new Receptionist(fName, lName, email, password));
-
+                Db.create.signUpUser(new Receptionist(fullName, "", email, password));
             } else {
-                Db.create.signUpUser(new Customer(fName, lName, email, password, phone, address, 0));
-
+                Db.create.signUpUser(new Customer(fullName, "", email, password, phone, address, 0));
             }
 
-            JOptionPane.showMessageDialog(addAccountDialog,
-                    message, "Account Action (GUI Only)", JOptionPane.INFORMATION_MESSAGE);
-
+            JOptionPane.showMessageDialog(addAccountDialog, "Account created successfully.", "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
             addAccountDialog.dispose();
             loadAccountSections();
+            refreshAccounts();
         });
 
         JButton cancelButton = Utils.createActionButton("Cancel", e -> {
@@ -1169,7 +1147,7 @@ public class RoomManagement extends JFrame {
                             "Success", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     Utils.showError(null,
-                            "Error: Person seems to have bookings, remove their bookings before attempting to delete account.");
+                            "Error: User not found or check out the customer before trying to delete them");
                 }
 
                 allCustAccounts = Db.select.getAllUsers(UserRoles.CUSTOMER);
