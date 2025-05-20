@@ -237,8 +237,12 @@ public class Create {
             String hashedPassword = stringToHash(user.getPassword(), salt);
 
             if (user instanceof Customer customer) {
-                int lastnum = Db.select.lastUserNum(UserRoles.CUSTOMER);
-                if (lastnum == 0) {
+                if (!(Db.select.getUserByEmail(UserRoles.CUSTOMER, customer.getEmail()) == null)) {
+                    System.err.println("Email already exists: " + customer.getEmail());
+                    return null;
+                }
+                int lastNum = Db.select.lastUserNum(UserRoles.CUSTOMER);
+                if (lastNum == 0) {
                     Db.update.resetIncrementUsers(UserRoles.CUSTOMER);
                 }
 
@@ -265,7 +269,10 @@ public class Create {
                 }
 
             } else if (user instanceof Receptionist receptionist) {
-
+                if (!(Db.select.getUserByEmail(UserRoles.RECEPTIONIST, receptionist.getEmail()) == null)) {
+                    System.err.println("Email already exists: " + receptionist.getEmail());
+                    return null;
+                }
                 int lastnum = Db.select.lastUserNum(UserRoles.RECEPTIONIST);
                 if (lastnum == 0) {
                     Db.update.resetIncrementUsers(UserRoles.RECEPTIONIST);
@@ -290,6 +297,10 @@ public class Create {
                             receptionist.getEmail(), hashedPassword);
                 }
             } else if (user instanceof Admin admin) {
+                if (!(Db.select.getUserByEmail(UserRoles.ADMIN, admin.getEmail()) == null)) {
+                    System.err.println("Email already exists: " + admin.getEmail());
+                    return null;
+                }
                 int lastnum = Db.select.lastUserNum(UserRoles.ADMIN);
                 if (lastnum == 0) {
                     Db.update.resetIncrementUsers(UserRoles.ADMIN);
@@ -322,10 +333,12 @@ public class Create {
         } catch (SQLIntegrityConstraintViolationException e) {
             System.err.println("Email already exists: " + user.getEmail());
             return null;
-        } catch (Exception e) {
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        } catch (Exception e){
             e.printStackTrace();
             return null;
         }
-
     }
 }

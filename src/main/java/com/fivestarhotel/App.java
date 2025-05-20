@@ -3,6 +3,7 @@ package com.fivestarhotel;
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.GUI.BookItLogin;
 import com.fivestarhotel.users.Admin;
+import com.fivestarhotel.users.Customer;
 
 public class App {
     public static void main(String[] args) throws Exception {
@@ -20,11 +21,11 @@ public class App {
          * Step 4: Login with admin@gbookit.com and Pass_123
          */
 
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "mimimi45");
+
+
         Db.select.loadRates();
         // run at least once
-        Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Pass_123"));
-        Db.select.loadRates();
 
         BookItLogin loginSystem = new BookItLogin();
         loginSystem.setVisible(true);

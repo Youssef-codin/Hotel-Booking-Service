@@ -869,6 +869,7 @@ public class Select {
         }
     }
 
+
     public User getUserByEmail(UserRoles role, String email) {
         User user = null;
 

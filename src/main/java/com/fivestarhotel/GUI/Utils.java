@@ -246,13 +246,21 @@ public class Utils {
         return true;
     }
 
-    public static boolean validateInputs(String email, String password) {
-        if (email == null || email.isEmpty()) {
-            showError(null, "Email is required.");
+    public static boolean validateInputs(String email, String password, Component parent) {
+        if (email.isEmpty() || password.isEmpty()) {
+            Utils.showError(parent, "Please enter both email and password");
             return false;
         }
-        if (password == null || password.isEmpty()) {
-            showError(null, "Password is required.");
+
+        if (!email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            Utils.showError(parent, "Please enter a valid email address");
+            return false;
+        }
+
+        if (!password.matches(
+                "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{6,20}$")) {
+            Utils.showError(parent,
+                    "Password must be 6-20 characters with at least one uppercase letter, number, and symbol.");
             return false;
         }
         return true;
