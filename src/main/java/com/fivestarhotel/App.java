@@ -8,16 +8,22 @@ public class App {
     public static void main(String[] args) throws Exception {
         /*
          * WELCOME TO BOOKIT!
-         * START BY CONNECTING TO YOUR OWN DATABASE SERVER (make sure you run the
-         * SQLScript), Use Db.connect() and add
-         * your username and password
+         * Step 1: Make sure to run the SQLScript
          *
-         * Login with admin@gbookit.com and Pass_123
+         * Step 2: make sure to change the username and password of Db.connect() to ur
+         * SQLServer username and pass
+         *
+         * Step 3: Run Db.create.signUpUser(new Admin("admin", "admin",
+         * "admin@bookit.com", "Pass_123"));
+         * at least once
+         *
+         * Step 4: Login with admin@gbookit.com and Pass_123
          */
 
-        Db.connect("root", "6831");
-        Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Pass_123"));
+        Db.connect("root", "root");
         Db.select.loadRates();
+        // run at least once
+        Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Pass_123"));
 
         BookItLogin loginSystem = new BookItLogin();
         loginSystem.setVisible(true);
