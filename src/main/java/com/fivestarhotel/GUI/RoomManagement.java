@@ -1323,19 +1323,27 @@ public class RoomManagement extends JFrame {
     }
 
     private int verifyCustomerAction() {
+        String customerIdText = customerIdField.getText();
         if (customerIdField.getText().isEmpty()) {
             customerInfoLabel.setText("Please enter a customer ID");
             customerInfoLabel.setForeground(Color.BLACK);
             return -1;
         }
 
-        int customerId = Integer.parseInt(customerIdField.getText());
+        int customerId;
+    try {
+        customerId = Integer.parseInt(customerIdText);
+        } catch (NumberFormatException e) {
+        customerInfoLabel.setText("<html><b>Invalid input</b> - Please enter a valid numerical customer ID</html>");
+        customerInfoLabel.setForeground(Color.RED);
+        return -1;
+        }
 
-        if (customerId <= 0) {
+        if (customerId <= 0 && customerIdField.getText().isEmpty()) {
             customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
             customerInfoLabel.setForeground(Color.RED);
             return -1;
-        } else {
+        }else if (customerId > 0 ) {
 
             User user = Db.select.getUserById(UserRoles.CUSTOMER, customerId);
             if (user != null) {
@@ -1345,6 +1353,10 @@ public class RoomManagement extends JFrame {
                 return customerId;
             }
             customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
+            customerInfoLabel.setForeground(Color.RED);
+            return -1;
+        }else {
+            customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
             customerInfoLabel.setForeground(Color.RED);
             return -1;
         }
@@ -1423,7 +1435,8 @@ public class RoomManagement extends JFrame {
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
 
-        Db.connect("root", "yoyo8080");
+        Db.connect("root", "6831");
+
 
         // Db.connect("root", "");
 
