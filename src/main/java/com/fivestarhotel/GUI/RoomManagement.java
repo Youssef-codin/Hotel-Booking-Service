@@ -180,7 +180,7 @@ public class RoomManagement extends JFrame {
                     }
 
                     case 2 -> {
-                        if(currentUserRole.matches("Admin")){
+                        if (currentUserRole.matches("Admin")) {
                             if (!allAdminAccounts.isEmpty() && allAdminAccounts.size() >= searchNumber) {
                                 User admin = Db.select.getUserById(UserRoles.ADMIN, searchNumber);
                                 if (!(admin == null)) {
@@ -219,7 +219,7 @@ public class RoomManagement extends JFrame {
                     }
                 }
             } else {
-                if (currentUserRole.matches("Admin")){
+                if (currentUserRole.matches("Admin")) {
                     loadAccountSections();
                 }
                 loadRooms();
@@ -230,11 +230,10 @@ public class RoomManagement extends JFrame {
             String searchName = searchField.getText().trim();
             switch (tabbedPane.getSelectedIndex()) {
                 case 1 -> {
-                    ArrayList<Room> rooms = Db.select.getBookedRoomsByName(searchName);
-                    if (!rooms.isEmpty()) {
+                    ArrayList<Booking> bookings = Db.select.getBookingByName(searchName);
+                    if (!bookings.isEmpty()) {
 
-
-                        loadBookedRooms(rooms);
+                        loadBookedRooms(bookings);
                     } else {
                         System.out.println("empty 210");
                         loadBookedRooms();
@@ -268,7 +267,7 @@ public class RoomManagement extends JFrame {
                 }
             }
 
-            if (currentUserRole.matches("Admin")){
+            if (currentUserRole.matches("Admin")) {
                 loadAccountSections();
             }
             loadRooms();
@@ -382,23 +381,17 @@ public class RoomManagement extends JFrame {
         });
     }
 
-    private void loadBookedRooms(ArrayList<Room> rooms) {
+    private void loadBookedRooms(ArrayList<Booking> bookings) {
         bookedRoomsPanel.removeAll();
         bookedRoomsPanel.revalidate();
         bookedRoomsPanel.repaint();
 
-
-
-        if (rooms.isEmpty()) {
+        if (bookings.isEmpty()) {
             bookedRoomsPanel.removeAll();
             bookedRoomsPanel.add(new JLabel("No rooms found"));
         } else {
-            for (Room room : rooms) {
-                ArrayList<Booking> bookings = Db.select.getBookings(room.getNum());
-                for (Booking booking : bookings) {
-                    System.out.println("room: " + room.getNum() + " : " + "booking: " + booking.getBooking_id());
-                    addBookedRoomCard(booking);
-                }
+            for (Booking booking : bookings) {
+                addBookedRoomCard(booking);
             }
         }
 
@@ -428,13 +421,11 @@ public class RoomManagement extends JFrame {
         roomsPanel.revalidate();
         roomsPanel.repaint();
 
-        SwingUtilities.invokeLater(() -> {
-            roomsPanel.removeAll();
-            addRoomCard(room);
-            roomsPanel.revalidate();
-            roomsPanel.repaint();
+        roomsPanel.removeAll();
+        addRoomCard(room);
+        roomsPanel.revalidate();
+        roomsPanel.repaint();
 
-        });
     }
 
     private void loadAccounts(JPanel sectionPanel, ArrayList<User> users) {
@@ -617,15 +608,14 @@ public class RoomManagement extends JFrame {
 
     private boolean addRoomAction(JTextField roomNumberField) {
         if (roomNumberField.getText().trim().isEmpty()) {
-            switch (JOptionPane.showConfirmDialog(addRoomDialog,"No entered number, add room anyway?")){
+            switch (JOptionPane.showConfirmDialog(addRoomDialog, "No entered number, add room anyway?")) {
                 case 0 -> {
                     RoomType roomType = (RoomType) roomTypes.getSelectedItem();
                     Db.create.addRoom(roomType);
                     JOptionPane.showMessageDialog(
                             addRoomDialog,
                             "Room added successfully!",
-                            "Success", JOptionPane.INFORMATION_MESSAGE
-                    );
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
                     addRoomDialog.dispose();
                     allRooms = Db.select.getRooms();
                     loadRooms();
@@ -642,7 +632,7 @@ public class RoomManagement extends JFrame {
         try {
             int roomNumber = Integer.parseInt(roomNumberField.getText().trim());
             RoomType roomType = (RoomType) roomTypes.getSelectedItem();
-            if(addManyCheckbox.isSelected()){
+            if (addManyCheckbox.isSelected()) {
                 Db.create.addRooms(roomType, roomNumber);
                 JOptionPane.showMessageDialog(addRoomDialog,
                         roomNumber + " Rooms added successfully!",
@@ -650,15 +640,15 @@ public class RoomManagement extends JFrame {
                 addRoomDialog.dispose();
                 allRooms = Db.select.getRooms();
                 loadRooms();
-            }else{
-                if(Db.create.addRoom(roomNumber, roomType)){
+            } else {
+                if (Db.create.addRoom(roomNumber, roomType)) {
                     JOptionPane.showMessageDialog(addRoomDialog,
                             "Room #" + roomNumber + " added successfully!",
                             "Success", JOptionPane.INFORMATION_MESSAGE);
                     addRoomDialog.dispose();
                     allRooms = Db.select.getRooms();
                     loadRooms();
-                }else{
+                } else {
                     Utils.showError(addRoomDialog, "Room already exists");
                 }
             }
@@ -767,9 +757,8 @@ public class RoomManagement extends JFrame {
 
         phoneFieldLocal.setFont(Utils.LABEL_FONT);
         phoneFieldLocal.setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createLineBorder(Utils.primaryColor, 1),
-                    BorderFactory.createEmptyBorder(0, 5, 0, 5)));
-
+                BorderFactory.createLineBorder(Utils.primaryColor, 1),
+                BorderFactory.createEmptyBorder(0, 5, 0, 5)));
 
         JLabel addressLabel = new JLabel("Address:");
         JTextField addressFieldLocal = new JTextField();
@@ -1069,19 +1058,18 @@ public class RoomManagement extends JFrame {
         formPanel.setBackground(Utils.secondaryColor);
 
         roomNumberField = new JTextField();
-        Utils.addFormField(formPanel, "Room number: " ,roomNumberField);
+        Utils.addFormField(formPanel, "Room number: ", roomNumberField);
 
         roomTypes = new JComboBox<>(RoomType.values());
         Utils.addFormField(formPanel, "Room Type:", roomTypes);
 
         addManyCheckbox = new JCheckBox();
-        Utils.addFormField(formPanel,"Add Many Rooms:",addManyCheckbox);
+        Utils.addFormField(formPanel, "Add Many Rooms:", addManyCheckbox);
 
         bookedCheckbox = new JCheckBox();
         Utils.addFormField(formPanel, "Initially Booked:", bookedCheckbox);
 
         mainPanel.add(formPanel, BorderLayout.CENTER);
-
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         buttonPanel.setBackground(Utils.secondaryColor);
@@ -1417,7 +1405,6 @@ public class RoomManagement extends JFrame {
             return -1;
         }
     }
-
 
     private void finishBookingAction(Room room) {
         int customerId = verifyCustomerAction();
