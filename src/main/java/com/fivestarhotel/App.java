@@ -16,7 +16,9 @@ public class App {
          */
 
         Db.connect("root", "root");
-
+        Db.select.loadRates();
+        // run at least once
+        Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com", "Pass_123"));
 
         BookItLogin loginSystem = new BookItLogin();
         loginSystem.setVisible(true);

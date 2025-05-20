@@ -30,6 +30,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -779,8 +780,10 @@ public class RoomManagement extends JFrame {
 
         phoneLabel.setFont(Utils.LABEL_FONT);
         phoneLabel.setForeground(Utils.primaryColor);
+        phoneLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         addressLabel.setFont(Utils.LABEL_FONT);
         addressLabel.setForeground(Utils.primaryColor);
+        addressLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
         phoneFieldLocal.setFont(Utils.LABEL_FONT);
         phoneFieldLocal.setBorder(BorderFactory.createCompoundBorder(
@@ -839,7 +842,8 @@ public class RoomManagement extends JFrame {
                 Db.create.signUpUser(new Customer(fullName, "", email, password, phone, address, 0));
             }
 
-            JOptionPane.showMessageDialog(addAccountDialog, "Account created successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(addAccountDialog, "Account created successfully.", "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
             addAccountDialog.dispose();
             loadAccountSections();
             refreshAccounts();
@@ -859,7 +863,6 @@ public class RoomManagement extends JFrame {
         addAccountDialog.setLocationRelativeTo(this);
         addAccountDialog.setVisible(true);
     }
-
 
     private void showRemoveAccountDialog() {
         JDialog removeDialog = new JDialog(this, "Remove Account", true);
@@ -1420,7 +1423,7 @@ public class RoomManagement extends JFrame {
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
 
-        Db.connect("root", "root");
+        Db.connect("root", "yoyo8080");
 
         // Db.connect("root", "");
 
