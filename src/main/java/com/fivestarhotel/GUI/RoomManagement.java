@@ -1152,7 +1152,6 @@ public class RoomManagement extends JFrame {
                 loadAccounts(adminPanel, allAdminAccounts);
                 allRecepAccounts = Db.select.getAllUsers(UserRoles.RECEPTIONIST);
                 loadAccounts(recepPanel, allRecepAccounts);
-                loadAccountSections();
             }
         } catch (NumberFormatException ex) {
             Utils.showError(removeDialog, "Please enter a valid numeric ID");
@@ -1355,19 +1354,19 @@ public class RoomManagement extends JFrame {
         }
 
         int customerId;
-    try {
-        customerId = Integer.parseInt(customerIdText);
+        try {
+            customerId = Integer.parseInt(customerIdText);
         } catch (NumberFormatException e) {
-        customerInfoLabel.setText("<html><b>Invalid input</b> - Please enter a valid numerical customer ID</html>");
-        customerInfoLabel.setForeground(Color.RED);
-        return -1;
+            customerInfoLabel.setText("<html><b>Invalid input</b> - Please enter a valid numerical customer ID</html>");
+            customerInfoLabel.setForeground(Color.RED);
+            return -1;
         }
 
         if (customerId <= 0 && customerIdField.getText().isEmpty()) {
             customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
             customerInfoLabel.setForeground(Color.RED);
             return -1;
-        }else if (customerId > 0 ) {
+        } else if (customerId > 0) {
 
             User user = Db.select.getUserById(UserRoles.CUSTOMER, customerId);
             if (user != null) {
@@ -1379,7 +1378,7 @@ public class RoomManagement extends JFrame {
             customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
             customerInfoLabel.setForeground(Color.RED);
             return -1;
-        }else {
+        } else {
             customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
             customerInfoLabel.setForeground(Color.RED);
             return -1;
