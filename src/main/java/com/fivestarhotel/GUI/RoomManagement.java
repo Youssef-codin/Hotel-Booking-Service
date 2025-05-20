@@ -1185,7 +1185,6 @@ public class RoomManagement extends JFrame {
                 loadAccounts(adminPanel, allAdminAccounts);
                 allRecepAccounts = Db.select.getAllUsers(UserRoles.RECEPTIONIST);
                 loadAccounts(recepPanel, allRecepAccounts);
-                loadAccountSections();
             }
         } catch (NumberFormatException ex) {
             Utils.showError(removeDialog, "Please enter a valid numeric ID");
@@ -1380,36 +1379,45 @@ public class RoomManagement extends JFrame {
     }
 
     private int verifyCustomerAction() {
+        String customerIdText = customerIdField.getText();
         if (customerIdField.getText().isEmpty()) {
             customerInfoLabel.setText("Please enter a customer ID");
             customerInfoLabel.setForeground(Color.BLACK);
             return -1;
         }
+
+        int customerId;
         try {
-            int customerId = Integer.parseInt(customerIdField.getText());
-
-            if (customerId <= 0) {
-                customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
-                customerInfoLabel.setForeground(Color.RED);
-                return -1;
-            } else {
-
-                User user = Db.select.getUserById(UserRoles.CUSTOMER, customerId);
-                if (user != null) {
-                    customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
-                    customerInfoLabel.setForeground(new Color(0, 128, 0));
-
-                    return customerId;
-                }
-                customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
-                customerInfoLabel.setForeground(Color.RED);
-                return -1;
-            }
+            customerId = Integer.parseInt(customerIdText);
         } catch (NumberFormatException e) {
-            Utils.showError(customerInfoLabel, "Please Enter a Valid Number");
+            customerInfoLabel.setText("<html><b>Invalid input</b> - Please enter a valid numerical customer ID</html>");
+            customerInfoLabel.setForeground(Color.RED);
+            return -1;
         }
-        return -1;
+
+        if (customerId <= 0 && customerIdField.getText().isEmpty()) {
+            customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
+            customerInfoLabel.setForeground(Color.RED);
+            return -1;
+        } else if (customerId > 0) {
+
+            User user = Db.select.getUserById(UserRoles.CUSTOMER, customerId);
+            if (user != null) {
+                customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
+                customerInfoLabel.setForeground(new Color(0, 128, 0));
+
+                return customerId;
+            }
+            customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
+            customerInfoLabel.setForeground(Color.RED);
+            return -1;
+        } else {
+            customerInfoLabel.setText("<html><b>Invalid input</b> - please enter a valid customer ID</html>");
+            customerInfoLabel.setForeground(Color.RED);
+            return -1;
+        }
     }
+
 
     private void finishBookingAction(Room room) {
         int customerId = verifyCustomerAction();
@@ -1483,6 +1491,7 @@ public class RoomManagement extends JFrame {
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
+
         Db.connect("root", "mimimi45");
         // run at least once
         // Db.create.addRate(RoomType.SINGLE, 750);
