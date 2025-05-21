@@ -33,7 +33,7 @@ public class RoomManagement extends JFrame {
     private JPanel roomsPanel, headerPanel, accountsPanel, adminPanel, recepPanel, custPanel, anchorPanel,
             bookedRoomsPanel, customerAccountsPanel;
     private JProgressBar loadingBar;
-    private JCheckBox bookedCheckbox;
+
     private JComboBox<RoomType> roomTypes;
     private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[] { "Admin", "Receptionist", "Customer" });
     private JLabel customerInfoLabel;
@@ -42,10 +42,10 @@ public class RoomManagement extends JFrame {
     private JScrollPane adminSection, recepSection, custSection;
     private BookingCalendar calendar = new BookingCalendar();
     private int roomCount = 1;
-    private int verifiedCustomerId = -1;
+    private int verifiedCustomerId;
     private JTextField roomNumberField;
     private JCheckBox addManyCheckbox;
-    private Customer newCustomer;
+
 
     JComboBox<String> receptionistCombo;
 
@@ -1335,6 +1335,7 @@ public class RoomManagement extends JFrame {
         tabbedPane.addTab("New Customer", newCustomerPanel);
 
         // Modified tab change listener to preserve verification
+        // Modified tab change listener in showBookingDialog method
         tabbedPane.addChangeListener(e -> {
             if (tabbedPane.getSelectedIndex() == 0) { // Existing customer tab
                 // Clear new customer fields
@@ -1350,8 +1351,12 @@ public class RoomManagement extends JFrame {
                     customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
                     customerInfoLabel.setForeground(new Color(0, 128, 0));
                 }
+            } else { // New customer tab
+                // Reset the verification status
+                verifiedCustomerId = -1;
+                customerInfoLabel.setText("");
+                customerIdField.setText("");
             }
-            // Removed the reset of verifiedCustomerId when switching to new customer tab
         });
 
         JPanel datesPanel = new JPanel(new GridLayout(0, 2, 10, 10));
@@ -1372,14 +1377,23 @@ public class RoomManagement extends JFrame {
         Utils.addFormField(datesPanel, "Check-out Date:", checkOutSpinner);
 
         if ("Admin".equals(currentUserRole)) {
-            ArrayList<User> receptionists = Db.select.getAllUsers(UserRoles.RECEPTIONIST);
-            String[] recepStrings = new String[receptionists.size()];
 
-            for (int i = 0; i < receptionists.size(); i++) {
-                recepStrings[i] = "Receptionist ID: " + receptionists.get(i).getId();
-            }
+        }
+        if ("Admin".equals(currentUserRole)) {
+            // Populate receptionist combo (existing logic)
+             ArrayList<User> receptionists = Db.select.getAllUsers(UserRoles.RECEPTIONIST);
+                        String[] recepStrings = new String[receptionists.size()];
 
-            receptionistCombo = new JComboBox<>(recepStrings);
+                        for (int i = 0; i < receptionists.size(); i++) {
+                            recepStrings[i] = "Receptionist ID: " + receptionists.get(i).getId();
+                        }
+
+                        receptionistCombo = new JComboBox<>(recepStrings);
+                        Utils.addFormField(datesPanel, "Receptionist:", receptionistCombo);
+        } else {
+            // For receptionists, auto-fill their ID
+            receptionistCombo = new JComboBox<>(new String[]{"Receptionist ID: " + currentUserId});
+            receptionistCombo.setEnabled(false); // Disable editing
             Utils.addFormField(datesPanel, "Receptionist:", receptionistCombo);
         }
 
@@ -1439,57 +1453,52 @@ public class RoomManagement extends JFrame {
     }
 
     private void finishBookingAction(Room room) {
-        int customerId = -1;
+        int customerId = verifyCustomerAction();
+        int selectedTab = tabbedPane.getSelectedIndex();
 
-        // Check which tab is active
-        if (tabbedPane.getSelectedIndex() == 0) {
-            // Existing customer tab: Use verified ID
-            customerId = verifiedCustomerId;
-            if (customerId == -1) {
+        if (selectedTab == 0) { // Existing Customer Tab
+            // Use verifiedCustomerId if available
+            if (verifiedCustomerId == -1) {
                 JOptionPane.showMessageDialog(bookingDialog,
                         "Please verify customer ID first",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-        } else {
-            // New customer tab: Check if customer is already verified
-            if (verifiedCustomerId != -1) {
-                // Use the verified customer ID instead of creating a new customer
-                customerId = verifiedCustomerId;
-            } else {
-                // Validate and create new customer
-                if (!Utils.validateInputs(
-                        firstNameField.getText().trim(),
-                        lastNameField.getText().trim(),
-                        emailField.getText().trim(),
-                        passwordField.getText().trim(),
-                        phoneField.getText().trim(),
-                        addressField.getText().trim(),
-                        "Customer", this)) {
-                    // Create new customer
-                    Customer newCustomer = new Customer(
-                            firstNameField.getText().trim(),
-                            lastNameField.getText().trim(),
-                            emailField.getText().trim(),
-                            passwordField.getText().trim(),
-                            phoneField.getText().trim(),
-                            addressField.getText().trim(),
-                            0
-                    );
-                    User createdUser = Db.create.signUpUser(newCustomer);
-                    if (createdUser == null) {
-                        Utils.showError(bookingDialog, "User already exists!");
-                        return;
-                    }
-
-                    customerId = createdUser.getId();
-                } else{
-                    return;
-                }
-
+            customerId = verifiedCustomerId;
+        } else { // New Customer Tab
+            // Validate new customer fields
+            if (!Utils.validateInputs(
+                    firstNameField.getText().trim(),
+                    lastNameField.getText().trim(),
+                    emailField.getText().trim(),
+                    passwordField.getText().trim(),
+                    phoneField.getText().trim(),
+                    addressField.getText().trim(),
+                    "Customer", this)) {
+                return; // Exit if validation fails
             }
+
+            // Create new customer
+            Customer newCustomer = new Customer(
+                    firstNameField.getText().trim(),
+                    lastNameField.getText().trim(),
+                    emailField.getText().trim(),
+                    passwordField.getText().trim(),
+                    phoneField.getText().trim(),
+                    addressField.getText().trim(),
+                    0
+            );
+
+            User createdUser = Db.create.signUpUser(newCustomer);
+            if (createdUser == null) {
+                Utils.showError(bookingDialog, "User already exists!");
+                return;
+            }
+            customerId = createdUser.getId();
         }
 
+        // If we reach here, we have a valid customerId
+        // Proceed with booking
         Date checkInDate = (Date) checkInSpinner.getValue();
         Date checkOutDate = (Date) checkOutSpinner.getValue();
 
