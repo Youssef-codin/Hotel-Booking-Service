@@ -199,10 +199,20 @@ public class Utils {
         JOptionPane.showMessageDialog(parent, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    public static boolean validateInputs(String email, String password, String fullName, String phone, String address,
+    public static boolean validateInputs(String firstName, String lastName, String email, String password, String phone, String address,
             String accountType, Component parent) {
-        // Email and Password Validation
-        if (email.isEmpty() || password.isEmpty()) {
+
+         if (firstName.isEmpty() || lastName.isEmpty()) {
+                    Utils.showError(parent, "Full Name is required.");
+                    return false;
+         }
+
+         // Length Checks for Name
+        if ((firstName + " " + lastName).length() > 50) {
+            Utils.showError(parent, "Full Name must not exceed 50 characters.");
+            return false;
+        }
+        if (email.isEmpty() || password.isEmpty()) {// Email and Password Validation
             Utils.showError(parent, "Please enter both email and password");
             return false;
         }
@@ -220,10 +230,7 @@ public class Utils {
         }
 
         // Full Name Validation
-        if (fullName.isEmpty()) {
-            Utils.showError(parent, "Full Name is required.");
-            return false;
-        }
+
 
         // Customer-Specific Validation
         if ("Customer".equals(accountType)) {
@@ -237,14 +244,11 @@ public class Utils {
             }
         }
 
-        // Length Checks for Name
-        if (fullName.length() > 50) {
-            Utils.showError(parent, "Full Name must not exceed 50 characters.");
-            return false;
-        }
+
 
         return true;
     }
+
 
     public static boolean validateInputs(String email, String password, Component parent) {
         if (email.isEmpty() || password.isEmpty()) {

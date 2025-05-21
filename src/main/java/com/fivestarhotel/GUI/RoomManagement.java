@@ -42,9 +42,10 @@ public class RoomManagement extends JFrame {
     private JScrollPane adminSection, recepSection, custSection;
     private BookingCalendar calendar = new BookingCalendar();
     private int roomCount = 1;
-
+    private int verifiedCustomerId = -1;
     private JTextField roomNumberField;
     private JCheckBox addManyCheckbox;
+    private Customer newCustomer;
 
     JComboBox<String> receptionistCombo;
 
@@ -752,12 +753,14 @@ public class RoomManagement extends JFrame {
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         formPanel.setBackground(Utils.secondaryColor);
 
-        JTextField nameField = new JTextField();
+        JTextField firstNameField = new JTextField();
+        JTextField lastNameField = new JTextField();
         JTextField emailField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
 
         Utils.addFormField(formPanel, "Account Type:", accountTypeCombo);
-        Utils.addFormField(formPanel, "Full Name:", nameField);
+        Utils.addFormField(formPanel, "First Name:", firstNameField);
+        Utils.addFormField(formPanel, "Last Name:", lastNameField);
         Utils.addFormField(formPanel, "Email:", emailField);
         Utils.addFormField(formPanel, "Password:", passwordField);
 
@@ -817,29 +820,30 @@ public class RoomManagement extends JFrame {
 
         JButton submitButton = Utils.createActionButton("Add", e -> {
             String accountType = (String) accountTypeCombo.getSelectedItem();
-            String fullName = nameField.getText().trim();
+            String firstName = firstNameField.getText().trim();
+            String lastName = lastNameField.getText().trim();
             String email = emailField.getText().trim();
             String password = new String(passwordField.getPassword()).trim();
             String phone = phoneFieldLocal.getText().trim();
             String address = addressFieldLocal.getText().trim();
 
             // Use the validateInputs method for complete validation
-            if (!Utils.validateInputs(email, password, fullName, phone, address, accountType, addAccountDialog)) {
+            if (!Utils.validateInputs(firstName,lastName,email, password, phone, address, accountType, addAccountDialog)) {
                 return;
             }
 
             if (accountType.equals("Admin")) {
-                if(Db.create.signUpUser(new Admin(fullName, "", email, password)) == null){
+                if(Db.create.signUpUser(new Admin(firstName, lastName, email, password)) == null){
                     Utils.showError(bookingDialog, "User already exists!");
                     return;
                 }
             } else if (accountType.equals("Receptionist")) {
-                if(Db.create.signUpUser(new Receptionist(fullName, "", email, password)) == null){
+                if(Db.create.signUpUser(new Receptionist(firstName, lastName, email, password)) == null){
                     Utils.showError(bookingDialog, "User already exists!");
                     return;
                 }
             } else {
-                if(Db.create.signUpUser(new Customer(fullName, "", email, password, phone, address, 0)) == null){
+                if(Db.create.signUpUser(new Customer(firstName, lastName, email, password, phone, address, 0)) == null){
                     Utils.showError(bookingDialog, "User already exists!");
                     return;
                 }
@@ -1073,9 +1077,6 @@ public class RoomManagement extends JFrame {
         addManyCheckbox = new JCheckBox();
         Utils.addFormField(formPanel, "Add Many Rooms:", addManyCheckbox);
 
-        bookedCheckbox = new JCheckBox();
-        Utils.addFormField(formPanel, "Initially Booked:", bookedCheckbox);
-
         mainPanel.add(formPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
@@ -1136,8 +1137,7 @@ public class RoomManagement extends JFrame {
         loadBookedRooms();
     }
 
-    // private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[] {
-    // "Admin", "Receptionist", "Customer" });
+    // private JComboBox<String> accountTypeCombo = new JComboBox<>(new String[] {"Admin", "Receptionist", "Customer" });
     private void removeAccountButton(JComboBox<String> accountTypeCombo) {
         String accountType = (String) accountTypeCombo.getSelectedItem();
         String accountId = accountIdField.getText().trim();
@@ -1334,6 +1334,26 @@ public class RoomManagement extends JFrame {
         tabbedPane.addTab("Existing Customer", existingCustomerPanel);
         tabbedPane.addTab("New Customer", newCustomerPanel);
 
+        // Modified tab change listener to preserve verification
+        tabbedPane.addChangeListener(e -> {
+            if (tabbedPane.getSelectedIndex() == 0) { // Existing customer tab
+                // Clear new customer fields
+                firstNameField.setText("");
+                lastNameField.setText("");
+                emailField.setText("");
+                passwordField.setText("");
+                phoneField.setText("");
+                addressField.setText("");
+
+                // Display verification status if customer was previously verified
+                if (verifiedCustomerId != -1) {
+                    customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
+                    customerInfoLabel.setForeground(new Color(0, 128, 0));
+                }
+            }
+            // Removed the reset of verifiedCustomerId when switching to new customer tab
+        });
+
         JPanel datesPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         datesPanel.setBorder(BorderFactory.createTitledBorder("Booking Dates"));
         datesPanel.setBackground(Utils.secondaryColor);
@@ -1405,7 +1425,7 @@ public class RoomManagement extends JFrame {
             if (user != null) {
                 customerInfoLabel.setText("<html><b>Customer verified</b> - ready to check in</html>");
                 customerInfoLabel.setForeground(new Color(0, 128, 0));
-
+                verifiedCustomerId = customerId;
                 return customerId;
             }
             customerInfoLabel.setText("<html><b>Customer not found</b> - please register new customer</html>");
@@ -1419,7 +1439,56 @@ public class RoomManagement extends JFrame {
     }
 
     private void finishBookingAction(Room room) {
-        int customerId = verifyCustomerAction();
+        int customerId = -1;
+
+        // Check which tab is active
+        if (tabbedPane.getSelectedIndex() == 0) {
+            // Existing customer tab: Use verified ID
+            customerId = verifiedCustomerId;
+            if (customerId == -1) {
+                JOptionPane.showMessageDialog(bookingDialog,
+                        "Please verify customer ID first",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } else {
+            // New customer tab: Check if customer is already verified
+            if (verifiedCustomerId != -1) {
+                // Use the verified customer ID instead of creating a new customer
+                customerId = verifiedCustomerId;
+            } else {
+                // Validate and create new customer
+                if (!Utils.validateInputs(
+                        firstNameField.getText().trim(),
+                        lastNameField.getText().trim(),
+                        emailField.getText().trim(),
+                        passwordField.getText().trim(),
+                        phoneField.getText().trim(),
+                        addressField.getText().trim(),
+                        "Customer", this)) {
+                    // Create new customer
+                    Customer newCustomer = new Customer(
+                            firstNameField.getText().trim(),
+                            lastNameField.getText().trim(),
+                            emailField.getText().trim(),
+                            passwordField.getText().trim(),
+                            phoneField.getText().trim(),
+                            addressField.getText().trim(),
+                            0
+                    );
+                    User createdUser = Db.create.signUpUser(newCustomer);
+                    if (createdUser == null) {
+                        Utils.showError(bookingDialog, "User already exists!");
+                        return;
+                    }
+
+                    customerId = createdUser.getId();
+                } else{
+                    return;
+                }
+
+            }
+        }
 
         Date checkInDate = (Date) checkInSpinner.getValue();
         Date checkOutDate = (Date) checkOutSpinner.getValue();
@@ -1434,79 +1503,45 @@ public class RoomManagement extends JFrame {
             return;
         }
 
-        if (tabbedPane.getSelectedIndex() == 0) {
-            if (customerId == -1) {
-                JOptionPane.showMessageDialog(bookingDialog,
-                        "Please verify customer ID first",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        } else {
-            if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(bookingDialog,
-                        "First and last name are required");
-            }
-            if (firstNameField.getText().isEmpty() || lastNameField.getText().isEmpty() ||
-                    emailField.getText().isEmpty() || phoneField.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(checkInDialog,
-                        "All customer fields are required",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
         String selectedRecep = (String) receptionistCombo.getSelectedItem();
         String[] parts = selectedRecep.split(": ");
         int receptionist_id = Integer.parseInt(parts[1]);
 
-        Customer newCustomer = new Customer(
-                    firstNameField.getText().trim(),
-                    lastNameField.getText().trim(),
-                    emailField.getText().trim(),
-                    passwordField.getText().trim(),
-                    phoneField.getText().trim(),
-                    addressField.getText().trim(),
-                    0
-        );
-
-        User createdUser = Db.create.signUpUser(newCustomer);
-        if(createdUser == null) {
-            Utils.showError(bookingDialog, "User already exists!");
-            return;
-        }
-        customerId = createdUser.getId();
         Booking booking = new Booking(room, customerId, receptionist_id, checkInLocalDate, checkOutLocalDate);
-        int successfullBooking = Db.create.addBooking(booking);
+        int bookingResult = Db.create.addBooking(booking);
 
         // -3 sql error
         // -2 invalid input
         // -1 room not avaliable at requested dates
         // 0 successful
-        if (successfullBooking == 0) {
-            JOptionPane.showMessageDialog(bookingDialog,
-                    "Room #" + room.getNum() + " booked successfully!",
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
-
-            bookingDialog.dispose();
-            loadRooms();
-            loadBookedRooms();
-
-        } else if (successfullBooking == -1) {
-            JOptionPane.showMessageDialog(bookingDialog,
-                    "Booking failed: room not available at requested dates.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        } else if (successfullBooking == -2) {
-            JOptionPane.showMessageDialog(bookingDialog,
-                    "Booking failed: Invalid date inputs.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-
-        } else if (successfullBooking == -3) {
-            JOptionPane.showMessageDialog(bookingDialog,
-                    "Booking failed: SQLError",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-
+        switch (bookingResult) {
+            case 0:
+                JOptionPane.showMessageDialog(bookingDialog,
+                        "Room #" + room.getNum() + " booked successfully!",
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                bookingDialog.dispose();
+                loadRooms();
+                loadBookedRooms();
+                break;
+            case -1:
+                JOptionPane.showMessageDialog(bookingDialog,
+                        "Booking failed: Room not available at requested dates.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                break;
+            case -2:
+                JOptionPane.showMessageDialog(bookingDialog,
+                        "Booking failed: Invalid date inputs.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                break;
+            case -3:
+                JOptionPane.showMessageDialog(bookingDialog,
+                        "Booking failed: Database error.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                break;
         }
         allBookedRooms = Db.select.getRooms(true);
     }
+
 
     public static void main(String[] args) {
         // Insert Db.connect(user,pass) here if you want to test
