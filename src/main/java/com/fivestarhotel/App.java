@@ -21,11 +21,12 @@ public class App {
          * Step 4: Login with admin@gbookit.com and Pass_123
          */
 
-        Db.connect("root", "mimimi45");
-
+        Db.connect("root", "yoyo8080");
 
         Db.select.loadRates();
-        // run at least once
+        // Db.create.signUpUser(new Admin("admin", "admin", "admin@bookit.com",
+        // "Pass_123"));
+        // run at least once ^
 
         BookItLogin loginSystem = new BookItLogin();
         loginSystem.setVisible(true);
