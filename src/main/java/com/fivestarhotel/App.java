@@ -2,6 +2,7 @@ package com.fivestarhotel;
 
 import com.fivestarhotel.Database.Db;
 import com.fivestarhotel.GUI.BookItLogin;
+import com.fivestarhotel.users.Admin;
 
 public class App {
     public static void main(String[] args) throws Exception {
